@@ -17,8 +17,18 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('avatar', 45)->nullable(); // Ajustar longitud si es una URL completa
+            $table->string('timezone', 45)->default('UTC');
+            $table->string('locale', 45)->default('en');
+            $table->tinyInteger('type')->default(0); // 0=public, 1=admin
+            $table->boolean('status')->default(1); // 1=activo, 0=inactivo
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // Añadido para soft delete
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
