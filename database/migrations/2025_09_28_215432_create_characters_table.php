@@ -29,7 +29,7 @@ return new class extends Migration
             $table->softDeletes(); // Soft delete
 
             $table->unique('fullname'); // Asegura unicidad de fullname
-            $table->unique('slug');     // Asegura unicidad de slug
+            // $table->unique('slug');     // Asegura unicidad de slug
         });
     }
 

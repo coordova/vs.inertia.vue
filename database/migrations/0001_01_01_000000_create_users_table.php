@@ -22,9 +22,9 @@ return new class extends Migration
             $table->string('locale', 45)->default('en');
             $table->tinyInteger('type')->default(0); // 0=public, 1=admin
             $table->boolean('status')->default(1); // 1=activo, 0=inactivo
-            $table->text('two_factor_secret')->nullable();
-            $table->text('two_factor_recovery_codes')->nullable();
-            $table->timestamp('two_factor_confirmed_at')->nullable();
+            // $table->text('two_factor_secret')->nullable();
+            // $table->text('two_factor_recovery_codes')->nullable();
+            // $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamp('last_login_at')->nullable();
             $table->timestamps();

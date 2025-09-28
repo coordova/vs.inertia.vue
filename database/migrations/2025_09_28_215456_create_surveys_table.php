@@ -37,7 +37,7 @@ return new class extends Migration
             $table->index(['date_start']); // Índice para consultas por fecha
             $table->index(['date_end']);   // Índice para consultas por fecha
             // $table->unique('title'); // Opcional: si se quiere unicidad de título global
-            $table->unique('slug');        // Asegura unicidad de slug
+            // $table->unique('slug');        // Asegura unicidad de slug
         });
     }
 
