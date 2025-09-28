@@ -13,7 +13,20 @@ return new class extends Migration
     {
         Schema::create('combinatorics', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('survey_id')->constrained('surveys')->onDelete('cascade'); // FK a surveys
+            $table->foreignId('character1_id')->constrained('characters')->onDelete('cascade'); // FK a characters
+            $table->foreignId('character2_id')->constrained('characters')->onDelete('cascade'); // FK a characters
+            $table->integer('total_comparisons')->default(0);
+            $table->timestamp('last_used_at')->nullable(); // Última vez usada
+            $table->boolean('status')->default(1); // 1=activa, 0=no
+            $table->timestamps(); // created_at, updated_at
+
+            // Asegura unicidad: no puede haber combinación duplicada para la misma encuesta
+            $table->unique(['survey_id', 'character1_id', 'character2_id']);
+
+            // Índices para claves foráneas y búsqueda
+            $table->index(['character1_id', 'character2_id']);
+            // Los índices de FK se crean implícitamente por 'constrained()'
         });
     }
 
