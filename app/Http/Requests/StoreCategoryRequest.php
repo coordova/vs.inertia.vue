@@ -11,7 +11,8 @@ class StoreCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Ej: return auth()->user()->type === 1; // Solo admins
+        return true; // Ajustar según lógica de autorización
     }
 
     /**
@@ -22,7 +23,17 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255|unique:categories,name',
+            'slug' => 'required|string|max:255|unique:categories,slug',
+            'description' => 'nullable|string',
+            'image' => 'nullable|string|max:255', // Puede ser una URL o path
+            'color' => 'nullable|string|size:7|regex:/^#[0-9A-Fa-f]{6}$/',
+            'icon' => 'nullable|string|max:255',
+            'sort_order' => 'nullable|integer|min:0',
+            'status' => 'required|boolean',
+            'is_featured' => 'required|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
         ];
     }
 }

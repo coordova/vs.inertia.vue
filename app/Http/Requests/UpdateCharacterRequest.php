@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCharacterRequest extends FormRequest
 {
@@ -11,7 +12,8 @@ class UpdateCharacterRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Ej: return auth()->user()->type === 1; // Solo admins
+        return true; // Ajustar según lógica de autorización
     }
 
     /**
@@ -21,8 +23,21 @@ class UpdateCharacterRequest extends FormRequest
      */
     public function rules(): array
     {
+        $characterId = $this->route('character'); // Obtiene el ID del parámetro de la ruta
+
         return [
-            //
+            'fullname' => ['required', 'string', 'max:255', Rule::unique('characters', 'fullname')->ignore($characterId)],
+            'nickname' => 'nullable|string|max:255',
+            'slug' => ['required', 'string', 'max:255', Rule::unique('characters', 'slug')->ignore($characterId)],
+            'bio' => 'nullable|string',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|integer|in:0,1,2,3',
+            'nationality' => 'nullable|string|max:255',
+            'occupation' => 'nullable|string|max:255',
+            'picture' => 'required|string|max:255',
+            'status' => 'required|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
         ];
     }
 }
