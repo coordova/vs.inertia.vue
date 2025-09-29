@@ -5,6 +5,13 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CharacterController;
 use App\Http\Controllers\Admin\SurveyController;
 
+/* Route::middleware('auth', 'verified')->group(function () {
+
+    Route::resource('categories', CategoryController::class);
+    Route::resource('characters', CharacterController::class);
+    Route::resource('surveys', SurveyController::class);
+});  */   
+
 // Este grupo recibe el middleware 'api' definido internamente por Laravel
 // cuando se especifica 'api: ...' en bootstrap/app.php.
 // Para proteger las rutas de administración, aplicamos 'auth' o 'auth:sanctum' internamente.

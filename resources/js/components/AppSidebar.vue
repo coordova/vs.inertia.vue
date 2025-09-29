@@ -23,6 +23,21 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Categories',
+        href: '/api/admin/categories',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Characters',
+        href: '/api/admin/characters',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Surveys',
+        href: '/api/admin/surveys',
+        icon: LayoutGrid,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

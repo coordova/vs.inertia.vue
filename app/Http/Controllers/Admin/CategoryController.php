@@ -18,6 +18,7 @@ class CategoryController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
+        dd(Category::all());
         // Ejemplo de paginación
         $categories = Category::orderBy('sort_order', 'asc')
                              ->orderBy('name', 'asc')
