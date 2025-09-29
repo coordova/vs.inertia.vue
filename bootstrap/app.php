@@ -10,8 +10,9 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
+        api: __DIR__.'/../routes/api.php', // Rutas API
+        commands: __DIR__.'/../routes/console.php', // Opcional: Rutas de consola
+        health: '/up', // Opcional: Endpoint de salud
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
