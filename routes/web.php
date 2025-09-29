@@ -14,10 +14,23 @@ Route::get('dashboard', function () {
 
 /* -------------------------------------------------------------*/
 /* Route::middleware('auth', 'verified')->group(function () {
-    Route::resource('categories', CategoryController::class);
 
-    // Route::get('/category/create', [CategoryController::class, 'create'])->name('categories.create');
+    Route::resource('categories', CategoryController::class);
+    Route::resource('characters', CharacterController::class);
+    Route::resource('surveys', SurveyController::class);
 }); */
+
+Route::middleware(['auth']) // <-- Cambiar a 'auth' si se usa sesión web para Inertia
+    ->prefix('admin') // Prefijo para las rutas de administración
+    ->group(function () {
+        Route::resource('categories', CategoryController::class);
+        Route::resource('characters', CharacterController::class);
+        Route::resource('surveys', SurveyController::class);
+    });
+/* -------------------------------------------------------------*/
+Route::get('prueba', function () {
+    return 'prueba';
+})->name('prueba');
 /* -------------------------------------------------------------*/
 
 require __DIR__.'/settings.php';
