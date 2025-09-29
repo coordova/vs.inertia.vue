@@ -8,21 +8,21 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response; // Importar Response
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): Response
     {
-        dd(Category::all());
-        // Ejemplo de paginación
+        // Cargar categorías con paginación
         $categories = Category::orderBy('sort_order', 'asc')
                              ->orderBy('name', 'asc')
-                             ->paginate($request->get('per_page', 15)); // Puedes ajustar la paginación o usar ->get()
+                             ->paginate($request->get('per_page', 15));
 
         // Opcional: Agregar búsqueda
         // $search = $request->get('search');
@@ -30,64 +30,74 @@ class CategoryController extends Controller
         //     $categories = $categories->where('name', 'like', "%{$search}%");
         // }
 
-        return CategoryResource::collection($categories);
+        // Devolver la vista Inertia con los datos
+        return Inertia::render('Admin/Categories/Index', [
+            'categories' => CategoryResource::collection($categories), // Pasamos la colección transformada
+            'filters' => $request->only(['search', 'per_page']), // Opcional: pasar filtros para UI
+        ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        //
+        // Devolver la vista Inertia para el formulario de creación
+        return Inertia::render('Admin/Categories/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCategoryRequest $request): JsonResponse
+    public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $category = Category::create($request->validated());
+        Category::create($request->validated());
 
-        return (new CategoryResource($category))
-            ->response()
-            ->setStatusCode(201);
+        // Redirigir al listado de categorías después de crear
+        return to_route('admin.categories.index')->with('success', 'Category created successfully.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Category $category): CategoryResource
+    public function show(Category $category): Response
     {
-        // Carga relacional opcional si se necesita en la respuesta
+        // Carga relacional opcional si se necesita en la vista
         // $category->load(['characters', 'surveys']); // Ejemplo
-        return new CategoryResource($category);
+        return Inertia::render('Admin/Categories/Show', [
+            'category' => new CategoryResource($category), // Pasamos el modelo transformado
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Category $category)
+    public function edit(Category $category): Response
     {
-        //
+        // Devolver la vista Inertia para el formulario de edición
+        return Inertia::render('Admin/Categories/Edit', [
+            'category' => new CategoryResource($category), // Pasamos el modelo para pre-rellenar el form
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoryRequest $request, Category $category): CategoryResource
+    public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
         $category->update($request->validated());
 
-        return new CategoryResource($category);
+        // Redirigir al listado o a la edición después de actualizar
+        return to_route('admin.categories.index')->with('success', 'Category updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category): JsonResponse
+    public function destroy(Category $category): RedirectResponse
     {
         $category->delete(); // Soft Delete
 
-        return response()->json(['message' => 'Category deleted successfully'], 200);
+        return to_route('admin.categories.index')->with('success', 'Category deleted successfully.');
     }
 }

@@ -8,17 +8,19 @@ use App\Http\Requests\UpdateSurveyRequest;
 use App\Http\Resources\SurveyResource;
 use App\Models\Survey;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SurveyController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): Response
     {
-        $surveys = Survey::with(['category']) // Carga la categoría para mostrarla en la lista
+        // Carga la categoría para mostrarla en la lista
+        $surveys = Survey::with(['category'])
                        ->orderBy('created_at', 'desc')
                        ->paginate($request->get('per_page', 15));
 
@@ -28,69 +30,81 @@ class SurveyController extends Controller
         //     $surveys = $surveys->where('category_id', $categoryId);
         // }
 
-        return SurveyResource::collection($surveys);
+        return Inertia::render('Admin/Surveys/Index', [
+            'surveys' => SurveyResource::collection($surveys),
+            'filters' => $request->only(['search', 'category_id', 'per_page']), // Ejemplo de filtro por categoría
+        ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        //
+        // Puedes pasar datos auxiliares si es necesario (por ejemplo, lista de categorías)
+        // $categories = Category::all(); // Asumiendo un modelo Category
+        return Inertia::render('Admin/Surveys/Create');
+        // O si necesitas categorías:
+        // return Inertia::render('Admin/Surveys/Create', ['categories' => CategoryResource::collection($categories)]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSurveyRequest $request): JsonResponse
+    public function store(StoreSurveyRequest $request): RedirectResponse
     {
         $survey = Survey::create($request->validated());
 
-        // Opcional: Cargar relación para la respuesta
-        $survey->load('category');
+        // Opcional: Cargar relación si se necesita en la redirección
+        // $survey->load('category');
 
-        return (new SurveyResource($survey))
-            ->response()
-            ->setStatusCode(201);
+        return to_route('admin.surveys.index')->with('success', 'Survey created successfully.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Survey $survey): SurveyResource
+    public function show(Survey $survey): Response
     {
         $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario
-        return new SurveyResource($survey);
+        return Inertia::render('Admin/Surveys/Show', [
+            'survey' => new SurveyResource($survey),
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Survey $survey)
+    public function edit(Survey $survey): Response
     {
-        //
+        // Puedes pasar datos auxiliares si es necesario (por ejemplo, lista de categorías)
+        // $categories = Category::all();
+        return Inertia::render('Admin/Surveys/Edit', [
+            'survey' => new SurveyResource($survey),
+            // 'categories' => CategoryResource::collection($categories), // Si se necesita en edición
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSurveyRequest $request, Survey $survey): SurveyResource
+    public function update(UpdateSurveyRequest $request, Survey $survey): RedirectResponse
     {
         $survey->update($request->validated());
 
         // Opcional: Recargar relación si cambió
-        $survey->load('category');
+        // $survey->load('category');
 
-        return new SurveyResource($survey);
+        return to_route('admin.surveys.index')->with('success', 'Survey updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Survey $survey): JsonResponse
+    public function destroy(Survey $survey): RedirectResponse
     {
         $survey->delete(); // Soft Delete
 
-        return response()->json(['message' => 'Survey deleted successfully'], 200);
+        return to_route('admin.surveys.index')->with('success', 'Survey deleted successfully.');
     }
 }
