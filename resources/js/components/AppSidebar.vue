@@ -25,17 +25,17 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Categories',
-        href: '/api/admin/categories',
+        href: '/admin/categories',
         icon: LayoutGrid,
     },
     {
         title: 'Characters',
-        href: '/api/admin/characters',
+        href: '/admin/characters',
         icon: LayoutGrid,
     },
     {
         title: 'Surveys',
-        href: '/api/admin/surveys',
+        href: '/admin/surveys',
         icon: LayoutGrid,
     },
 ];
