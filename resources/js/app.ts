@@ -5,7 +5,11 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
-import { ZiggyVue } from 'ziggy-js';
+
+import { ZiggyVue } from 'ziggy-js'; // Importa Ziggy
+// import { route } from 'ziggy-js';
+// import { Ziggy } from 'ziggy-js';
+// import { Ziggy } from ' ./ziggy'; // Importa la configuración de rutas generada por Ziggy
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -19,7 +23,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
+            .use(ZiggyVue) // Usa el plugin de Ziggy, pasando la configuración
             .mount(el);
     },
     progress: {

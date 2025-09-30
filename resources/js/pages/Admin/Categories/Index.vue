@@ -1,3 +1,58 @@
+<script setup lang="ts">
+// resources/js/Pages/Admin/Categories/Index.vue
+import { Link, router, usePage } from '@inertiajs/vue3'; // Importamos Link y router de Inertia
+// No necesitamos importar route() si usamos Ziggy como se configuró arriba
+import { Page } from '@inertiajs/core'; // Importamos tipos si es necesario
+
+// Definimos las props que recibe el componente
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    status: boolean;
+    // Añade otros campos según CategoryResource
+}
+
+interface CategoriesData {
+    data: Category[];
+    links: any[]; // Simplificado, usar tipo específico si es posible
+    current_page: number;
+    last_page: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+    // Añade otros campos de paginación según Laravel
+}
+
+interface Props {
+    categories: CategoriesData;
+    filters?: Record<string, any>; // Filtros opcionales
+}
+
+const props = defineProps<Props>();
+
+// Función para eliminar una categoría
+const deleteCategory = (id: number) => {
+    if (confirm('Are you sure you want to delete this category?')) {
+        // Inertia.router.delete maneja la solicitud DELETE y la redirección
+        router.delete(route('admin.categories.destroy', id), {
+            // Opcional: Manejar errores o éxitos específicos aquí
+            onSuccess: () => {
+                // Mensaje de éxito ya se maneja en el template con flash
+                console.log('Category deleted successfully');
+            },
+            onError: (errors) => {
+                console.error('Errors deleting category:', errors);
+                // Manejar errores de validación si es necesario
+            },
+        });
+    }
+};
+
+// Acceder a props.flash de forma segura
+const page = usePage<Page<{ flash?: { success?: string } }>>();
+const flashSuccess = page.props.flash?.success;
+</script>
+
 <template>
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -6,12 +61,12 @@
                     <h1 class="mb-6 text-2xl font-semibold">Categories</h1>
 
                     <!-- Mensaje de éxito (ejemplo) -->
-                    <!--  <div
-                        v-if="$page.props.flash.success"
+                    <div
+                        v-if="flashSuccess"
                         class="mb-4 rounded bg-green-100 p-4 text-green-700"
                     >
-                        {{ $page.props.flash.success }}
-                    </div> -->
+                        {{ flashSuccess }}
+                    </div>
 
                     <!-- Botón para crear nueva categoría -->
                     <div class="mb-4">
@@ -62,7 +117,7 @@
                             </thead>
                             <tbody class="divide-y divide-gray-200 bg-white">
                                 <tr
-                                    v-for="category in categories.data"
+                                    v-for="category in props.categories.data"
                                     :key="category.id"
                                 >
                                     <td
@@ -127,26 +182,26 @@
 
                     <!-- Paginación (ejemplo simple, se puede mejorar) -->
                     <div
-                        v-if="categories.links.length > 2"
+                        v-if="props.categories.links.length > 2"
                         class="mt-4 flex items-center justify-between"
                     >
                         <div>
                             <Link
-                                v-if="categories.prev_page_url"
-                                :href="categories.prev_page_url"
+                                v-if="props.categories.prev_page_url"
+                                :href="props.categories.prev_page_url"
                                 class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
                             >
                                 Previous
                             </Link>
                         </div>
                         <div class="text-sm text-gray-600">
-                            Page {{ categories.current_page }} of
-                            {{ categories.last_page }}
+                            Page {{ props.categories.current_page }} of
+                            {{ props.categories.last_page }}
                         </div>
                         <div>
                             <Link
-                                v-if="categories.next_page_url"
-                                :href="categories.next_page_url"
+                                v-if="props.categories.next_page_url"
+                                :href="props.categories.next_page_url"
                                 class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
                             >
                                 Next
@@ -158,41 +213,6 @@
         </div>
     </div>
 </template>
-
-<script setup>
-import { Link } from '@inertiajs/vue3';
-
-// Definir las props que recibe el componente
-const props = defineProps({
-    categories: {
-        type: Object, // La colección paginada desde el backend
-        required: true,
-    },
-    filters: {
-        type: Object, // Filtros aplicados (opcional)
-        default: () => ({}),
-    },
-});
-
-// Función para eliminar una categoría
-const deleteCategory = (id) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-        // Inertia.delete maneja la solicitud DELETE
-        // Usamos el helper `route` para generar la URL correcta
-        // y pasamos `_method: 'delete'` si es necesario (aunque Inertia lo maneja internamente para DELETE)
-        axios
-            .delete(route('admin.categories.destroy', id))
-            .then(() => {
-                // Inertia maneja la redirección automática después del delete
-                // El mensaje de éxito 'Category deleted successfully.' se mostrará en la siguiente carga de la página
-            })
-            .catch((error) => {
-                console.error('Error deleting category:', error);
-                // Manejar error si es necesario
-            });
-    }
-};
-</script>
 
 <style scoped>
 /* Estilos específicos para este componente si es necesario */
