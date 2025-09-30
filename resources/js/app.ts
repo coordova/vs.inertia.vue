@@ -7,9 +7,6 @@ import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
 
 import { ZiggyVue } from 'ziggy-js'; // Importa Ziggy
-// import { route } from 'ziggy-js';
-// import { Ziggy } from 'ziggy-js';
-// import { Ziggy } from ' ./ziggy'; // Importa la configuración de rutas generada por Ziggy
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
