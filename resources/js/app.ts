@@ -7,6 +7,8 @@ import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
 
 import { ZiggyVue } from 'ziggy-js'; // Importa Ziggy
+import { Toaster } from '@/components/ui/sonner';
+import 'vue-sonner/style.css'; // vue-sonner v2 requires this import
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -21,6 +23,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue) // Usa el plugin de Ziggy, pasando la configuración
+            .component('Toaster', Toaster)
             .mount(el);
     },
     progress: {

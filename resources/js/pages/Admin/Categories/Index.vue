@@ -188,6 +188,70 @@ const deleteCategory = (id: number) => {
                         </table>
                     </div>
 
+                    <!-- Paginación -->
+                    <div
+                        v-if="props.categories.meta.last_page > 1"
+                        class="mt-4 flex items-center justify-between"
+                    >
+                        <!-- Enlace Anterior -->
+                        <div>
+                            <Link
+                                v-if="props.categories.meta.current_page > 1"
+                                :href="
+                                    props.categories.links.find(
+                                        (l) => l.label === 'Previous',
+                                    )?.url
+                                "
+                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                            >
+                                Previous
+                            </Link>
+                        </div>
+
+                        <!-- Números de Página -->
+                        <div class="flex space-x-1">
+                            <Link
+                                v-for="link in props.categories.links"
+                                :key="link.label"
+                                :href="link.url"
+                                :class="
+                                    link.active
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                "
+                                v-html="link.label"
+                            />
+                        </div>
+
+                        <!-- Enlace Siguiente -->
+                        <div>
+                            <Link
+                                v-if="
+                                    props.categories.meta.current_page <
+                                    props.categories.meta.last_page
+                                "
+                                :href="
+                                    props.categories.links.find(
+                                        (l) => l.label === 'Next',
+                                    )?.url
+                                "
+                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                            >
+                                Next
+                            </Link>
+                        </div>
+                    </div>
+
+                    <!-- Mostrar info de paginación -->
+                    <div
+                        v-if="props.categories.meta.total > 0"
+                        class="mt-2 text-sm text-gray-600"
+                    >
+                        Showing {{ props.categories.meta.from }} to
+                        {{ props.categories.meta.to }} of
+                        {{ props.categories.meta.total }} results
+                    </div>
+
                     <!-- Paginación (ejemplo simple, se puede mejorar) -->
                     <div
                         v-if="props.categories.links.length > 2"
