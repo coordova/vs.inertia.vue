@@ -1,21 +1,11 @@
 <script setup lang="ts">
-import { Link, router, usePage } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
 // Suponiendo que los componentes shadcn estén en resources/js/Components/ui/
 import { Button } from '@/components/ui/button';
 import {
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    PaginationContent,
-    PaginationItem,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
-import {
+    Table,
     TableBody,
     TableCaption,
     TableCell,
@@ -24,7 +14,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast';
-import { ref } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
+import { Eye, Pencil, Trash } from 'lucide-vue-next';
+import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
 
 // import { TableRoot, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from '@/Components/ui/table/Table.vue';
 // import { PaginationRoot, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/Components/ui/pagination/Pagination.vue';
@@ -36,8 +27,9 @@ import { ref } from 'vue'; // Para manejar estado local (ID de categoría a borr
 interface Category {
     id: number;
     name: string;
-    slug: string;
+    description: string;
     status: boolean;
+    created_at: string;
     // Añade otros campos según CategoryResource
 }
 
@@ -80,8 +72,8 @@ const isDeleteDialogOpen = ref(false);
 
 // --- Manejo de mensajes flash ---
 // Acceder a props.flash de forma segura sin tipar usePage explícitamente
-const page = usePage();
-const flashSuccess = page.props.flash?.success;
+// const page = usePage();
+// const flashSuccess = page.props.flash?.success;
 
 // --- Inicializar el composable de toast ---
 const { success: toastSuccess, error: toastError } = useToast();
@@ -97,6 +89,41 @@ const closeDeleteDialog = () => {
     isDeleteDialogOpen.value = false;
     categoryToDelete.value = null; // Limpiar ID al cerrar
 };
+
+/*-------------- Watch --------------*/
+const search = ref(props.filters?.search);
+// const perPage = ref(props.filters.perPage);
+
+watch(
+    search,
+    debounce(function (value: string) {
+        console.log(value);
+        router.get(
+            '/categories',
+            { search: value },
+            { preserveState: true, replace: true },
+        );
+    }, 300),
+);
+/*-------------- Sonner --------------*/
+// const { props } = usePage()
+const { success, error } = useToast();
+
+// if (props.flash?.success) {
+//     success(props.flash.success);
+// } else if (props.flash?.error) {
+//     error(props.flash.error);
+// }
+/*-------------- /Sonner -------------*/
+
+const deleting = reactive<Record<number, boolean>>({});
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Categories',
+        href: '/categories',
+    },
+];
 
 // Función para confirmar y ejecutar la eliminación
 const confirmDelete = () => {
@@ -125,232 +152,188 @@ const confirmDelete = () => {
         );
     }
 };
+
+const handleDelete = (e: Event, id: number) => {
+    deleting[id] = true;
+    router.delete(route('admin.categories.destroy', id), {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            // Mensaje de éxito
+            success('Category deleted successfully');
+            // router.reload();
+        },
+        onError: () => {
+            error('Failed to delete category');
+        },
+        onFinish: () => {
+            // Siempre se ejecuta, útil para limpiar estados
+            // router.reload();
+            deleting[id] = false;
+        },
+    });
+};
 </script>
 
 <template>
-    <div class="py-12">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h1 class="mb-6 text-2xl font-semibold">Categories</h1>
+    <Head title="Dashboard" />
 
-                    <!-- Mensaje de éxito (ejemplo) - Puedes mantenerlo o usar solo toast -->
-                    <div
-                        v-if="flashSuccess"
-                        class="mb-4 rounded bg-green-100 p-4 text-green-700"
-                    >
-                        {{ flashSuccess }}
-                    </div>
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div
+            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+        >
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-semibold">Categories</h1>
+                <span class="text-sm text-gray-500"> </span>
 
-                    <!-- Botón para crear nueva categoría -->
-                    <div class="mb-4">
-                        <Link
-                            :href="route('admin.categories.create')"
-                            as="button"
-                            class="inline-flex items-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none active:bg-gray-900"
+                <div class="flex items-center gap-4">
+                    <!-- Search -->
+                    <div class="relative w-full max-w-sm items-center">
+                        <!-- <Input
+                            v-model="search"
+                            id="search"
+                            type="text"
+                            placeholder="Search..."
+                            class="pl-10"
+                        /> -->
+                        <span
+                            class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
                         >
-                            Create Category
-                        </Link>
+                            <Search class="size-6 text-muted-foreground" />
+                        </span>
                     </div>
-
-                    <!-- Tabla de Categorías -->
-                    <div class="overflow-x-auto">
-                        <TableRoot>
-                            <TableCaption>A list of categories.</TableCaption>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="w-[100px]">ID</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Slug</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow
-                                    v-for="category in props.categories.data"
-                                    :key="category.id"
-                                >
-                                    <TableCell class="font-medium">{{
-                                        category.id
-                                    }}</TableCell>
-                                    <TableCell>{{ category.name }}</TableCell>
-                                    <TableCell>{{ category.slug }}</TableCell>
-                                    <TableCell>
-                                        <span
-                                            :class="{
-                                                'text-green-600':
-                                                    category.status,
-                                                'text-red-600':
-                                                    !category.status,
-                                            }"
-                                        >
-                                            {{
-                                                category.status
-                                                    ? 'Active'
-                                                    : 'Inactive'
-                                            }}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="flex space-x-2">
-                                            <Link
-                                                :href="
-                                                    route(
-                                                        'admin.categories.edit',
-                                                        category.id,
-                                                    )
-                                                "
-                                                class="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                Edit
-                                            </Link>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                @click="
-                                                    openDeleteDialog(
-                                                        category.id,
-                                                    )
-                                                "
-                                            >
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </TableRoot>
-                    </div>
-
-                    <!-- Paginación -->
-                    <div
-                        v-if="props.categories.meta.last_page > 1"
-                        class="mt-4"
-                    >
-                        <PaginationRoot>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        v-if="
-                                            props.categories.meta.current_page >
-                                            1
-                                        "
-                                        :href="
-                                            props.categories.links.find(
-                                                (l) => l.label === 'Previous',
-                                            )?.url || undefined
-                                        "
-                                        :aria-disabled="
-                                            !props.categories.links.find(
-                                                (l) => l.label === 'Previous',
-                                            )?.url
-                                        "
-                                        :class="
-                                            !props.categories.links.find(
-                                                (l) => l.label === 'Previous',
-                                            )?.url
-                                                ? 'pointer-events-none opacity-50'
-                                                : ''
-                                        "
-                                    />
-                                </PaginationItem>
-
-                                <!-- Iterar sobre los enlaces de paginación -->
-                                <PaginationItem
-                                    v-for="link in props.categories.links"
-                                    :key="link.label"
-                                >
-                                    <!-- Excluir prev/next de la iteración principal -->
-                                    <PaginationLink
-                                        v-if="
-                                            link.label !== 'Previous' &&
-                                            link.label !== 'Next'
-                                        "
-                                        :href="link.url || undefined"
-                                        :aria-current="
-                                            link.active ? 'page' : undefined
-                                        "
-                                        class="link.active ? 'bg-indigo-600 text-white' : ''"
-                                        :aria-disabled="!link.url"
-                                        :class="
-                                            !link.url
-                                                ? 'cursor-not-allowed opacity-50'
-                                                : ''
-                                        "
-                                        v-html="link.label"
-                                    />
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationNext
-                                        v-if="
-                                            props.categories.meta.current_page <
-                                            props.categories.meta.last_page
-                                        "
-                                        :href="
-                                            props.categories.links.find(
-                                                (l) => l.label === 'Next',
-                                            )?.url || undefined
-                                        "
-                                        :aria-disabled="
-                                            !props.categories.links.find(
-                                                (l) => l.label === 'Next',
-                                            )?.url
-                                        "
-                                        :class="
-                                            !props.categories.links.find(
-                                                (l) => l.label === 'Next',
-                                            )?.url
-                                                ? 'pointer-events-none opacity-50'
-                                                : ''
-                                        "
-                                    />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </PaginationRoot>
-                    </div>
-
-                    <!-- Mostrar info de paginación -->
-                    <div
-                        v-if="props.categories.meta.total > 0"
-                        class="mt-2 text-sm text-gray-600"
-                    >
-                        Showing {{ props.categories.meta.from }} to
-                        {{ props.categories.meta.to }} of
-                        {{ props.categories.meta.total }} results
-                    </div>
+                    <!-- Create Category -->
+                    <Button asChild>
+                        <Link :href="route('admin.categories.create')"
+                            >Create Category</Link
+                        >
+                    </Button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Diálogo de Confirmación de Eliminación -->
-    <DialogRoot v-model:open="isDeleteDialogOpen">
-        <DialogPortal>
-            <DialogOverlay />
-            <DialogContent class="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Confirm Delete</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete the category with ID
-                        {{ categoryToDelete }}? This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <DialogClose as-child>
-                        <Button type="button" variant="outline">Cancel</Button>
-                    </DialogClose>
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        @click="confirmDelete"
-                        >Delete</Button
+            <Table>
+                <TableCaption class="text-right"
+                    >Showing {{ props.categories?.meta.from }} to
+                    {{ props.categories?.meta.to }} of
+                    {{ props.categories?.meta.total }} categories</TableCaption
+                >
+                <TableHeader>
+                    <TableRow>
+                        <TableHead> Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created At</TableHead>
+                        <TableHead class="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow v-if="props.categories?.data.length === 0">
+                        <TableCell colspan="5" class="h-24 text-center"
+                            >No categories found.
+                        </TableCell>
+                    </TableRow>
+                    <TableRow
+                        v-else
+                        v-for="category in props.categories?.data"
+                        :key="category.id"
+                        :class="{
+                            'pointer-events-none text-gray-500 opacity-50':
+                                deleting[category.id],
+                        }"
                     >
-                </DialogFooter>
-            </DialogContent>
-        </DialogPortal>
-    </DialogRoot>
+                        <TableCell class="font-medium">
+                            {{ category.name }}</TableCell
+                        >
+                        <TableCell>{{ category.description }}</TableCell>
+                        <TableCell>
+                            <Badge
+                                :variant="
+                                    category.status === true
+                                        ? 'default'
+                                        : 'secondary'
+                                "
+                                >{{
+                                    category.status === true
+                                        ? 'Active'
+                                        : 'Inactive'
+                                }}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>{{ category.created_at }}</TableCell>
+                        <TableCell class="flex items-center justify-end gap-2">
+                            <!-- acciones -->
+                            <Button asChild variant="outline">
+                                <Link
+                                    :href="
+                                        route(
+                                            'admin.categories.show',
+                                            category.id,
+                                        )
+                                    "
+                                >
+                                    <Eye />
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Link
+                                    :href="
+                                        route(
+                                            'admin.categories.edit',
+                                            category.id,
+                                        )
+                                    "
+                                >
+                                    <Pencil />
+                                </Link>
+                            </Button>
+                            <!-- delete -->
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        as-child
+                                        variant="outline"
+                                        size="sm"
+                                    >
+                                        <span>
+                                            <Trash />
+                                        </span>
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle
+                                            >Are you sure?</AlertDialogTitle
+                                        >
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This
+                                            will permanently delete the
+                                            category.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel
+                                            >Cancel</AlertDialogCancel
+                                        >
+                                        <AlertDialogAction
+                                            @click="
+                                                (e: Event) =>
+                                                    handleDelete(e, category.id)
+                                            "
+                                            >Confirm Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <!--<Button asChild variant="outline" class="text-red-500" @click="(e) => handleDelete__(e, category.id)">
+                                <span>
+                                    <Trash />
+                                </span>
+                            </Button>-->
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </div>
+    </AppLayout>
 </template>
 
 <style scoped>
