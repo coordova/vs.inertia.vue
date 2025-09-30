@@ -1,8 +1,5 @@
 <script setup lang="ts">
-// resources/js/Pages/Admin/Categories/Index.vue
-import { Link, router, usePage } from '@inertiajs/vue3'; // Importamos Link y router de Inertia
-// No necesitamos importar route() si usamos Ziggy como se configuró arriba
-import { Page } from '@inertiajs/core'; // Importamos tipos si es necesario
+import { Link, router, usePage } from '@inertiajs/vue3';
 
 // Definimos las props que recibe el componente
 interface Category {
@@ -13,13 +10,24 @@ interface Category {
     // Añade otros campos según CategoryResource
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface CategoriesData {
-    data: Category[];
-    links: any[]; // Simplificado, usar tipo específico si es posible
-    current_page: number;
-    last_page: number;
-    prev_page_url: string | null;
-    next_page_url: string | null;
+    data: Category[]; // Asegúrate de que 'data' esté aquí
+    links: PaginationLink[]; // Tipo más preciso para links de paginación
+    meta: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        path: string;
+        per_page: number;
+        to: number;
+        total: number;
+    }; // Estructura de meta de Laravel Paginator
     // Añade otros campos de paginación según Laravel
 }
 
@@ -29,6 +37,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Acceder a props.flash de forma segura sin tipar usePage explícitamente
+const page = usePage();
+const flashSuccess = page.props.flash?.success; // Encadenamiento opcional maneja la ausencia de 'flash' o 'success'
 
 // Función para eliminar una categoría
 const deleteCategory = (id: number) => {
@@ -47,10 +59,6 @@ const deleteCategory = (id: number) => {
         });
     }
 };
-
-// Acceder a props.flash de forma segura
-const page = usePage<Page<{ flash?: { success?: string } }>>();
-const flashSuccess = page.props.flash?.success;
 </script>
 
 <template>

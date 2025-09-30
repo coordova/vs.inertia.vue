@@ -22,7 +22,7 @@ class CategoryController extends Controller
         // Cargar categorías con paginación
         $categories = Category::orderBy('sort_order', 'asc')
                              ->orderBy('name', 'asc')
-                             ->paginate($request->get('per_page', 15));
+                             ->paginate($request->get('per_page', 5));
 
         // Opcional: Agregar búsqueda
         // $search = $request->get('search');
