@@ -13,7 +13,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/alert-dialog/';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,7 @@ interface Category {
     name: string;
     description: string;
     status: boolean;
-    created_at: string;
+    created_at_formatted: string;
     // Añade otros campos según CategoryResource
 }
 
@@ -107,7 +107,7 @@ watch(
     debounce(function (value: string) {
         console.log(value);
         router.get(
-            '/categories',
+            route('admin.categories.index'),
             { search: value },
             { preserveState: true, replace: true },
         );
@@ -129,7 +129,7 @@ const deleting = reactive<Record<number, boolean>>({});
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Categories',
-        href: '/categories',
+        href: route('admin.categories.index'),
     },
 ];
 
@@ -239,7 +239,9 @@ const handleDelete = (e: Event, id: number) => {
                                 }}
                             </Badge>
                         </TableCell>
-                        <TableCell>{{ category.created_at }}</TableCell>
+                        <TableCell>{{
+                            category.created_at_formatted
+                        }}</TableCell>
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">

@@ -20,9 +20,12 @@ class CategoryController extends Controller
     public function index(Request $request): Response
     {
         // Cargar categorías con paginación
-        $categories = Category::orderBy('sort_order', 'asc')
-                             ->orderBy('name', 'asc')
-                             ->paginate($request->get('per_page', 15));
+        $categories = Category::when(request('search'), function ($query, $search) {
+                                $query->where('name', 'like', '%' . $search . '%');
+                            })
+                            ->orderBy('sort_order', 'asc')
+                            ->orderBy('name', 'asc')
+                            ->paginate($request->get('per_page', 15));
 
         // Opcional: Agregar búsqueda
         // $search = $request->get('search');
