@@ -3,7 +3,20 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 // Suponiendo que los componentes shadcn estén en resources/js/Components/ui/
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     Table,
     TableBody,
@@ -13,15 +26,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { useToast } from '@/composables/useToast';
-import { Eye, Pencil, Trash } from 'lucide-vue-next';
+import { useToast } from '@/composables/useToast'; // Importar el composable
+import { debounce } from 'lodash';
+import { Eye, Pencil, Search, Trash } from 'lucide-vue-next';
 import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
-
-// import { TableRoot, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from '@/Components/ui/table/Table.vue';
-// import { PaginationRoot, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/Components/ui/pagination/Pagination.vue';
-// import { DialogRoot, DialogTrigger, DialogPortal, DialogOverlay, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/Components/ui/dialog/Dialog.vue';
-// import { Button } from '@/Components/ui/button/Button.vue';
-// import { useToast } from '@/Composables/useToast'; // Importar el composable
 
 // --- Tipado de datos recibidos ---
 interface Category {
@@ -126,33 +134,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // Función para confirmar y ejecutar la eliminación
-const confirmDelete = () => {
-    if (categoryToDelete.value !== null) {
-        router.delete(
-            route('admin.categories.destroy', categoryToDelete.value),
-            {
-                onSuccess: () => {
-                    // Usar el composable para mostrar notificación
-                    toastSuccess('Category deleted successfully');
-                    console.log('Category deleted successfully');
-                    // El mensaje flash también se mostrará en la página actualizada si se configura el middleware correctamente
-                },
-                onError: (errors) => {
-                    console.error('Errors deleting category:', errors);
-                    // Usar el composable para mostrar notificación de error
-                    // Podrías querer mostrar un mensaje genérico o uno específico de los errores devueltos
-                    toastError(
-                        'Failed to delete category. Please check the logs.',
-                    );
-                },
-                onFinish: () => {
-                    closeDeleteDialog(); // Cerrar diálogo siempre al finalizar
-                },
-            },
-        );
-    }
-};
-
 const handleDelete = (e: Event, id: number) => {
     deleting[id] = true;
     router.delete(route('admin.categories.destroy', id), {
@@ -189,13 +170,13 @@ const handleDelete = (e: Event, id: number) => {
                 <div class="flex items-center gap-4">
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
-                        <!-- <Input
+                        <Input
                             v-model="search"
                             id="search"
                             type="text"
                             placeholder="Search..."
                             class="pl-10"
-                        /> -->
+                        />
                         <span
                             class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
                         >
@@ -323,11 +304,6 @@ const handleDelete = (e: Event, id: number) => {
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
-                            <!--<Button asChild variant="outline" class="text-red-500" @click="(e) => handleDelete__(e, category.id)">
-                                <span>
-                                    <Trash />
-                                </span>
-                            </Button>-->
                         </TableCell>
                     </TableRow>
                 </TableBody>
