@@ -75,26 +75,10 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// --- Estado local para manejar la confirmación de borrado ---
-const categoryToDelete = ref<number | null>(null);
-const isDeleteDialogOpen = ref(false);
-
 // --- Manejo de mensajes flash ---
 // Acceder a props.flash de forma segura sin tipar usePage explícitamente
 // const page = usePage();
 // const flashSuccess = page.props.flash?.success;
-
-// Función para abrir el diálogo de confirmación
-/* const openDeleteDialog = (id: number) => {
-    categoryToDelete.value = id;
-    isDeleteDialogOpen.value = true;
-}; */
-
-// Función para cerrar el diálogo
-/* const closeDeleteDialog = () => {
-    isDeleteDialogOpen.value = false;
-    categoryToDelete.value = null; // Limpiar ID al cerrar
-}; */
 
 /*-------------- Watch --------------*/
 const search = ref(props.filters?.search);

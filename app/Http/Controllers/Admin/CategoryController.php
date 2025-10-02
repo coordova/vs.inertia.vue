@@ -112,10 +112,9 @@ class CategoryController extends Controller
         // dd($request->all());
         $category->delete(); // Soft Delete
 
-        // Recoge parámetros opcionales de paginación y filtros:
-        // $params = $request->only(['search', 'per_page', 'page']);   // NO FUNCIONA ESTO, REVISAR
-        // dd($request->all());
+        // Recoge parámetros opcionales de paginación y filtros: Solo pasa los parámetros relevantes para la lista (search, page, per_page)
+        $redirectParams = $request->only(['search', 'page', 'per_page']);
 
-        return to_route('admin.categories.index', $request->all())->with('success', 'Category deleted successfully.');
+        return to_route('admin.categories.index', $redirectParams)->with('success', 'Category deleted successfully.');
     }
 }
