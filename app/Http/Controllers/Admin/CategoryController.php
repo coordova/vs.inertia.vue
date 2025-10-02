@@ -11,32 +11,40 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response; // Importar Response
+use Inertia\InertiaResponse;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response
+    public function index(Request $request):  Response|InertiaResponse|RedirectResponse
     {
+        // dd($request->all());
+        // print_r('<pre>'); print_r($request->all()); print_r('</pre>');exit;
         // Cargar categorías con paginación
-        $categories = Category::when(request('search'), function ($query, $search) {
+        $categories = Category::query()
+                            ->when(request('search'), function ($query, $search) {
                                 $query->where('name', 'like', '%' . $search . '%');
                             })
-                            ->orderBy('sort_order', 'asc')
-                            ->orderBy('name', 'asc')
-                            ->paginate($request->get('per_page', 15));
+                            // ->orderBy('sort_order', 'asc')
+                            // ->orderBy('name', 'asc')
+                            ->paginate($request->get('per_page', 5))
+                            ->withQueryString();
 
-        // Opcional: Agregar búsqueda
-        // $search = $request->get('search');
-        // if ($search) {
-        //     $categories = $categories->where('name', 'like', "%{$search}%");
-        // }
+        // $categories->appends($request->only(['search', 'per_page']));
+
+        // TODO: Revisar, no funciona, siempre redirige a la pagina /admin/categories/index y no a la pagina correcta
+        // Verificar si la página actual es mayor que la última página disponible
+        if ($categories->lastPage() > 0 && $request->get('page', 1) > $categories->lastPage()) {
+            // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
+            return redirect($categories->url($categories->lastPage()));
+        }
 
         // Devolver la vista Inertia con los datos
         return Inertia::render('Admin/Categories/Index', [
             'categories' => CategoryResource::collection($categories), // Pasamos la colección transformada
-            'filters' => $request->only(['search', 'per_page']), // Opcional: pasar filtros para UI
+            'filters' => $request->only(['search', 'per_page', 'page']), // Opcional: pasar filtros para UI
         ]);
     }
 
@@ -97,10 +105,15 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category): RedirectResponse
+    public function destroy(Request $request, Category $category): RedirectResponse
     {
+        // dd($request->all());
         $category->delete(); // Soft Delete
 
-        return to_route('admin.categories.index')->with('success', 'Category deleted successfully.');
+        // Recoge parámetros opcionales de paginación y filtros:
+        // $params = $request->only(['search', 'per_page', 'page']);   // NO FUNCIONA ESTO, REVISAR
+        // dd($request->all());
+
+        return to_route('admin.categories.index', $request->all())->with('success', 'Category deleted successfully.');
     }
 }

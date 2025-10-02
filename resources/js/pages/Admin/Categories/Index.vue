@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import TPagination from '@/components/ui/oox/TPagination.vue';
 import {
     Table,
     TableBody,
@@ -83,24 +84,22 @@ const isDeleteDialogOpen = ref(false);
 // const page = usePage();
 // const flashSuccess = page.props.flash?.success;
 
-// --- Inicializar el composable de toast ---
-const { success: toastSuccess, error: toastError } = useToast();
-
 // Función para abrir el diálogo de confirmación
-const openDeleteDialog = (id: number) => {
+/* const openDeleteDialog = (id: number) => {
     categoryToDelete.value = id;
     isDeleteDialogOpen.value = true;
-};
+}; */
 
 // Función para cerrar el diálogo
-const closeDeleteDialog = () => {
+/* const closeDeleteDialog = () => {
     isDeleteDialogOpen.value = false;
     categoryToDelete.value = null; // Limpiar ID al cerrar
-};
+}; */
 
 /*-------------- Watch --------------*/
 const search = ref(props.filters?.search);
-// const perPage = ref(props.filters.perPage);
+const page = ref(props.filters?.page);
+const perPage = ref(props.filters?.per_page);
 
 watch(
     search,
@@ -108,12 +107,35 @@ watch(
         console.log(value);
         router.get(
             route('admin.categories.index'),
-            { search: value },
+            { search: value, /* page: 1,  */ per_page: perPage.value },
             { preserveState: true, replace: true },
         );
     }, 300),
 );
+
+// actualizar variable page reactiva
+watch(
+    () => props.filters?.page,
+    (value) => {
+        page.value = value;
+    },
+);
+
+/*watch(
+    perPage,
+    debounce(function (value: number) {
+        console.log(value);
+        router.get(
+            route('admin.categories.index'),
+            { per_page: value, search: search.value, page: page.value },
+            { preserveState: true, replace: true },
+        );
+    }, 300),
+); */
 /*-------------- Sonner --------------*/
+// --- Inicializar el composable de toast ---
+// const { success: toastSuccess, error: toastError } = useToast();
+
 // const { props } = usePage()
 const { success, error } = useToast();
 
@@ -133,10 +155,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Función para confirmar y ejecutar la eliminación
+/**
+ * Función para confirmar y ejecutar la eliminación
+ * @param e Evento del click
+ * @param id ID de la categoría a eliminar
+ */
 const handleDelete = (e: Event, id: number) => {
     deleting[id] = true;
     router.delete(route('admin.categories.destroy', id), {
+        data: {
+            page: page.value, // se envia a admin.categories.destroy el valor de la pagina para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            search: search.value, // se envia a admin.categories.destroy el valor de la busqueda para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            per_page: perPage.value, // se envia a admin.categories.destroy el valor de la paginacion para que se agregue a la url (complementado con ->withQueryString() del controlador)
+        },
         preserveState: true,
         preserveScroll: true,
         onSuccess: () => {
@@ -154,6 +185,22 @@ const handleDelete = (e: Event, id: number) => {
         },
     });
 };
+
+/**
+ * Navegar a una página específica
+ * @param page número de la página
+ */
+function goToPage(page: number) {
+    router.get(
+        route('admin.categories.index'),
+        {
+            page, // se envia a admin.categories.index el valor de la pagina para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            search: search.value, // se envia a admin.categories.index el valor de la busqueda para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            per_page: perPage.value, // se envia a admin.categories.index el valor de la paginacion para que se agregue a la url (complementado con ->withQueryString() del controlador)
+        },
+        { preserveState: true, preserveScroll: true },
+    );
+}
 </script>
 
 <template>
@@ -310,6 +357,13 @@ const handleDelete = (e: Event, id: number) => {
                     </TableRow>
                 </TableBody>
             </Table>
+            <!-- Pagination -->
+            <TPagination
+                :current-page="props.categories.meta.current_page"
+                :total-items="props.categories.meta.total"
+                :items-per-page="props.categories.meta.per_page"
+                @page-change="goToPage"
+            />
         </div>
     </AppLayout>
 </template>
