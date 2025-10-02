@@ -113,7 +113,7 @@ watch(
     }, 300),
 );
 
-// actualizar variable page reactiva
+// watch para actualizar la variable page
 watch(
     () => props.filters?.page,
     (value) => {
@@ -121,17 +121,14 @@ watch(
     },
 );
 
-/*watch(
-    perPage,
-    debounce(function (value: number) {
-        console.log(value);
-        router.get(
-            route('admin.categories.index'),
-            { per_page: value, search: search.value, page: page.value },
-            { preserveState: true, replace: true },
-        );
-    }, 300),
-); */
+// watch para actualizar la variable per_page
+watch(
+    () => props.filters?.per_page,
+    (value) => {
+        perPage.value = value;
+    },
+);
+
 /*-------------- Sonner --------------*/
 // --- Inicializar el composable de toast ---
 // const { success: toastSuccess, error: toastError } = useToast();

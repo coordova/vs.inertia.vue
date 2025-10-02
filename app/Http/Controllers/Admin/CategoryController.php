@@ -34,12 +34,14 @@ class CategoryController extends Controller
 
         // $categories->appends($request->only(['search', 'per_page']));
 
-        // TODO: Revisar, no funciona, siempre redirige a la pagina /admin/categories/index y no a la pagina correcta
-        // Verificar si la página actual es mayor que la última página disponible
+        /*---------------------------------------------------------------------*/
+        // TODO: Monitorear su funcionamiento - por ahora todo funciona correctamente
+        // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
         if ($categories->lastPage() > 0 && $request->get('page', 1) > $categories->lastPage()) {
             // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
             return redirect($categories->url($categories->lastPage()));
         }
+        /*---------------------------------------------------------------------*/
 
         // Devolver la vista Inertia con los datos
         return Inertia::render('Admin/Categories/Index', [
