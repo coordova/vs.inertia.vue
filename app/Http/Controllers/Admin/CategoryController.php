@@ -78,7 +78,8 @@ class CategoryController extends Controller
         // Carga relacional opcional si se necesita en la vista
         // $category->load(['characters', 'surveys']); // Ejemplo
         return Inertia::render('Admin/Categories/Show', [
-            'category' => new CategoryResource($category), // Pasamos el modelo transformado
+            // 'category' => new CategoryResource($category), // Pasamos el modelo transformado
+            'category' => CategoryResource::make($category)->resolve(),
         ]);
     }
 

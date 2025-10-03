@@ -12,7 +12,7 @@ import {
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Category } from '@/types/resources'; // Asumiendo que tienes una interfaz CategoryResource o similar
+import { CategoryResource } from '@/types/global'; // Asumiendo que tienes una interfaz CategoryResource o similar
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Pencil, Trash } from 'lucide-vue-next'; // Iconos
 
@@ -28,10 +28,12 @@ import { Pencil, Trash } from 'lucide-vue-next'; // Iconos
 } */
 
 interface Props {
-    category: Category; // Usamos el tipo del recurso
+    category: CategoryResource; // Usamos el tipo del recurso
 }
 
 const props = defineProps<Props>();
+
+// console.log(props.category);
 
 // --- Inicializar el composable de toast ---
 const { success: toastSuccess, error: toastError } = useToast();
@@ -40,24 +42,21 @@ const { success: toastSuccess, error: toastError } = useToast();
 const handleDelete = () => {
     if (
         confirm(
-            `Are you sure you want to delete the category "${props.category.data.name}"?`,
+            `Are you sure you want to delete the category "${props.category.name}"?`,
         )
     ) {
-        router.delete(
-            route('admin.categories.destroy', props.category.data.id),
-            {
-                preserveState: true,
-                preserveScroll: true,
-                onSuccess: () => {
-                    toastSuccess('Category deleted successfully.');
-                    // Opcional: Redirigir a la lista
-                    router.visit(route('admin.categories.index'));
-                },
-                onError: () => {
-                    toastError('Failed to delete category.');
-                },
+        router.delete(route('admin.categories.destroy', props.category.id), {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                toastSuccess('Category deleted successfully.');
+                // Opcional: Redirigir a la lista
+                router.visit(route('admin.categories.index'));
             },
-        );
+            onError: () => {
+                toastError('Failed to delete category.');
+            },
+        });
     }
 };
 
@@ -74,12 +73,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
-    <Head :title="`View ${category.data.name}`" />
+    <Head :title="`View ${props.category.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <Card class="card-no-border mx-auto mt-4 w-full max-w-2xl">
             <CardHeader>
-                <CardTitle>{{ category.data.name }}</CardTitle>
+                <CardTitle>{{ props.category.name }}</CardTitle>
                 <CardDescription> Details for the category. </CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
@@ -90,26 +89,28 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-sm text-gray-500">ID</p>
-                        <p class="font-medium">{{ category.data.id }}</p>
+                        <p class="font-medium">{{ props.category.id }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Name</p>
-                        <p class="font-medium">{{ category.data.name }}</p>
+                        <p class="font-medium">
+                            {{ props.category.name }}
+                        </p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Status</p>
                         <Badge
                             :variant="
-                                category.data.status ? 'default' : 'secondary'
+                                props.category.status ? 'default' : 'secondary'
                             "
                         >
-                            {{ category.data.status ? 'Active' : 'Inactive' }}
+                            {{ props.category.status ? 'Active' : 'Inactive' }}
                         </Badge>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Created At</p>
                         <p class="font-medium">
-                            {{ category.data.created_at_formatted }}
+                            {{ props.category.created_at_formatted }}
                         </p>
                     </div>
                     <!-- Añadir otros campos aquí -->
@@ -117,7 +118,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <p class="text-sm text-gray-500">Description</p>
                         <p class="font-medium">
                             {{
-                                category.data.description ||
+                                props.category.description ||
                                 'No description provided.'
                             }}
                         </p>
@@ -133,7 +134,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </Button>
                 <Button asChild variant="outline">
                     <Link
-                        :href="route('admin.categories.edit', category.data.id)"
+                        :href="
+                            route('admin.categories.edit', props.category.id)
+                        "
                     >
                         <Pencil class="mr-2 h-4 w-4" />
                         Edit
