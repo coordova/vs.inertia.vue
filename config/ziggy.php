@@ -16,11 +16,13 @@ return [
         'admin.categories.edit',
         'admin.categories.update',
         'admin.categories.destroy',
+
         'admin.characters.index',
         'admin.characters.show',
         'admin.characters.create',
         'admin.characters.edit',
         'admin.characters.destroy',
+        
         'admin.surveys.index',
         'admin.surveys.show',
         'admin.surveys.create',
