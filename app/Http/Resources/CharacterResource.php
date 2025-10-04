@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CharacterResource extends JsonResource
 {
@@ -24,7 +25,7 @@ class CharacterResource extends JsonResource
             'gender' => $this->gender,
             'nationality' => $this->nationality,
             'occupation' => $this->occupation,
-            'picture' => $this->picture,
+            'picture' => $this->picture ? Storage::url($this->picture) : null,
             'status' => $this->status,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,

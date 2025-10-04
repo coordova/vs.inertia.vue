@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;   
 use Inertia\InertiaResponse;
+use Illuminate\Support\Str;
 
 class CharacterController extends Controller
 {
@@ -80,12 +81,12 @@ class CharacterController extends Controller
                 \Log::error('Error al almacenar la imagen: '.$e->getMessage());
 
                 // Opcional: redirigir con un mensaje de error
-                return to_route('characters.index')->with('error', 'Error al almacenar la imagen.');
+                return to_route('admin.characters.index')->with('error', 'Error al almacenar la imagen.');
             }
         }
 
         // 3. Genera el slug a partir del fullname validado.
-        $validated['slug'] = Str::slug($validated['fullname']);
+        // $validated['slug'] = Str::slug($validated['fullname']);
 
         try {
             // 4. Crea el personaje con el array de datos completo y preparado.
@@ -112,13 +113,13 @@ class CharacterController extends Controller
             );
 
             // 5. Redirige con un mensaje de éxito.
-            return to_route('characters.show', $character)->with('success', 'Character created successfully.');
+            return to_route('admin.characters.show', $character)->with('success', 'Character created successfully.');
         } catch (\Exception $e) {
             // Manejar el error, por ejemplo, registrar en el log
             \Log::error('Error al crear el personaje: '.$e->getMessage());
 
             // Opcional: redirigir con un mensaje de error
-            return to_route('characters.index')->with('error', 'Error al crear el personaje.');
+            return to_route('admin.characters.index')->with('error', 'Error al crear el personaje.');
         }
     }
 
