@@ -105,7 +105,7 @@ class CategoryController extends Controller
         $category->update($request->validated());
 
         // Redirigir al listado o a la edición después de actualizar
-        return to_route('admin.categories.index')->with('success', 'Category updated successfully.');
+        return to_route('admin.categories.show', $category)->with('success', 'Category updated successfully.');
     }
 
     /**

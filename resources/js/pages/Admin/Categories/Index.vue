@@ -35,12 +35,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast'; // Importar el composable
+import { CategoriesData, CategoryResource } from '@/types/global';
 import { debounce } from 'lodash';
 import { Eye, Pencil, RotateCw, Search, Trash } from 'lucide-vue-next';
 import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
 
 // --- Tipado de datos recibidos ---
-interface Category {
+interface Category extends CategoryResource {
     id: number;
     name: string;
     description: string;
@@ -50,14 +51,14 @@ interface Category {
 }
 
 // Tipo para un enlace de paginación (Laravel)
-interface PaginationLink {
+/* interface PaginationLink {
     url: string | null;
     label: string;
     active: boolean;
-}
+} */
 
 // Tipo para la información de meta de paginación (Laravel)
-interface PaginationMeta {
+/* interface PaginationMeta {
     current_page: number;
     from: number;
     last_page: number;
@@ -65,14 +66,14 @@ interface PaginationMeta {
     per_page: number;
     to: number;
     total: number;
-}
+} */
 
 // Tipo para la respuesta paginada
-interface CategoriesData {
+/* interface CategoriesData {
     data: Category[]; // Importante: la clave 'data' contiene el array
     links: PaginationLink[];
     meta: PaginationMeta;
-}
+} */
 
 // Props del componente
 interface Props {
