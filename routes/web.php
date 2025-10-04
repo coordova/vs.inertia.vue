@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CharacterController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');

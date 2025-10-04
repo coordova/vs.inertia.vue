@@ -6,6 +6,7 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Category;
+use App\Models\Character;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,7 +24,7 @@ class DatabaseSeeder extends Seeder
 
         Category::factory()->count(20)->create();
         // Survey::factory()->count(20)->create(); 
-        // Character::factory()->count(20)->create();
+        Character::factory()->count(20)->create();
         User::factory()->count(5)->create();
     }
 }

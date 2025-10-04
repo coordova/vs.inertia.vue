@@ -9,49 +9,43 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CharacterResource } from '@/types/global'; // Interfaz CharacterResource
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
-
-interface Props {
-    character: CharacterResource; // Usamos el tipo del recurso resuelto
-}
-
-const props = defineProps<Props>();
 
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
 
-// --- Inicializar el formulario de Inertia con los datos iniciales ---
-// Solo incluimos los campos que se editan en el formulario
+// --- Inicializar el formulario de Inertia ---
+// Usamos la interfaz CharacterResource, pero solo los campos relevantes para el formulario
+// y proporcionamos valores iniciales para aquellos que no se usan en el formulario
 const form = useForm({
-    fullname: props.character.fullname,
-    nickname: props.character.nickname ?? '', // Manejar null
-    slug: props.character.slug,
-    bio: props.character.bio ?? '', // Manejar null
-    dob: props.character.dob
-        ? new Date(props.character.dob).toISOString().split('T')[0]
-        : '', // Convertir a formato 'YYYY-MM-DD' si no es null
-    gender: props.character.gender,
-    nationality: props.character.nationality ?? '', // Manejar null
-    occupation: props.character.occupation ?? '', // Manejar null
-    picture: props.character.picture,
-    status: props.character.status,
-    meta_title: props.character.meta_title ?? '', // Manejar null
-    meta_description: props.character.meta_description ?? '', // Manejar null
+    fullname: '',
+    nickname: '',
+    slug: '', // O se genera automáticamente si se deja vacío en el backend
+    bio: '',
+    dob: '', // Date string
+    gender: 0, // Valor por defecto
+    nationality: '',
+    occupation: '',
+    picture: '', // URL o path
+    status: true, // Valor por defecto
+    meta_title: '',
+    meta_description: '',
+    // Campos que no están en el formulario pero que requiere la interfaz CharacterResource
+    id: 0, // No se usa en el formulario
+    created_at: '', // No se usa en el formulario
+    updated_at: '', // No se usa en el formulario
 });
 
 // --- Manejo de envío del formulario ---
 const submitForm = () => {
-    form.put(route('admin.characters.update', props.character.id), {
+    form.post(route('admin.characters.store'), {
         preserveState: true,
-        preserveScroll: true,
         onSuccess: () => {
-            success('Character updated successfully.');
+            success('Character created successfully.');
         },
-        onError: (errors) => {
-            console.error('Errors updating character:', errors);
-            error('Failed to update character. Please check the errors below.');
+        onError: () => {
+            error('Failed to create character. Please check the errors below.');
         },
     });
 };
@@ -62,18 +56,14 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('admin.characters.index'),
     },
     {
-        title: props.character.fullname, // Nombre dinámico del personaje
-        href: route('admin.characters.show', props.character.id),
-    },
-    {
-        title: 'Edit',
-        href: route('admin.characters.edit', props.character.id),
+        title: 'Create',
+        href: route('admin.characters.create'),
     },
 ];
 </script>
 
 <template>
-    <Head :title="`Edit ${character.fullname}`" />
+    <Head title="Create Character" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div
@@ -114,7 +104,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         type="text"
                         :tabIndex="3"
                         autocomplete="slug"
-                        placeholder="Slug"
+                        placeholder="Slug (optional, auto-generated if empty)"
                         v-model="form.slug"
                     />
                     <InputError :message="form.errors.slug" />
@@ -265,7 +255,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             class="mr-2 h-4 w-4 animate-spin"
                         />
                         <span>{{
-                            form.processing ? 'Updating...' : 'Update Character'
+                            form.processing ? 'Creating...' : 'Create Character'
                         }}</span>
                     </Button>
                 </div>

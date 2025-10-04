@@ -10,28 +10,36 @@ use App\Models\Character;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
-use Inertia\Response;
+use Inertia\Response;   
+use Inertia\InertiaResponse;
 
 class CharacterController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response|InertiaResponse|RedirectResponse
     {
-        $characters = Character::orderBy('fullname', 'asc')
-                              ->paginate($request->get('per_page', 15));
+        $characters = Character::query()
+                            ->when(request('search'), function ($query, $search) {
+                                $query->where('name', 'like', '%' . $search . '%');
+                            })
+                            // orderBy('fullname', 'asc')
+                            ->paginate($request->get('per_page', 15))
+                            ->withQueryString();
 
-        // Opcional: Agregar búsqueda
-        // $search = $request->get('search');
-        // if ($search) {
-        //     $characters = $characters->where('fullname', 'like', "%{$search}%");
-        //     // o $characters->where('nickname', 'like', "%{$search}%");
-        // }
+        /*---------------------------------------------------------------------*/
+        // TODO: Monitorear su funcionamiento - por ahora todo funciona correctamente
+        // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
+        if ($characters->lastPage() > 0 && $request->get('page', 1) > $characters->lastPage()) {
+            // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
+            return redirect($characters->url($characters->lastPage()));
+        }
+        /*---------------------------------------------------------------------*/
 
         return Inertia::render('Admin/Characters/Index', [
             'characters' => CharacterResource::collection($characters),
-            'filters' => $request->only(['search', 'per_page']),
+            'filters' => $request->only(['search', 'per_page', 'page']),
         ]);
     }
 
@@ -59,7 +67,8 @@ class CharacterController extends Controller
     public function show(Character $character): Response
     {
         return Inertia::render('Admin/Characters/Show', [
-            'character' => new CharacterResource($character),
+            // 'character' => new CharacterResource($character),
+            'character' => CharacterResource::make($character)->resolve(),
         ]);
     }
 
@@ -69,7 +78,8 @@ class CharacterController extends Controller
     public function edit(Character $character): Response
     {
         return Inertia::render('Admin/Characters/Edit', [
-            'character' => new CharacterResource($character),
+            // 'character' => new CharacterResource($character),
+            'character' => CharacterResource::make($character)->resolve(),
         ]);
     }
 

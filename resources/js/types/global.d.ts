@@ -60,7 +60,7 @@ export interface CharacterResource { // Interfaz para el recurso individual resu
     gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
     nationality: string;
     occupation: string;
-    picture: string; // URL o path
+    picture: File | null; // URL o path
     status: boolean;
     meta_title: string | null;
     meta_description: string | null;
