@@ -92,7 +92,8 @@ class CategoryController extends Controller
     {
         // Devolver la vista Inertia para el formulario de edición
         return Inertia::render('Admin/Categories/Edit', [
-            'category' => new CategoryResource($category), // Pasamos el modelo para pre-rellenar el form
+            // 'category' => new CategoryResource($category), // Pasamos el modelo para pre-rellenar el form
+            'category' => CategoryResource::make($category)->resolve(),
         ]);
     }
 

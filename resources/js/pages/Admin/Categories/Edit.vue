@@ -1,15 +1,9 @@
 <script setup lang="ts">
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch/';
 import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
@@ -17,6 +11,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CategoryResource } from '@/types/global'; // Asumiendo que tienes una interfaz CategoryResource o similar
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { LoaderCircle } from 'lucide-vue-next';
 
 interface Props {
     category: CategoryResource; // Usamos el tipo del recurso
@@ -74,91 +69,90 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head :title="`Edit ${category.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Card class="mx-auto mt-4 w-full max-w-2xl">
-            <CardHeader>
-                <CardTitle>Edit Category: {{ category.name }}</CardTitle>
-                <CardDescription>
-                    Update the details of the category.
-                </CardDescription>
-            </CardHeader>
-            <form @submit.prevent="submitForm">
-                <CardContent class="space-y-4">
-                    <!-- Campo: Name -->
-                    <div>
-                        <Label htmlFor="name">Name *</Label>
-                        <Input
-                            id="name"
-                            v-model="form.data.name"
-                            type="text"
-                            placeholder="Enter category name"
-                            :disabled="form.processing"
-                        />
-                        <div
-                            v-if="form.errors.name"
-                            class="mt-1 text-sm text-red-500"
-                        >
-                            {{ form.errors.name }}
-                        </div>
-                    </div>
+        <div
+            class="flex h-full w-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6"
+        >
+            <form @submit.prevent="submitForm" class="w-full space-y-6 p-6">
+                <div class="space-y-2">
+                    <Label for="name">Category name</Label>
+                    <Input
+                        id="name"
+                        type="text"
+                        autoFocus
+                        :tabIndex="1"
+                        autocomplete="name"
+                        placeholder="Category name"
+                        v-model="form.name"
+                    />
+                    <InputError :message="form.errors.name" />
+                </div>
 
-                    <!-- Campo: Description -->
-                    <div>
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                            id="description"
-                            v-model="form.data.description"
-                            placeholder="Enter category description"
-                            :disabled="form.processing"
-                            :rows="4"
-                        />
-                        <div
-                            v-if="form.errors.description"
-                            class="mt-1 text-sm text-red-500"
-                        >
-                            {{ form.errors.description }}
-                        </div>
-                    </div>
+                <div class="space-y-2">
+                    <Label for="description">Description</Label>
+                    <Textarea
+                        id="description"
+                        :tabIndex="2"
+                        autocomplete="description"
+                        placeholder="Category description"
+                        v-model="form.description"
+                    />
+                    <InputError :message="form.errors.description" />
+                </div>
+                <!-- Slug -->
+                <div class="space-y-2">
+                    <Label for="slug">Slug</Label>
+                    <Input
+                        id="slug"
+                        type="text"
+                        :tabIndex="3"
+                        autocomplete="slug"
+                        placeholder="Category slug"
+                        v-model="form.slug"
+                    />
+                    <InputError :message="form.errors.slug" />
+                </div>
 
+                <div class="flex items-center space-x-6">
                     <!-- Campo: Status -->
-                    <div class="flex items-center space-x-2">
-                        <Switch
-                            id="status"
-                            v-model:checked="form.data.status"
-                            :disabled="form.processing"
-                        />
-                        <Label htmlFor="status">Active</Label>
-                    </div>
-                    <div
-                        v-if="form.errors.status"
-                        class="mt-1 text-sm text-red-500"
-                    >
-                        {{ form.errors.status }}
-                    </div>
-
-                    <!-- Añadir otros campos aquí -->
-                    <!-- Ejemplo: Slug -->
-
                     <div>
-                        <Label htmlFor="slug">Slug *</Label>
-                        <Input
-                            id="slug"
-                            v-model="form.data.slug"
-                            type="text"
-                            placeholder="Enter category slug"
-                            :disabled="form.processing"
-                        />
-                        <div
-                            v-if="form.errors.slug"
-                            class="mt-1 text-sm text-red-500"
-                        >
-                            {{ form.errors.slug }}
+                        <div class="flex items-center space-x-2">
+                            <Switch
+                                id="status"
+                                v-model="form.status"
+                                :disabled="form.processing"
+                            />
+                            <Label htmlFor="status">Active</Label>
                         </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.status"
+                        />
                     </div>
-                </CardContent>
-                <CardFooter class="flex justify-end space-x-2">
+
+                    <!-- Campo: Featured -->
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <Switch
+                                id="is_featured"
+                                v-model="form.is_featured"
+                                :disabled="form.processing"
+                            />
+                            <Label htmlFor="is_featured">Featured</Label>
+                        </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.is_featured"
+                        />
+                    </div>
+                </div>
+                <Separator class="my-4" />
+                <div
+                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
+                >
                     <Button
                         type="button"
                         variant="outline"
+                        class="w-full cursor-pointer md:w-auto"
                         :disabled="form.processing"
                         @click="router.visit(route('admin.categories.index'))"
                     >
@@ -166,15 +160,21 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </Button>
                     <Button
                         type="submit"
+                        class="w-full cursor-pointer md:w-auto"
+                        :tabIndex="4"
                         :disabled="form.processing || !form.isDirty"
                     >
-                        {{
-                            form.processing ? 'Updating...' : 'Update Category'
-                        }}
+                        <LoaderCircle
+                            v-if="form.processing"
+                            class="mr-2 h-4 w-4 animate-spin"
+                        />
+                        <span>{{
+                            form.processing ? 'Creating...' : 'Create category'
+                        }}</span>
                     </Button>
-                </CardFooter>
+                </div>
             </form>
-        </Card>
+        </div>
     </AppLayout>
 </template>
 
