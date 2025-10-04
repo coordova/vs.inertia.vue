@@ -28,6 +28,7 @@ class CategoryResource extends JsonResource
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'created_at_formatted' => $this->created_at->format('Y-m-d'),
+            'updated_at_formatted' => $this->updated_at->format('Y-m-d'),
             // 'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i'), // usarlo si se desea usar la fecha local
             
             // 'created_at' => $this->created_at,

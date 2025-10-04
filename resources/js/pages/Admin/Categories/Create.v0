@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
@@ -165,6 +173,112 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </form>
         </div>
+
+        <Card class="card-no-border mt-4 w-full max-w-3xl">
+            <CardHeader>
+                <CardTitle>Create Category</CardTitle>
+                <CardDescription>
+                    Add a new category to the system.
+                </CardDescription>
+            </CardHeader>
+            <form @submit.prevent="submitForm">
+                <CardContent class="space-y-4">
+                    <!-- Campo: Name -->
+                    <div class="grid gap-2">
+                        <Label htmlFor="name">Category name</Label>
+                        <Input
+                            id="name"
+                            v-model="form.name"
+                            type="text"
+                            placeholder="Enter category name"
+                            :disabled="form.processing"
+                        />
+                        <InputError class="mt-2" :message="form.errors.name" />
+                    </div>
+
+                    <!-- Campo: Description -->
+                    <div class="grid gap-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                            id="description"
+                            v-model="form.description"
+                            placeholder="Enter category description"
+                            :disabled="form.processing"
+                            :rows="4"
+                        />
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.description"
+                        />
+                    </div>
+
+                    <!-- <div class="grid gap-2">
+                        <Label htmlFor="slug">Slug *</Label>
+                        <Input
+                            id="slug"
+                            v-model="form.slug"
+                            type="text"
+                            placeholder="Enter category slug"
+                            :disabled="form.processing"
+                        />
+                        <InputError class="mt-2" :message="form.errors.slug" />
+                    </div> -->
+
+                    <div class="flex items-center space-x-6">
+                        <!-- Campo: Status -->
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <Switch
+                                    id="status"
+                                    v-model:checked="form.status"
+                                    :disabled="form.processing"
+                                />
+                                <Label htmlFor="status">Active</Label>
+                            </div>
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.status"
+                            />
+                        </div>
+
+                        <!-- Campo: Featured -->
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <Switch
+                                    id="is_featured"
+                                    v-model:checked="form.is_featured"
+                                    :disabled="form.processing"
+                                />
+                                <Label htmlFor="is_featured">Featured</Label>
+                            </div>
+                            <InputError
+                                class="mt-2"
+                                :message="form.errors.is_featured"
+                            />
+                        </div>
+                    </div>
+                    <Separator class="my-4" />
+                </CardContent>
+                <CardFooter class="flex justify-end space-x-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        :disabled="form.processing"
+                        @click="router.visit(route('admin.categories.index'))"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="form.processing || !form.isDirty"
+                    >
+                        {{
+                            form.processing ? 'Creating...' : 'Create Category'
+                        }}
+                    </Button>
+                </CardFooter>
+            </form>
+        </Card>
     </AppLayout>
 </template>
 

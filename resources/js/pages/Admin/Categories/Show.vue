@@ -1,34 +1,28 @@
 <script setup lang="ts">
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog/';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CategoryResource } from '@/types/global'; // Asumiendo que tienes una interfaz CategoryResource o similar
+import { CategoryResource, CharacterResource } from '@/types/global'; // Asumiendo que tienes una interfaz CategoryResource o similar
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Pencil, Trash } from 'lucide-vue-next'; // Iconos
 
-/* interface Category {
-    data: {
-        id: number;
-        name: string;
-        description: string;
-        status: boolean;
-        created_at_formatted: string;
-        // Añade otros campos según CategoryResource
-    };
-} */
-
 interface Props {
     category: CategoryResource; // Usamos el tipo del recurso
+    characters: CharacterResource[]; // Usamos el tipo del recurso
 }
 
 const props = defineProps<Props>();
@@ -36,10 +30,12 @@ const props = defineProps<Props>();
 // console.log(props.category);
 
 // --- Inicializar el composable de toast ---
-const { success: toastSuccess, error: toastError } = useToast();
+// const { success: toastSuccess, error: toastError } = useToast();
+
+const { success, error } = useToast();
 
 // --- Manejo de eliminación ---
-const handleDelete = () => {
+const handleDelete1 = () => {
     if (
         confirm(
             `Are you sure you want to delete the category "${props.category.name}"?`,
@@ -49,15 +45,37 @@ const handleDelete = () => {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
-                toastSuccess('Category deleted successfully.');
+                success('Category deleted successfully.');
                 // Opcional: Redirigir a la lista
                 router.visit(route('admin.categories.index'));
             },
             onError: () => {
-                toastError('Failed to delete category.');
+                error('Failed to delete category.');
             },
         });
     }
+};
+
+const handleDelete = (e: Event, id: number) => {
+    // alert(id);
+    // deleting[id] = true;
+    router.delete(route('admin.categories.destroy', id), {
+        // preserveState: true,
+        // preserveScroll: true,
+        onSuccess: () => {
+            // Mensaje de éxito
+            success('Category deleted successfully');
+            // router.reload();
+        },
+        onError: () => {
+            error('Failed to delete category');
+        },
+        onFinish: () => {
+            // Siempre se ejecuta, útil para limpiar estados
+            // router.reload();
+            // deleting[id] = false;
+        },
+    });
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -65,10 +83,10 @@ const breadcrumbs: BreadcrumbItem[] = [
         title: 'Categories',
         href: route('admin.categories.index'),
     },
-    /* {
+    {
         title: props.category.name, // Nombre dinámico de la categoría
         href: route('admin.categories.show', props.category.id),
-    }, */
+    },
 ];
 </script>
 
@@ -76,78 +94,190 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head :title="`View ${props.category.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Card class="card-no-border mx-auto mt-4 w-full max-w-2xl">
-            <CardHeader>
-                <CardTitle>{{ props.category.name }}</CardTitle>
-                <CardDescription> Details for the category. </CardDescription>
-            </CardHeader>
-            <CardContent class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium">Details</h3>
-                    <!-- Puedes añadir acciones aquí si es necesario -->
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-sm text-gray-500">ID</p>
-                        <p class="font-medium">{{ props.category.id }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Name</p>
-                        <p class="font-medium">
-                            {{ props.category.name }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Status</p>
-                        <Badge
-                            :variant="
-                                props.category.status ? 'default' : 'secondary'
-                            "
-                        >
-                            {{ props.category.status ? 'Active' : 'Inactive' }}
-                        </Badge>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Created At</p>
-                        <p class="font-medium">
-                            {{ props.category.created_at_formatted }}
-                        </p>
-                    </div>
-                    <!-- Añadir otros campos aquí -->
-                    <div class="col-span-2">
-                        <p class="text-sm text-gray-500">Description</p>
-                        <p class="font-medium">
-                            {{
-                                props.category.description ||
-                                'No description provided.'
-                            }}
-                        </p>
-                    </div>
-                </div>
-            </CardContent>
-            <CardFooter class="flex justify-end space-x-2">
-                <Button
-                    variant="outline"
-                    @click="router.visit(route('admin.categories.index'))"
-                >
-                    Back to List
-                </Button>
-                <Button asChild variant="outline">
-                    <Link
-                        :href="
-                            route('admin.categories.edit', props.category.id)
-                        "
+        <div class="flex h-full max-w-2xl flex-1 flex-col gap-4 rounded-xl p-4">
+            <!-- Category Information -->
+            <div class="max-w-3xl p-4 md:p-6">
+                <div class="px-4 sm:px-0">
+                    <h3
+                        class="text-base/7 font-semibold text-gray-900 dark:text-gray-100"
                     >
-                        <Pencil class="mr-2 h-4 w-4" />
-                        Edit
-                    </Link>
-                </Button>
-                <Button variant="destructive" @click="handleDelete">
-                    <Trash class="mr-2 h-4 w-4" />
-                    Delete
-                </Button>
-            </CardFooter>
-        </Card>
+                        {{ props.category.name }}
+                    </h3>
+                    <p
+                        class="mt-1 max-w-2xl text-sm/6 text-gray-500 dark:text-gray-400"
+                    >
+                        {{ props.category.description }}
+                    </p>
+                </div>
+                <div class="mt-6 border-t border-gray-100 dark:border-white/10">
+                    <dl class="divide-y divide-gray-100 dark:divide-white/10">
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Status
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{
+                                    props.category.status === true
+                                        ? 'Active'
+                                        : 'Inactive'
+                                }}
+                            </dd>
+                        </div>
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Featured
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{
+                                    props.category.is_featured === true
+                                        ? 'Active'
+                                        : 'Inactive'
+                                }}
+                            </dd>
+                        </div>
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Created at
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{ props.category.created_at_formatted }}
+                            </dd>
+                        </div>
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Updated at
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{ props.category.updated_at_formatted }}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+                <Separator class="my-4" />
+                <div class="flex flex-col gap-4 md:flex-row md:justify-center">
+                    <!--    Edit Button link -->
+                    <Button asChild variant="outline">
+                        <Link
+                            :href="
+                                route(
+                                    'admin.categories.edit',
+                                    props.category.id,
+                                )
+                            "
+                            ><Pencil /> Edit</Link
+                        >
+                    </Button>
+                    <!-- delete -->
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                as-child
+                                variant="outline"
+                                class="cursor-pointer"
+                            >
+                                <span><Trash /> Delete </span>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle
+                                    >Are you sure?</AlertDialogTitle
+                                >
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the category.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    @click="
+                                        (e: Event) =>
+                                            handleDelete(e, props.category.id)
+                                    "
+                                    >Confirm Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </div>
+
+            <!-- Characters list belongs to this category -->
+            <div class="max-w-3xl space-y-4 p-4 md:p-6">
+                <div class="px-4 sm:px-0">
+                    <h3
+                        class="text-base/7 font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                        Characters
+                    </h3>
+                    <p
+                        class="mt-1 max-w-2xl text-sm/6 text-gray-500 dark:text-gray-400"
+                    >
+                        Characters list belongs to this category
+                    </p>
+                </div>
+                <div v-if="props.characters?.length">
+                    <ul class="flex flex-wrap gap-2">
+                        <li
+                            v-for="character in props.characters"
+                            :key="character.id"
+                        >
+                            <!-- Badge -->
+                            <Badge
+                                :variant="
+                                    character?.status === true
+                                        ? 'default'
+                                        : 'secondary'
+                                "
+                            >
+                                <Link
+                                    :href="
+                                        route(
+                                            'admin.characters.show',
+                                            character.id,
+                                        )
+                                    "
+                                >
+                                    {{ character.fullname }}</Link
+                                >
+                            </Badge>
+                        </li>
+                    </ul>
+                </div>
+                <div v-else>
+                    <p
+                        class="mt-1 max-w-2xl text-sm/6 text-gray-500 dark:text-gray-400"
+                    >
+                        No characters found
+                    </p>
+                </div>
+            </div>
+        </div>
     </AppLayout>
 </template>
 

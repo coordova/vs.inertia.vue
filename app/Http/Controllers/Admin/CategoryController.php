@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\CharacterResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -80,6 +81,7 @@ class CategoryController extends Controller
         return Inertia::render('Admin/Categories/Show', [
             // 'category' => new CategoryResource($category), // Pasamos el modelo transformado
             'category' => CategoryResource::make($category)->resolve(),
+            'characters' => CharacterResource::collection($category->characters)->resolve(),
         ]);
     }
 

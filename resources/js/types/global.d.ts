@@ -28,6 +28,8 @@ export interface CategoryResource { // Renombrado para claridad
     description: string;
     status: boolean;
     created_at_formatted: string; // O created_at si se formatea en el frontend
+    updated_at_formatted: string; // O updated_at si se formatea en el frontend
+    is_featured: boolean;
     // Añadir otros campos devueltos por CategoryResource
 }
 
