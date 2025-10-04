@@ -28,12 +28,12 @@ const mainNavItems: NavItem[] = [
         href: route('admin.categories.index'),
         icon: LayoutGrid,
     },
-    /* {
+    {
         title: 'Characters',
         href: route('admin.characters.index'),
         icon: LayoutGrid,
     },
-    {
+    /* {
         title: 'Surveys',
         href: route('admin.surveys.index'),
         icon: LayoutGrid,

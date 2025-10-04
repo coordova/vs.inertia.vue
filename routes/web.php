@@ -25,7 +25,7 @@ Route::middleware(['auth'])
     ->name('admin.')   // Prefijo para los nombres de las rutas
     ->group(function () {
         Route::resource('categories', CategoryController::class);
-        // Route::resource('characters', CharacterController::class);
+        Route::resource('characters', CharacterController::class);
         // Route::resource('surveys', SurveyController::class);
     });
 /* -------------------------------------------------------------*/

@@ -80,7 +80,7 @@ export interface SurveysData {
 }
 
 // --- Tipos para Breadcrumbs (si no los tienes en otro lugar) ---
-export interface BreadcrumbItem {
+/* export interface BreadcrumbItem {
     title: string;
     href?: string;
-}
+} */
