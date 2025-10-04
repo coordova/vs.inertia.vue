@@ -203,6 +203,14 @@ function goToPage(page: number) {
                 <span class="text-sm text-gray-500"> </span>
 
                 <div class="flex items-center gap-4">
+                    <!-- Reload -->
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="router.visit(route('admin.categories.index'))"
+                    >
+                        <RotateCw />
+                    </Button>
                     <!-- Per page -->
                     <div class="flex items-center justify-end">
                         <Select
@@ -213,6 +221,7 @@ function goToPage(page: number) {
                                 <SelectValue placeholder="Select a page size" />
                             </SelectTrigger>
                             <SelectContent>
+                                <!-- valor por defecto -->
                                 <SelectItem
                                     value="10"
                                     :selected="perPage === '10'"
@@ -236,14 +245,6 @@ function goToPage(page: number) {
                             </SelectContent>
                         </Select>
                     </div>
-                    <!-- Reload -->
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="router.visit(route('admin.categories.index'))"
-                    >
-                        <RotateCw />
-                    </Button>
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
                         <Input
