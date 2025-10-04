@@ -49,38 +49,19 @@ export interface CategoriesData { // Para la colección paginada
 }
 
 // --- Interfaces para otras entidades ---
-// --- Interfaces para Characters ---
-export interface CharacterResource { // Interfaz para el recurso individual resuelto
+export interface CharacterResource { // Renombrado para claridad
     id: number;
     fullname: string;
     nickname: string;
-    slug: string;
-    bio: string;
-    dob: string | null; // Puede ser null si no tiene fecha de nacimiento
-    gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
-    nationality: string;
-    occupation: string;
-    picture: string; // URL o path
     status: boolean;
-    meta_title: string | null;
-    meta_description: string | null;
-    created_at: string; // Formato ISO
-    updated_at: string; // Formato ISO
-    // Añadir otros campos devueltos por CharacterResource si es necesario
+    created_at_formatted: string; // O created_at si se formatea en el frontend
+    // Añadir otros campos devueltos por CharacterResource
 }
 
-export interface CharactersData { // Para la colección paginada resuelta
-    data: CharacterResource[]; // Array de objetos CharacterResource directos
-    meta: {
-        current_page: number;
-        from: number;
-        last_page: number;
-        path: string;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    links: { url: string | null; label: string; active: boolean }[];
+export interface CharactersData {
+    data: CharacterResource[];
+    meta: { /* ... */ }; // Similar a CategoriesData.meta
+    links: { /* ... */ }; // Similar a CategoriesData.links
 }
 
 export interface SurveyResource { // Renombrado para claridad

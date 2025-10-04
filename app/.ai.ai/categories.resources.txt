@@ -1,0 +1,1399 @@
+<!-- app\Models\Category.php -->
+ <?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Category extends Model
+{
+    /** @use HasFactory<\Database\Factories\CategoryFactory> */
+    use HasFactory, SoftDeletes; // Añadido SoftDeletes
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'image',
+        'color',
+        'icon',
+        'sort_order',
+        'status',
+        'is_featured',
+        'meta_title',
+        'meta_description',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'sort_order' => 'integer',
+        'status' => 'boolean',
+        'is_featured' => 'boolean',
+    ];
+
+    // --- Relaciones ---
+    public function characters(): BelongsToMany
+    {
+        return $this->belongsToMany(Character::class, 'category_character')
+                    ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
+                    ->withTimestamps();
+    }
+
+    public function surveys(): HasMany
+    {
+        return $this->hasMany(Survey::class);
+    }
+}
+
+
+<!-- app\Http\Controllers\Admin\CategoryController.php -->
+ <?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
+use App\Http\Resources\CharacterResource;
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response; // Importar Response
+use Inertia\InertiaResponse;
+
+class CategoryController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request):  Response|InertiaResponse|RedirectResponse
+    {
+        // dd($request->all());
+        // print_r('<pre>'); print_r($request->all()); print_r('</pre>');exit;
+        // Cargar categorías con paginación
+        $categories = Category::query()
+                            ->when(request('search'), function ($query, $search) {
+                                $query->where('name', 'like', '%' . $search . '%');
+                            })
+                            // ->orderBy('sort_order', 'asc')
+                            // ->orderBy('name', 'asc')
+                            ->paginate($request->get('per_page', 10))
+                            ->withQueryString();
+
+        // $categories->appends($request->only(['search', 'per_page']));
+
+        /*---------------------------------------------------------------------*/
+        // TODO: Monitorear su funcionamiento - por ahora todo funciona correctamente
+        // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
+        if ($categories->lastPage() > 0 && $request->get('page', 1) > $categories->lastPage()) {
+            // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
+            return redirect($categories->url($categories->lastPage()));
+        }
+        /*---------------------------------------------------------------------*/
+
+        // Devolver la vista Inertia con los datos
+        return Inertia::render('Admin/Categories/Index', [
+            'categories' => CategoryResource::collection($categories), // Pasamos la colección transformada
+            'filters' => $request->only(['search', 'per_page', 'page']), // Opcional: pasar filtros para UI
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        // Devolver la vista Inertia para el formulario de creación
+        return Inertia::render('Admin/Categories/Create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreCategoryRequest $request): RedirectResponse
+    {
+        Category::create($request->validated());
+
+        // Redirigir al listado de categorías después de crear
+        return to_route('admin.categories.index')->with('success', 'Category created successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Category $category): Response
+    {
+        // Carga relacional opcional si se necesita en la vista
+        // $category->load(['characters', 'surveys']); // Ejemplo
+        return Inertia::render('Admin/Categories/Show', [
+            // 'category' => new CategoryResource($category), // Pasamos el modelo transformado
+            'category' => CategoryResource::make($category)->resolve(),
+            'characters' => CharacterResource::collection($category->characters)->resolve(),
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Category $category): Response
+    {
+        // Devolver la vista Inertia para el formulario de edición
+        return Inertia::render('Admin/Categories/Edit', [
+            // 'category' => new CategoryResource($category), // Pasamos el modelo para pre-rellenar el form
+            'category' => CategoryResource::make($category)->resolve(),
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
+    {
+        $category->update($request->validated());
+
+        // Redirigir al listado o a la edición después de actualizar
+        return to_route('admin.categories.show', $category)->with('success', 'Category updated successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, Category $category): RedirectResponse
+    {
+        // dd($request->all());
+        $category->delete(); // Soft Delete
+
+        // Recoge parámetros opcionales de paginación y filtros: Solo pasa los parámetros relevantes para la lista (search, page, per_page)
+        $redirectParams = $request->only(['search', 'page', 'per_page']);
+
+        return to_route('admin.categories.index', $redirectParams)->with('success', 'Category deleted successfully.');
+    }
+}
+
+/* app\Http\Resources\CategoryResource.php */
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class CategoryResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'image' => $this->image,
+            'color' => $this->color,
+            'icon' => $this->icon,
+            'sort_order' => $this->sort_order,
+            'status' => $this->status,
+            'is_featured' => $this->is_featured,
+            'meta_title' => $this->meta_title,
+            'meta_description' => $this->meta_description,
+            'created_at_formatted' => $this->created_at->format('Y-m-d'),
+            'updated_at_formatted' => $this->updated_at->format('Y-m-d'),
+            // 'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i'), // usarlo si se desea usar la fecha local
+            
+            // 'created_at' => $this->created_at,
+            // 'updated_at' => $this->updated_at,
+            // 'deleted_at' => $this->when($this->trashed(), $this->deleted_at), // Mostrar deleted_at solo si está borrado
+        ];
+    }
+}
+
+/* app\Http\Requests\StoreCategoryRequest.php */
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
+
+class StoreCategoryRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        // Ej: return auth()->user()->type === 1; // Solo admins
+        return true; // Ajustar según lógica de autorización
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255|unique:categories,name',
+            'slug' => 'required|string|max:255|unique:categories,slug',
+            'description' => 'nullable|string',
+            'image' => 'nullable|string|max:255', // Puede ser una URL o path
+            'color' => 'nullable|string|size:7|regex:/^#[0-9A-Fa-f]{6}$/',
+            'icon' => 'nullable|string|max:255',
+            'sort_order' => 'nullable|integer|min:0',
+            'status' => 'required|boolean',
+            'is_featured' => 'required|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+        ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * Este método es perfecto para preparar datos antes de que se validen.
+     * Genera automáticamente el slug si no se proporciona.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Aquí podemos añadir el slug a los datos de la petición.
+        // Lo haremos en el controlador para más claridad en este caso.
+        $this->merge([
+            'slug' => $this->slug ?? Str::slug($this->name),
+        ]);
+    }
+}
+
+/* app\Http\Requests\UpdateCategoryRequest.php */
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateCategoryRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        // Ej: return auth()->user()->type === 1; // Solo admins
+        return true; // Ajustar según lógica de autorización
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $categoryId = $this->route('category'); // Obtiene el ID del parámetro de la ruta
+
+        return [
+            'name' => ['required', 'string', 'max:255', Rule::unique('categories', 'name')->ignore($categoryId)],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($categoryId)],
+            'description' => 'nullable|string',
+            'image' => 'nullable|string|max:255',
+            'color' => 'nullable|string|size:7|regex:/^#[0-9A-Fa-f]{6}$/',
+            'icon' => 'nullable|string|max:255',
+            'sort_order' => 'nullable|integer|min:0',
+            'status' => 'required|boolean',
+            'is_featured' => 'required|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+        ];
+    }
+}
+
+/* resources\js\pages\Admin\Categories\Index.vue */
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
+// Suponiendo que los componentes shadcn estén en resources/js/Components/ui/
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog/';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import TPagination from '@/components/ui/oox/TPagination.vue';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { useToast } from '@/composables/useToast'; // Importar el composable
+import { CategoriesData, CategoryResource } from '@/types/global';
+import { debounce } from 'lodash';
+import { Eye, Pencil, RotateCw, Search, Trash } from 'lucide-vue-next';
+import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
+
+// --- Tipado de datos recibidos ---
+interface Category extends CategoryResource {
+    id: number;
+    name: string;
+    description: string;
+    status: boolean;
+    created_at_formatted: string;
+    // Añade otros campos según CategoryResource
+}
+
+// Tipo para un enlace de paginación (Laravel)
+/* interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+} */
+
+// Tipo para la información de meta de paginación (Laravel)
+/* interface PaginationMeta {
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+} */
+
+// Tipo para la respuesta paginada
+/* interface CategoriesData {
+    data: Category[]; // Importante: la clave 'data' contiene el array
+    links: PaginationLink[];
+    meta: PaginationMeta;
+} */
+
+// Props del componente
+interface Props {
+    categories: CategoriesData;
+    filters?: Record<string, any>; // Filtros opcionales
+}
+
+const props = defineProps<Props>();
+
+// --- Manejo de mensajes flash ---
+// Acceder a props.flash de forma segura sin tipar usePage explícitamente
+// const page = usePage();
+// const flashSuccess = page.props.flash?.success;
+
+/*-------------- Watch --------------*/
+const search = ref(props.filters?.search);
+const page = ref(props.filters?.page);
+const perPage = ref(props.filters?.per_page);
+
+watch(
+    search,
+    debounce(function (value: string) {
+        // console.log(value);
+        router.get(
+            route('admin.categories.index'),
+            { search: value, /* page: 1,  */ per_page: perPage.value },
+            { preserveState: true, replace: true },
+        );
+    }, 300),
+);
+
+// watch para actualizar la variable page
+watch(
+    () => props.filters?.page,
+    (value) => {
+        page.value = value;
+    },
+);
+
+// watch para actualizar la variable per_page
+watch(
+    () => props.filters?.per_page,
+    (value) => {
+        perPage.value = value;
+    },
+);
+
+/*-------------- Sonner --------------*/
+// --- Inicializar el composable de toast ---
+// const { success: toastSuccess, error: toastError } = useToast();
+
+// const { props } = usePage()
+const { success, error } = useToast();
+
+// if (props.flash?.success) {
+//     success(props.flash.success);
+// } else if (props.flash?.error) {
+//     error(props.flash.error);
+// }
+/*-------------- /Sonner -------------*/
+
+const deleting = reactive<Record<number, boolean>>({});
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Categories',
+        href: route('admin.categories.index'),
+    },
+];
+
+/**
+ * Función para confirmar y ejecutar la eliminación
+ * @param e Evento del click
+ * @param id ID de la categoría a eliminar
+ */
+const handleDelete = (e: Event, id: number) => {
+    deleting[id] = true;
+    router.delete(route('admin.categories.destroy', id), {
+        data: {
+            page: page.value, // se envia a admin.categories.destroy el valor de la pagina para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            search: search.value, // se envia a admin.categories.destroy el valor de la busqueda para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            per_page: perPage.value, // se envia a admin.categories.destroy el valor de la paginacion para que se agregue a la url (complementado con ->withQueryString() del controlador)
+        },
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            // Mensaje de éxito
+            success('Category deleted successfully');
+            // router.reload();
+        },
+        onError: () => {
+            error('Failed to delete category');
+        },
+        onFinish: () => {
+            // Siempre se ejecuta, útil para limpiar estados
+            // router.reload();
+            deleting[id] = false;
+        },
+    });
+};
+
+/**
+ * Navegar a una página específica
+ * @param page número de la página
+ */
+function goToPage(page: number) {
+    router.get(
+        route('admin.categories.index'),
+        {
+            page, // se envia a admin.categories.index el valor de la pagina para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            search: search.value, // se envia a admin.categories.index el valor de la busqueda para que se agregue a la url (complementado con ->withQueryString() del controlador)
+            per_page: perPage.value, // se envia a admin.categories.index el valor de la paginacion para que se agregue a la url (complementado con ->withQueryString() del controlador)
+        },
+        { preserveState: true, preserveScroll: true },
+    );
+}
+</script>
+
+<template>
+    <Head title="Dashboard" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div
+            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+        >
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-semibold">Categories</h1>
+                <span class="text-sm text-gray-500"> </span>
+
+                <div class="flex items-center gap-4">
+                    <!-- Reload -->
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="router.visit(route('admin.categories.index'))"
+                    >
+                        <RotateCw />
+                    </Button>
+                    <!-- Per page -->
+                    <div class="flex items-center justify-end">
+                        <Select
+                            v-model="perPage"
+                            @update:modelValue="goToPage(1)"
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a page size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <!-- valor por defecto -->
+                                <SelectItem
+                                    value="10"
+                                    :selected="perPage === '10'"
+                                    >10</SelectItem
+                                >
+                                <SelectItem
+                                    value="25"
+                                    :selected="perPage === '25'"
+                                    >25</SelectItem
+                                >
+                                <SelectItem
+                                    value="50"
+                                    :selected="perPage === '50'"
+                                    >50</SelectItem
+                                >
+                                <SelectItem
+                                    value="100"
+                                    :selected="perPage === '100'"
+                                    >100</SelectItem
+                                >
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <!-- Search -->
+                    <div class="relative w-full max-w-sm items-center">
+                        <Input
+                            v-model="search"
+                            id="search"
+                            type="text"
+                            placeholder="Search..."
+                            class="pl-10"
+                        />
+                        <span
+                            class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
+                        >
+                            <Search class="size-6 text-muted-foreground" />
+                        </span>
+                    </div>
+                    <!-- Create Category -->
+                    <Button asChild>
+                        <Link :href="route('admin.categories.create')"
+                            >Create Category</Link
+                        >
+                    </Button>
+                </div>
+            </div>
+            <Table>
+                <TableCaption class="text-right"
+                    >Showing {{ props.categories?.meta.from }} to
+                    {{ props.categories?.meta.to }} of
+                    {{ props.categories?.meta.total }} categories</TableCaption
+                >
+                <TableHeader>
+                    <TableRow>
+                        <TableHead> Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created At</TableHead>
+                        <TableHead class="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow v-if="props.categories?.data.length === 0">
+                        <TableCell colspan="5" class="h-24 text-center"
+                            >No categories found.
+                        </TableCell>
+                    </TableRow>
+                    <TableRow
+                        v-else
+                        v-for="category in props.categories?.data"
+                        :key="category.id"
+                        :class="{
+                            'pointer-events-none text-gray-500 opacity-50':
+                                deleting[category.id],
+                        }"
+                    >
+                        <TableCell class="font-medium">
+                            {{ category.name }}</TableCell
+                        >
+                        <TableCell>{{ category.description }}</TableCell>
+                        <TableCell>
+                            <Badge
+                                :variant="
+                                    category.status === true
+                                        ? 'default'
+                                        : 'secondary'
+                                "
+                                >{{
+                                    category.status === true
+                                        ? 'Active'
+                                        : 'Inactive'
+                                }}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>{{
+                            category.created_at_formatted
+                        }}</TableCell>
+                        <TableCell class="flex items-center justify-end gap-2">
+                            <!-- acciones -->
+                            <Button asChild variant="outline">
+                                <Link
+                                    :href="
+                                        route(
+                                            'admin.categories.show',
+                                            category.id,
+                                        )
+                                    "
+                                >
+                                    <Eye />
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Link
+                                    :href="
+                                        route(
+                                            'admin.categories.edit',
+                                            category.id,
+                                        )
+                                    "
+                                >
+                                    <Pencil />
+                                </Link>
+                            </Button>
+                            <!-- delete -->
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        as-child
+                                        variant="outline"
+                                        size="sm"
+                                    >
+                                        <span>
+                                            <Trash />
+                                        </span>
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle
+                                            >Are you sure?</AlertDialogTitle
+                                        >
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This
+                                            will permanently delete the
+                                            category.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel
+                                            >Cancel</AlertDialogCancel
+                                        >
+                                        <AlertDialogAction
+                                            @click="
+                                                (e: Event) =>
+                                                    handleDelete(e, category.id)
+                                            "
+                                            >Confirm Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+            <!-- Pagination -->
+            <TPagination
+                :current-page="props.categories.meta.current_page"
+                :total-items="props.categories.meta.total"
+                :items-per-page="props.categories.meta.per_page"
+                @page-change="goToPage"
+            />
+        </div>
+    </AppLayout>
+</template>
+
+<style scoped>
+/* Estilos específicos para este componente si es necesario */
+</style>
+
+/* resources\js\pages\Admin\Categories\Show.vue */
+<script setup lang="ts">
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog/';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/composables/useToast';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { CategoryResource, CharacterResource } from '@/types/global'; // Asumiendo que tienes una interfaz CategoryResource o similar
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Pencil, Trash } from 'lucide-vue-next'; // Iconos
+
+interface Props {
+    category: CategoryResource; // Usamos el tipo del recurso
+    characters: CharacterResource[]; // Usamos el tipo del recurso
+}
+
+const props = defineProps<Props>();
+
+// console.log(props.category);
+
+// --- Inicializar el composable de toast ---
+// const { success: toastSuccess, error: toastError } = useToast();
+
+const { success, error } = useToast();
+
+// --- Manejo de eliminación ---
+const handleDelete1 = () => {
+    if (
+        confirm(
+            `Are you sure you want to delete the category "${props.category.name}"?`,
+        )
+    ) {
+        router.delete(route('admin.categories.destroy', props.category.id), {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                success('Category deleted successfully.');
+                // Opcional: Redirigir a la lista
+                router.visit(route('admin.categories.index'));
+            },
+            onError: () => {
+                error('Failed to delete category.');
+            },
+        });
+    }
+};
+
+const handleDelete = (e: Event, id: number) => {
+    // alert(id);
+    // deleting[id] = true;
+    router.delete(route('admin.categories.destroy', id), {
+        // preserveState: true,
+        // preserveScroll: true,
+        onSuccess: () => {
+            // Mensaje de éxito
+            success('Category deleted successfully');
+            // router.reload();
+        },
+        onError: () => {
+            error('Failed to delete category');
+        },
+        onFinish: () => {
+            // Siempre se ejecuta, útil para limpiar estados
+            // router.reload();
+            // deleting[id] = false;
+        },
+    });
+};
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Categories',
+        href: route('admin.categories.index'),
+    },
+    {
+        title: props.category.name, // Nombre dinámico de la categoría
+        href: route('admin.categories.show', props.category.id),
+    },
+];
+</script>
+
+<template>
+    <Head :title="`View ${props.category.name}`" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="flex h-full max-w-2xl flex-1 flex-col gap-4 rounded-xl p-4">
+            <!-- Category Information -->
+            <div class="max-w-3xl p-4 md:p-6">
+                <div class="px-4 sm:px-0">
+                    <h3
+                        class="text-base/7 font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                        {{ props.category.name }}
+                    </h3>
+                    <p
+                        class="mt-1 max-w-2xl text-sm/6 text-gray-500 dark:text-gray-400"
+                    >
+                        {{ props.category.description }}
+                    </p>
+                </div>
+                <div class="mt-6 border-t border-gray-100 dark:border-white/10">
+                    <dl class="divide-y divide-gray-100 dark:divide-white/10">
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Status
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{
+                                    props.category.status === true
+                                        ? 'Active'
+                                        : 'Inactive'
+                                }}
+                            </dd>
+                        </div>
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Featured
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{
+                                    props.category.is_featured === true
+                                        ? 'Active'
+                                        : 'Inactive'
+                                }}
+                            </dd>
+                        </div>
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Created at
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{ props.category.created_at_formatted }}
+                            </dd>
+                        </div>
+                        <div
+                            class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                        >
+                            <dt
+                                class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                            >
+                                Updated at
+                            </dt>
+                            <dd
+                                class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                            >
+                                {{ props.category.updated_at_formatted }}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+                <Separator class="my-4" />
+                <div class="flex flex-col gap-4 md:flex-row md:justify-center">
+                    <!--    Edit Button link -->
+                    <Button asChild variant="outline">
+                        <Link
+                            :href="
+                                route(
+                                    'admin.categories.edit',
+                                    props.category.id,
+                                )
+                            "
+                            ><Pencil /> Edit</Link
+                        >
+                    </Button>
+                    <!-- delete -->
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                as-child
+                                variant="outline"
+                                class="cursor-pointer"
+                            >
+                                <span><Trash /> Delete </span>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle
+                                    >Are you sure?</AlertDialogTitle
+                                >
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the category.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    @click="
+                                        (e: Event) =>
+                                            handleDelete(e, props.category.id)
+                                    "
+                                    >Confirm Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </div>
+
+            <!-- Characters list belongs to this category -->
+            <div class="max-w-3xl space-y-4 p-4 md:p-6">
+                <div class="px-4 sm:px-0">
+                    <h3
+                        class="text-base/7 font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                        Characters
+                    </h3>
+                    <p
+                        class="mt-1 max-w-2xl text-sm/6 text-gray-500 dark:text-gray-400"
+                    >
+                        Characters list belongs to this category
+                    </p>
+                </div>
+                <div v-if="props.characters?.length">
+                    <ul class="flex flex-wrap gap-2">
+                        <li
+                            v-for="character in props.characters"
+                            :key="character.id"
+                        >
+                            <!-- Badge -->
+                            <Badge
+                                :variant="
+                                    character?.status === true
+                                        ? 'default'
+                                        : 'secondary'
+                                "
+                            >
+                                <Link
+                                    :href="
+                                        route(
+                                            'admin.characters.show',
+                                            character.id,
+                                        )
+                                    "
+                                >
+                                    {{ character.fullname }}</Link
+                                >
+                            </Badge>
+                        </li>
+                    </ul>
+                </div>
+                <div v-else>
+                    <p
+                        class="mt-1 max-w-2xl text-sm/6 text-gray-500 dark:text-gray-400"
+                    >
+                        No characters found
+                    </p>
+                </div>
+            </div>
+        </div>
+    </AppLayout>
+</template>
+
+<style scoped>
+/* Estilos específicos si es necesario */
+.card-no-border {
+    border: none !important; /* Use !important if necessary to override existing styles */
+    box-shadow: none !important; /* If you also want to remove shadows */
+}
+</style>
+
+/* resources\js\pages\Admin\Categories\Create.vue */
+<script setup lang="ts">
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch/';
+import { Textarea } from '@/components/ui/textarea/';
+import { useToast } from '@/composables/useToast';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { CategoryResource } from '@/types/global'; // Interfaz CategoryResource o similar
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { LoaderCircle } from 'lucide-vue-next';
+
+// --- Tipado de datos del formulario ---
+/* interface FormData {
+    name: string;
+    description: string;
+    status: boolean;
+    is_featured: boolean;
+    slug: string;
+    // Añadir otros campos si es necesario (slug, color, icon, etc.)
+} */
+
+// --- Inicializar el composable de toast ---
+const { success, error } = useToast();
+// const { success: toastSuccess, error: toastError } = useToast();
+
+// --- Inicializar el formulario de Inertia ---
+const form = useForm<CategoryResource>({
+    name: '',
+    description: '',
+    status: true, // Valor por defecto
+    is_featured: false, // Valor por defecto
+    /*-----------------------------------*/
+    // campos que no se usan en el formulario pero que esta definida en CategoryResource (global.d.ts) ssi deben estar
+    id: 0, // ***no se usa en el formulario***
+    slug: '', // Valor por defecto  // ***no se usa en el formulario***
+    created_at_formatted: '', // Valor por defecto  // ***no se usa en el formulario***
+    updated_at_formatted: '', // Valor por defecto  // ***no se usa en el formulario***
+    /*-----------------------------------*/
+    // Inicializar otros campos si es necesario
+});
+
+// --- Manejo de envío del formulario ---
+const submitForm = () => {
+    form.post(route('admin.categories.store'), {
+        preserveState: true, // Mantiene el estado del formulario en caso de error de validación
+        onSuccess: () => {
+            success('Category created successfully.');
+            // Opcional: Resetear el formulario si se desea
+            // form.reset(); // Esto resetearía name, description, status
+            // Opcional: Redirigir a la lista
+            // router.visit(route('admin.categories.index'));
+        },
+        onError: (errors) => {
+            // console.error('Errors creating category:', errors);
+            // El helper `useForm` maneja automáticamente la visualización de errores
+            // en el componente si se usa `form.errors.fieldName`
+            error('Failed to create category. Please check the errors below.');
+        },
+    });
+};
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Categories',
+        href: route('admin.categories.index'),
+    },
+    {
+        title: 'Create',
+        href: route('admin.categories.create'),
+    },
+];
+</script>
+
+<template>
+    <Head title="Create Category" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div
+            class="flex h-full w-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6"
+        >
+            <form @submit.prevent="submitForm" class="w-full space-y-6 p-6">
+                <div class="space-y-2">
+                    <Label for="name">Category name</Label>
+                    <Input
+                        id="name"
+                        type="text"
+                        autoFocus
+                        :tabIndex="1"
+                        autocomplete="name"
+                        placeholder="Category name"
+                        v-model="form.name"
+                    />
+                    <InputError :message="form.errors.name" />
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="description">Description</Label>
+                    <Textarea
+                        id="description"
+                        :tabIndex="2"
+                        autocomplete="description"
+                        placeholder="Category description"
+                        v-model="form.description"
+                    />
+                    <InputError :message="form.errors.description" />
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <!-- Campo: Status -->
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <Switch
+                                id="status"
+                                v-model="form.status"
+                                :disabled="form.processing"
+                            />
+                            <Label htmlFor="status">Active</Label>
+                        </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.status"
+                        />
+                    </div>
+
+                    <!-- Campo: Featured -->
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <Switch
+                                id="is_featured"
+                                v-model="form.is_featured"
+                                :disabled="form.processing"
+                            />
+                            <Label htmlFor="is_featured">Featured</Label>
+                        </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.is_featured"
+                        />
+                    </div>
+                </div>
+                <Separator class="my-4" />
+                <div
+                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
+                >
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="w-full cursor-pointer md:w-auto"
+                        :disabled="form.processing"
+                        @click="router.visit(route('admin.categories.index'))"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        class="w-full cursor-pointer md:w-auto"
+                        :tabIndex="4"
+                        :disabled="form.processing || !form.isDirty"
+                    >
+                        <LoaderCircle
+                            v-if="form.processing"
+                            class="mr-2 h-4 w-4 animate-spin"
+                        />
+                        <span>{{
+                            form.processing ? 'Creating...' : 'Create category'
+                        }}</span>
+                    </Button>
+                </div>
+            </form>
+        </div>
+    </AppLayout>
+</template>
+
+<style scoped>
+/* Estilos específicos si es necesario */
+/* In Card.vue or a global CSS file */
+.card-no-border {
+    border: none !important; /* Use !important if necessary to override existing styles */
+    box-shadow: none !important; /* If you also want to remove shadows */
+}
+</style>
+
+/* resources\js\pages\Admin\Categories\Edit.vue */
+<script setup lang="ts">
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch/';
+import { Textarea } from '@/components/ui/textarea/';
+import { useToast } from '@/composables/useToast';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { CategoryResource } from '@/types/global'; // Interfaz CategoryResource o similar
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { LoaderCircle } from 'lucide-vue-next';
+
+interface Props {
+    category: CategoryResource; // Usamos el tipo del recurso
+}
+
+const props = defineProps<Props>();
+
+// --- Inicializar el composable de toast ---
+const { success, error } = useToast();
+
+// --- Inicializar el formulario de Inertia con los datos iniciales ---
+const form = useForm({
+    name: props.category.name,
+    description: props.category.description ?? '',
+    status: props.category.status,
+    is_featured: props.category.is_featured,
+    slug: props.category.slug,
+    // Cargar otros campos iniciales si es necesario
+});
+
+// --- Manejo de envío del formulario ---
+const submitForm = () => {
+    form.put(route('admin.categories.update', props.category.id), {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            success('Category updated successfully.');
+            // Opcional: Redirigir a la lista o a la vista de la categoría
+            // router.visit(route('admin.categories.index'));
+        },
+        onError: (errors) => {
+            console.error('Errors updating category:', errors);
+            error('Failed to update category. Please check the errors below.');
+        },
+    });
+};
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Categories',
+        href: route('admin.categories.index'),
+    },
+    {
+        title: props.category.name, // Nombre dinámico de la categoría
+        href: route('admin.categories.show', props.category.id),
+    },
+    {
+        title: 'Edit',
+        href: route('admin.categories.edit', props.category.id),
+    },
+];
+</script>
+
+<template>
+    <Head :title="`Edit ${category.name}`" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div
+            class="flex h-full w-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6"
+        >
+            <form @submit.prevent="submitForm" class="w-full space-y-6 p-6">
+                <div class="space-y-2">
+                    <Label for="name">Category name</Label>
+                    <Input
+                        id="name"
+                        type="text"
+                        autoFocus
+                        :tabIndex="1"
+                        autocomplete="name"
+                        placeholder="Category name"
+                        v-model="form.name"
+                    />
+                    <InputError :message="form.errors.name" />
+                </div>
+
+                <div class="space-y-2">
+                    <Label for="description">Description</Label>
+                    <Textarea
+                        id="description"
+                        :tabIndex="2"
+                        autocomplete="description"
+                        placeholder="Category description"
+                        v-model="form.description"
+                    />
+                    <InputError :message="form.errors.description" />
+                </div>
+                <!-- Slug -->
+                <div class="space-y-2">
+                    <Label for="slug">Slug</Label>
+                    <Input
+                        id="slug"
+                        type="text"
+                        :tabIndex="3"
+                        autocomplete="slug"
+                        placeholder="Category slug"
+                        v-model="form.slug"
+                    />
+                    <InputError :message="form.errors.slug" />
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <!-- Campo: Status -->
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <Switch
+                                id="status"
+                                v-model="form.status"
+                                :disabled="form.processing"
+                            />
+                            <Label htmlFor="status">Active</Label>
+                        </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.status"
+                        />
+                    </div>
+
+                    <!-- Campo: Featured -->
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <Switch
+                                id="is_featured"
+                                v-model="form.is_featured"
+                                :disabled="form.processing"
+                            />
+                            <Label htmlFor="is_featured">Featured</Label>
+                        </div>
+                        <InputError
+                            class="mt-2"
+                            :message="form.errors.is_featured"
+                        />
+                    </div>
+                </div>
+                <Separator class="my-4" />
+                <div
+                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
+                >
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="w-full cursor-pointer md:w-auto"
+                        :disabled="form.processing"
+                        @click="router.visit(route('admin.categories.index'))"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        class="w-full cursor-pointer md:w-auto"
+                        :tabIndex="4"
+                        :disabled="form.processing || !form.isDirty"
+                    >
+                        <LoaderCircle
+                            v-if="form.processing"
+                            class="mr-2 h-4 w-4 animate-spin"
+                        />
+                        <span>{{
+                            form.processing ? 'Creating...' : 'Create category'
+                        }}</span>
+                    </Button>
+                </div>
+            </form>
+        </div>
+    </AppLayout>
+</template>
+
+<style scoped>
+/* Estilos específicos si es necesario */
+</style>
+

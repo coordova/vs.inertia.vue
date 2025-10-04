@@ -1,0 +1,307 @@
+<!-- app\Models\Character.php -->
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Character extends Model
+{
+    /** @use HasFactory<\Database\Factories\CharacterFactory> */
+    use HasFactory, SoftDeletes; // Añadido SoftDeletes
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'fullname',
+        'nickname',
+        'slug',
+        'bio',
+        'dob',
+        'gender',
+        'nationality',
+        'occupation',
+        'picture',
+        'status',
+        'meta_title',
+        'meta_description',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'dob' => 'date',
+        'gender' => 'integer',
+        'status' => 'boolean',
+    ];
+
+    // --- Relaciones ---
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_character')
+                    ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
+                    ->withTimestamps();
+    }
+
+    public function surveys(): BelongsToMany
+    {
+        return $this->belongsToMany(Survey::class, 'character_survey')
+                    ->withPivot(['survey_matches', 'survey_wins', 'survey_losses', 'survey_ties', 'is_active', 'sort_order'])
+                    ->withTimestamps();
+    }
+
+    public function votesAsWinner(): HasMany
+    {
+        return $this->hasMany(Vote::class, 'winner_id');
+    }
+
+    public function votesAsLoser(): HasMany
+    {
+        return $this->hasMany(Vote::class, 'loser_id');
+    }
+
+    public function combinatoricsAsCharacter1(): HasMany
+    {
+        return $this->hasMany(Combinatoric::class, 'character1_id');
+    }
+
+    public function combinatoricsAsCharacter2(): HasMany
+    {
+        return $this->hasMany(Combinatoric::class, 'character2_id');
+    }
+}
+
+
+
+<!-- app\Http\Controllers\Admin\CharacterController.php -->
+ <?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCharacterRequest;
+use App\Http\Requests\UpdateCharacterRequest;
+use App\Http\Resources\CharacterResource;
+use App\Models\Character;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class CharacterController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request): Response
+    {
+        $characters = Character::orderBy('fullname', 'asc')
+                              ->paginate($request->get('per_page', 15));
+
+        // Opcional: Agregar búsqueda
+        // $search = $request->get('search');
+        // if ($search) {
+        //     $characters = $characters->where('fullname', 'like', "%{$search}%");
+        //     // o $characters->where('nickname', 'like', "%{$search}%");
+        // }
+
+        return Inertia::render('Admin/Characters/Index', [
+            'characters' => CharacterResource::collection($characters),
+            'filters' => $request->only(['search', 'per_page']),
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Characters/Create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreCharacterRequest $request): RedirectResponse
+    {
+        Character::create($request->validated());
+
+        return to_route('admin.characters.index')->with('success', 'Character created successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Character $character): Response
+    {
+        return Inertia::render('Admin/Characters/Show', [
+            'character' => new CharacterResource($character),
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Character $character): Response
+    {
+        return Inertia::render('Admin/Characters/Edit', [
+            'character' => new CharacterResource($character),
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateCharacterRequest $request, Character $character): RedirectResponse
+    {
+        $character->update($request->validated());
+
+        return to_route('admin.characters.index')->with('success', 'Character updated successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Character $character): RedirectResponse
+    {
+        $character->delete(); // Soft Delete
+
+        return to_route('admin.characters.index')->with('success', 'Character deleted successfully.');
+    }
+}
+
+<!-- app\Http\Resources\CharacterResource.php -->
+ <?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class CharacterResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'fullname' => $this->fullname,
+            'nickname' => $this->nickname,
+            'slug' => $this->slug,
+            'bio' => $this->bio,
+            'dob' => $this->dob,
+            'gender' => $this->gender,
+            'nationality' => $this->nationality,
+            'occupation' => $this->occupation,
+            'picture' => $this->picture,
+            'status' => $this->status,
+            'meta_title' => $this->meta_title,
+            'meta_description' => $this->meta_description,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            // 'deleted_at' => $this->when($this->trashed(), $this->deleted_at),
+        ];
+    }
+}
+
+<!-- app\Http\Requests\StoreCharacterRequest.php -->
+ <?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreCharacterRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        // Ej: return auth()->user()->type === 1; // Solo admins
+        return true; // Ajustar según lógica de autorización
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'fullname' => 'required|string|max:255|unique:characters,fullname',
+            'nickname' => 'nullable|string|max:255',
+            'slug' => 'required|string|max:255|unique:characters,slug',
+            'bio' => 'nullable|string',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|integer|in:0,1,2,3', // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+            'nationality' => 'nullable|string|max:255',
+            'occupation' => 'nullable|string|max:255',
+            'picture' => 'required|string|max:255', // Puede ser una URL o path
+            'status' => 'required|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+        ];
+    }
+}
+
+<!-- app\Http\Requests\UpdateCharacterRequest.php -->
+ <?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateCharacterRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        // Ej: return auth()->user()->type === 1; // Solo admins
+        return true; // Ajustar según lógica de autorización
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $characterId = $this->route('character'); // Obtiene el ID del parámetro de la ruta
+
+        return [
+            'fullname' => ['required', 'string', 'max:255', Rule::unique('characters', 'fullname')->ignore($characterId)],
+            'nickname' => 'nullable|string|max:255',
+            'slug' => ['required', 'string', 'max:255', Rule::unique('characters', 'slug')->ignore($characterId)],
+            'bio' => 'nullable|string',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|integer|in:0,1,2,3',
+            'nationality' => 'nullable|string|max:255',
+            'occupation' => 'nullable|string|max:255',
+            'picture' => 'required|string|max:255',
+            'status' => 'required|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+        ];
+    }
+}
+
