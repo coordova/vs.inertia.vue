@@ -19,6 +19,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TPagination from '@/components/ui/oox/TPagination.vue';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     Table,
     TableBody,
     TableCaption,
@@ -88,7 +95,7 @@ const perPage = ref(props.filters?.per_page);
 watch(
     search,
     debounce(function (value: string) {
-        console.log(value);
+        // console.log(value);
         router.get(
             route('admin.categories.index'),
             { search: value, /* page: 1,  */ per_page: perPage.value },
@@ -196,6 +203,39 @@ function goToPage(page: number) {
                 <span class="text-sm text-gray-500"> </span>
 
                 <div class="flex items-center gap-4">
+                    <!-- Per page -->
+                    <div class="flex items-center justify-end">
+                        <Select
+                            v-model="perPage"
+                            @update:modelValue="goToPage(1)"
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a page size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    value="10"
+                                    :selected="perPage === '10'"
+                                    >10</SelectItem
+                                >
+                                <SelectItem
+                                    value="25"
+                                    :selected="perPage === '25'"
+                                    >25</SelectItem
+                                >
+                                <SelectItem
+                                    value="50"
+                                    :selected="perPage === '50'"
+                                    >50</SelectItem
+                                >
+                                <SelectItem
+                                    value="100"
+                                    :selected="perPage === '100'"
+                                    >100</SelectItem
+                                >
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <!-- Reload -->
                     <Button
                         type="button"
@@ -353,20 +393,6 @@ function goToPage(page: number) {
                 :items-per-page="props.categories.meta.per_page"
                 @page-change="goToPage"
             />
-            <!-- Per page -->
-            <div class="flex items-center justify-end">
-                <Select v-model="perPage" @update:modelValue="goToPage(1)">
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a page size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
         </div>
     </AppLayout>
 </template>
