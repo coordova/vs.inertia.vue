@@ -65,7 +65,6 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        // dd($request->validated());
         Category::create($request->validated());
 
         // Redirigir al listado de categorías después de crear
