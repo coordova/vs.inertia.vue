@@ -353,6 +353,20 @@ function goToPage(page: number) {
                 :items-per-page="props.categories.meta.per_page"
                 @page-change="goToPage"
             />
+            <!-- Per page -->
+            <div class="flex items-center justify-end">
+                <Select v-model="perPage" @update:modelValue="goToPage(1)">
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a page size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
     </AppLayout>
 </template>
