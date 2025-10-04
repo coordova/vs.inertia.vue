@@ -20,7 +20,9 @@ return [
         'admin.characters.index',
         'admin.characters.show',
         'admin.characters.create',
+        'admin.characters.store',
         'admin.characters.edit',
+        'admin.characters.update',
         'admin.characters.destroy',
         
         'admin.surveys.index',

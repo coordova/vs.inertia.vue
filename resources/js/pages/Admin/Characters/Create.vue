@@ -3,17 +3,36 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import MaskDateEdit from '@/components/ui/oox/TDateMaskEdit.vue';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch/';
 import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CharacterResource } from '@/types/global';
+import { CategoryResource, CharacterResource } from '@/types/global';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
+
+// CategoryResource
+// const categories = ref<CategoryResource[]>([]);
+
+// props
+const props = defineProps({
+    categories: {
+        type: Array as () => CategoryResource[],
+        required: true,
+    },
+});
 
 // --- Inicializar el formulario de Inertia ---
 // Usamos la interfaz CharacterResource, pero solo los campos relevantes para el formulario
@@ -35,6 +54,9 @@ const form = useForm<CharacterResource>({
     id: 0, // No se usa en el formulario
     created_at: '', // No se usa en el formulario
     updated_at: '', // No se usa en el formulario
+
+    // Campos adicionales
+    category_ids: [],
 });
 
 // --- Manejo de envío del formulario ---
@@ -92,18 +114,23 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </Select>
                         <InputError :message="form.errors.gender" />
                     </div>
-                    <!-- <div class="space-y-2">
+                    <div class="space-y-2">
                         <Label for="category_id">Category</Label>
                         <Select v-model="form.category_ids" multiple>
-                            <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                            <SelectTrigger
+                                ><SelectValue placeholder="Select category"
+                            /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="category in props.categories" :key="category.id" :value="category.id">{{
-                                    category.name
-                                }}</SelectItem>
+                                <SelectItem
+                                    v-for="category in props.categories"
+                                    :key="category.id"
+                                    :value="category.id"
+                                    >{{ category.name }}</SelectItem
+                                >
                             </SelectContent>
                         </Select>
                         <InputError :message="form.errors.category_ids" />
-                    </div> -->
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">

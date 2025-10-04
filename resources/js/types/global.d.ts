@@ -67,6 +67,7 @@ export interface CharacterResource { // Interfaz para el recurso individual resu
     created_at: string; // Formato ISO
     updated_at: string; // Formato ISO
     // Añadir otros campos devueltos por CharacterResource si es necesario
+    category_ids: number[];
 }
 
 export interface CharactersData { // Para la colección paginada resuelta

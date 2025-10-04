@@ -7,6 +7,7 @@ use App\Http\Requests\StoreCharacterRequest;
 use App\Http\Requests\UpdateCharacterRequest;
 use App\Http\Resources\CharacterResource;
 use App\Models\Character;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -48,7 +49,10 @@ class CharacterController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Characters/Create');
+        return Inertia::render('Admin/Characters/Create', [
+            // 'categories' => CategoryResource::collection(Category::all()),
+            'categories' => Category::select('id', 'name', 'status')->get(),
+        ]);
     }
 
     /**
@@ -56,9 +60,66 @@ class CharacterController extends Controller
      */
     public function store(StoreCharacterRequest $request): RedirectResponse
     {
-        Character::create($request->validated());
+        // 1. Obtén todos los datos que pasaron la validación.
+        //    $request->validated() devuelve un array con solo los campos definidos en rules().
+        $validated = $request->validated();
+        // dd($validated);
 
-        return to_route('admin.characters.index')->with('success', 'Character created successfully.');
+        // 2. Procesa y almacena la imagen.
+        //    $request->file('image') devuelve el objeto UploadedFile original.
+        //    Guardamos la ruta del archivo en nuestra variable de datos validados.
+        if ($request->hasFile('image')) {
+            // $validated['image'] = $request->file('image')->store('characters', 'public');
+            // Almacenar la imagen con nombre personalizado
+            $filename = Str::slug($request->fullname).'-'.now()->timestamp.'.'.$request->file('image')->extension();
+            try {
+                $path = $request->file('image')->storePubliclyAs('characters', $filename, 'public');
+                $validated['image'] = $path;
+            } catch (\Exception $e) {
+                // Manejar el error, por ejemplo, registrar en el log
+                \Log::error('Error al almacenar la imagen: '.$e->getMessage());
+
+                // Opcional: redirigir con un mensaje de error
+                return to_route('characters.index')->with('error', 'Error al almacenar la imagen.');
+            }
+        }
+
+        // 3. Genera el slug a partir del fullname validado.
+        $validated['slug'] = Str::slug($validated['fullname']);
+
+        try {
+            // 4. Crea el personaje con el array de datos completo y preparado.
+            //    Este es un enfoque de "Mass Assignment" limpio y seguro.
+            // Character::create($validated);
+            $character = Character::create($validated);
+
+            // id de las categorias elegidas del multiselect
+            // 1. Obtén el array de objetos
+            // $categories = $request->input('category_ids', []);
+            // dd($categories);
+
+            // 2. Extrae solo los IDs
+            $categoryIds = $request->input('category_ids', []);  // collect($categories)->pluck('id')->toArray(); // [1, 2, 3]
+            // dd($categoryIds);
+
+            // 3. Relación con datos extra de la pivot
+            $character->categories()->attach(
+                $categoryIds/* ,
+                [
+                    'elo_rating' => 1400,
+                    'status'     => 1,
+                ] */
+            );
+
+            // 5. Redirige con un mensaje de éxito.
+            return to_route('characters.show', $character)->with('success', 'Character created successfully.');
+        } catch (\Exception $e) {
+            // Manejar el error, por ejemplo, registrar en el log
+            \Log::error('Error al crear el personaje: '.$e->getMessage());
+
+            // Opcional: redirigir con un mensaje de error
+            return to_route('characters.index')->with('error', 'Error al crear el personaje.');
+        }
     }
 
     /**
