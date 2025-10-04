@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast'; // Importar el composable
 import { debounce } from 'lodash';
-import { Eye, Pencil, Search, Trash } from 'lucide-vue-next';
+import { Eye, Pencil, RotateCw, Search, Trash } from 'lucide-vue-next';
 import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
 
 // --- Tipado de datos recibidos ---
@@ -196,6 +196,14 @@ function goToPage(page: number) {
                 <span class="text-sm text-gray-500"> </span>
 
                 <div class="flex items-center gap-4">
+                    <!-- Reload -->
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="router.visit(route('admin.categories.index'))"
+                    >
+                        <RotateCw />
+                    </Button>
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
                         <Input

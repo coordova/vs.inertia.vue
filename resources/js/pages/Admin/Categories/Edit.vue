@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CategoryResource } from '@/types/global'; // Asumiendo que tienes una interfaz CategoryResource o similar
+import { CategoryResource } from '@/types/global'; // Interfaz CategoryResource o similar
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 

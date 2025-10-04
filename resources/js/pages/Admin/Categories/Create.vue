@@ -9,30 +9,37 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
+import { CategoryResource } from '@/types/global'; // Interfaz CategoryResource o similar
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 // --- Tipado de datos del formulario ---
-interface FormData {
+/* interface FormData {
     name: string;
     description: string;
     status: boolean;
     is_featured: boolean;
     slug: string;
     // Añadir otros campos si es necesario (slug, color, icon, etc.)
-}
+} */
 
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
 // const { success: toastSuccess, error: toastError } = useToast();
 
 // --- Inicializar el formulario de Inertia ---
-const form = useForm<FormData>({
+const form = useForm<CategoryResource>({
     name: '',
     description: '',
     status: true, // Valor por defecto
     is_featured: false, // Valor por defecto
-    slug: '', // Valor por defecto
+    /*-----------------------------------*/
+    // campos que no se usan en el formulario pero que esta definida en CategoryResource (global.d.ts) ssi deben estar
+    id: 0, // ***no se usa en el formulario***
+    slug: '', // Valor por defecto  // ***no se usa en el formulario***
+    created_at_formatted: '', // Valor por defecto  // ***no se usa en el formulario***
+    updated_at_formatted: '', // Valor por defecto  // ***no se usa en el formulario***
+    /*-----------------------------------*/
     // Inicializar otros campos si es necesario
 });
 
