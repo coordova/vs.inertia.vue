@@ -108,7 +108,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <div class="flex items-center space-x-2">
                             <Switch
                                 id="status"
-                                v-model:checked="form.status"
+                                v-model="form.status"
                                 :disabled="form.processing"
                             />
                             <Label htmlFor="status">Active</Label>
@@ -124,7 +124,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <div class="flex items-center space-x-2">
                             <Switch
                                 id="is_featured"
-                                v-model:checked="form.is_featured"
+                                v-model="form.is_featured"
                                 :disabled="form.processing"
                             />
                             <Label htmlFor="is_featured">Featured</Label>
