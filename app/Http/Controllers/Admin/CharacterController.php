@@ -69,13 +69,13 @@ class CharacterController extends Controller
         // 2. Procesa y almacena la imagen.
         //    $request->file('image') devuelve el objeto UploadedFile original.
         //    Guardamos la ruta del archivo en nuestra variable de datos validados.
-        if ($request->hasFile('image')) {
-            // $validated['image'] = $request->file('image')->store('characters', 'public');
+        if ($request->hasFile('picture')) {
+            // $validated['picture'] = $request->file('picture')->store('characters', 'public');
             // Almacenar la imagen con nombre personalizado
-            $filename = Str::slug($request->fullname).'-'.now()->timestamp.'.'.$request->file('image')->extension();
+            $filename = Str::slug($request->fullname).'-'.now()->timestamp.'.'.$request->file('picture')->extension();
             try {
-                $path = $request->file('image')->storePubliclyAs('characters', $filename, 'public');
-                $validated['image'] = $path;
+                $path = $request->file('picture')->storePubliclyAs('characters', $filename, 'public');
+                $validated['picture'] = $path;
             } catch (\Exception $e) {
                 // Manejar el error, por ejemplo, registrar en el log
                 \Log::error('Error al almacenar la imagen: '.$e->getMessage());
@@ -139,9 +139,21 @@ class CharacterController extends Controller
      */
     public function edit(Character $character): Response
     {
+        // Objetos completos de las categorías que YA tiene el personaje
+        $characterCategories = $character->categories()
+            ->select('categories.id', 'categories.name', 'categories.status')
+            ->get();                       // Collection de objetos
+
+        // Objetos completos de las categorías disponibles
+        $categories = Category::select('id', 'name', 'status')->get();
+
+        // dd($categories, $characterCategories);
+
         return Inertia::render('Admin/Characters/Edit', [
             // 'character' => new CharacterResource($character),
             'character' => CharacterResource::make($character)->resolve(),
+            'categories'           => $categories,
+            'characterCategories'  => $characterCategories,
         ]);
     }
 

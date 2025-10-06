@@ -9,12 +9,14 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CharacterResource } from '@/types/global'; // Interfaz CharacterResource
+import { CategoryResource, CharacterResource } from '@/types/global'; // Interfaz CharacterResource
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
 interface Props {
     character: CharacterResource; // Usamos el tipo del recurso resuelto
+    categories: CategoryResource[]; // Categorias disponibles
+    characterCategories: CategoryResource[]; // Categorias del personaje
 }
 
 const props = defineProps<Props>();
@@ -29,9 +31,8 @@ const form = useForm({
     nickname: props.character.nickname ?? '', // Manejar null
     slug: props.character.slug,
     bio: props.character.bio ?? '', // Manejar null
-    dob: props.character.dob
-        ? new Date(props.character.dob).toISOString().split('T')[0]
-        : '', // Convertir a formato 'YYYY-MM-DD' si no es null
+    // dob: props.character.dob ? new Date(props.character.dob).toISOString().split('T')[0] : '', // Convertir a formato 'YYYY-MM-DD' si no es null
+    dob: props.character.dob,
     gender: props.character.gender,
     nationality: props.character.nationality ?? '', // Manejar null
     occupation: props.character.occupation ?? '', // Manejar null
@@ -73,7 +74,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
-    <Head :title="`Edit ${character.fullname}`" />
+    <Head :title="`Edit ${props.character.fullname}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div
