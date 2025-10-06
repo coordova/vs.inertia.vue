@@ -61,6 +61,7 @@ export interface CharacterResource { // Interfaz para el recurso individual resu
     nationality: string;
     occupation: string;
     picture: File | null; // URL o path
+    // picture_url: string | undefined;
     status: boolean;
     meta_title: string | null;
     meta_description: string | null;

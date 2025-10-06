@@ -33,7 +33,7 @@ const { success, error } = useToast();
 
 // --- Inicializar el formulario de Inertia con los datos iniciales ---
 // Solo incluimos los campos que se editan en el formulario
-const form = useForm({
+const form = useForm<CharacterResource>({
     fullname: props.character.fullname,
     nickname: props.character.nickname ?? '', // Manejar null
     slug: props.character.slug,
@@ -43,10 +43,15 @@ const form = useForm({
     gender: props.character.gender,
     nationality: props.character.nationality ?? '', // Manejar null
     occupation: props.character.occupation ?? '', // Manejar null
-    picture: props.character.picture,
+    picture: props.character.picture || null,
+    // picture_url: props.character.picture_url,
     status: props.character.status,
     meta_title: props.character.meta_title ?? '', // Manejar null
     meta_description: props.character.meta_description ?? '', // Manejar null
+
+    created_at: props.character.created_at,
+    updated_at: props.character.updated_at,
+    id: props.character.id,
 
     category_ids: props.characterCategories.map((category) => category.id),
 });
@@ -121,15 +126,6 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
                     <div class="space-y-2">
                         <Label for="categories">Category</Label>
-                        <!-- <VueMultiselect
-                            v-model="form.category_ids"
-                            :options="categories"
-                            :multiple="true"
-                            :close-on-select="false"
-                            placeholder="Pick some"
-                            label="name"
-                            track-by="id"
-                        /> -->
                         <Select v-model="form.category_ids" multiple>
                             <SelectTrigger>
                                 <SelectValue

@@ -185,6 +185,7 @@ class CharacterController extends Controller
                 return to_route('admin.characters.show', $character)->with('error', 'Error al almacenar la imagen.');
             }
         } else {
+            // Si no hay archivo, no se actualiza la imagen
             // $validated['image'] = $character->image;
             unset($validated['image']);
         }
