@@ -58,6 +58,23 @@ const form = useForm<CharacterResource>({
 
 // --- Manejo de envío del formulario ---
 const submitForm = () => {
+    form.transform((data) => ({
+        ...data,
+        _method: 'put', // Para que Laravel lo entienda como update
+    })).post(route('admin.characters.update', props.character.id), {
+        forceFormData: true, // ¡Obligatorio cuando hay archivos!
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            success('Character updated successfully.');
+        },
+        onError: (errors) => {
+            error('Failed to update character. Please check the errors below.');
+        },
+    });
+};
+
+/* const submitForm = () => {
     form.put(route('admin.characters.update', props.character.id), {
         preserveState: true,
         preserveScroll: true,
@@ -69,7 +86,7 @@ const submitForm = () => {
             error('Failed to update character. Please check the errors below.');
         },
     });
-};
+}; */
 
 // Preview dinámico
 const imagePreview = ref<string | null>(null);
