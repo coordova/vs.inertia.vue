@@ -47,7 +47,7 @@ const form = useForm<CharacterResource>({
     nationality: '',
     occupation: '',
     picture: null, // URL o path
-    // picture_url: undefined,
+    picture_url: undefined,
     status: true, // Valor por defecto
     meta_title: '',
     meta_description: '',

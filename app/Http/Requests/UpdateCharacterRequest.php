@@ -24,18 +24,18 @@ class UpdateCharacterRequest extends FormRequest
      */
     public function rules(): array
     {
-        $characterId = $this->route('character'); // Obtiene el ID del parámetro de la ruta
+        // $characterId = $this->route('character'); // Obtiene el ID del parámetro de la ruta
 
         return [
-            'fullname' => ['required', 'string', 'max:255', Rule::unique('characters', 'fullname')->ignore($characterId)],
+            'fullname' => ['required', 'string', 'max:255', 'unique:characters,fullname,' . $this->character->id],// ['required', 'string', 'max:255', Rule::unique('characters', 'fullname')->ignore($characterId)],
             'nickname' => 'nullable|string|max:255',
-            'slug' => ['required', 'string', 'max:255', Rule::unique('characters', 'slug')->ignore($characterId)],
+            'slug' => ['required', 'string', 'max:255', 'unique:characters,slug,' . $this->character->id],// ['required', 'string', 'max:255', Rule::unique('characters', 'slug')->ignore($characterId)],
             'bio' => 'nullable|string',
             'dob' => 'nullable|date',
             'gender' => 'nullable|integer|in:0,1,2,3',
             'nationality' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
-            'picture' => 'required|string|max:255',
+            'picture' => ['image', 'max:2048', 'mimes:jpeg,jpg,png,gif,svg'],
             'status' => 'required|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',

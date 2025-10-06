@@ -167,15 +167,15 @@ class CharacterController extends Controller
 
         // dd($validated);
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('picture')) {
             // Almacenar la imagen con nombre personalizado
-            $filename = Str::slug($request->fullname).'-'.now()->timestamp.'.'.$request->file('image')->extension();
+            $filename = Str::slug($request->fullname).'-'.now()->timestamp.'.'.$request->file('picture')->extension();
             try {
-                $path = $request->file('image')->storePubliclyAs('characters', $filename, 'public');
-                $validated['image'] = $path;
+                $path = $request->file('picture')->storePubliclyAs('characters', $filename, 'public');
+                $validated['picture'] = $path;
                 // Elimina la imagen anterior si existe
-                if ($character->image) {
-                    \Storage::disk('public')->delete($character->image);
+                if ($character->picture) {
+                    \Storage::disk('public')->delete($character->picture);
                 }
             } catch (\Exception $e) {
                 // Manejar el error, por ejemplo, registrar en el log
@@ -186,8 +186,8 @@ class CharacterController extends Controller
             }
         } else {
             // Si no hay archivo, no se actualiza la imagen
-            // $validated['image'] = $character->image;
-            unset($validated['image']);
+            // $validated['picture'] = $character->picture;
+            unset($validated['picture']);
         }
 
         /* $character->update([

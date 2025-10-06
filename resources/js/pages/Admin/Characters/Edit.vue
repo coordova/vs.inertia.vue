@@ -43,8 +43,8 @@ const form = useForm<CharacterResource>({
     gender: props.character.gender,
     nationality: props.character.nationality ?? '', // Manejar null
     occupation: props.character.occupation ?? '', // Manejar null
-    picture: props.character.picture || null,
-    // picture_url: props.character.picture_url,
+    picture: null as File | null, // Aseguramos que picture sea un File o null
+    picture_url: props.character.picture_url, // Aseguramos que picture_url sea una string o undefined
     status: props.character.status,
     meta_title: props.character.meta_title ?? '', // Manejar null
     meta_description: props.character.meta_description ?? '', // Manejar null
@@ -74,9 +74,7 @@ const submitForm = () => {
 // Preview dinámico
 const imagePreview = ref<string | null>(null);
 
-const existingImage = computed<File | string | null>(() =>
-    props.character.picture ? props.character.picture : null,
-);
+const existingImage = computed(() => props.character.picture_url);
 
 const onFileChange = (e: Event) => {
     const files = (e.target as HTMLInputElement).files;
