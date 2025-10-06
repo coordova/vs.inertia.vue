@@ -162,9 +162,55 @@ class CharacterController extends Controller
      */
     public function update(UpdateCharacterRequest $request, Character $character): RedirectResponse
     {
-        $character->update($request->validated());
+        // La validación ya ocurrió automáticamente por el UpdateCharacterRequest, aqui solo obtenemos los datos validados
+        $validated = $request->validated();
 
-        return to_route('admin.characters.index')->with('success', 'Character updated successfully.');
+        // dd($validated);
+
+        if ($request->hasFile('image')) {
+            // Almacenar la imagen con nombre personalizado
+            $filename = Str::slug($request->fullname).'-'.now()->timestamp.'.'.$request->file('image')->extension();
+            try {
+                $path = $request->file('image')->storePubliclyAs('characters', $filename, 'public');
+                $validated['image'] = $path;
+                // Elimina la imagen anterior si existe
+                if ($character->image) {
+                    \Storage::disk('public')->delete($character->image);
+                }
+            } catch (\Exception $e) {
+                // Manejar el error, por ejemplo, registrar en el log
+                \Log::error('Error al almacenar la imagen: '.$e->getMessage());
+
+                // Opcional: redirigir con un mensaje de error
+                return to_route('admin.characters.show', $character)->with('error', 'Error al almacenar la imagen.');
+            }
+        } else {
+            // $validated['image'] = $character->image;
+            unset($validated['image']);
+        }
+
+        /* $character->update([
+            ...$validated,
+            'slug' => Str::slug($validated['fullname']),
+        ]); */
+
+        $character->update($validated);
+
+        // Relación con datos extra de la pivot
+        $character->categories()->sync($validated['category_ids']);
+
+        // Sincronizar las categorías (attach/detach automático)
+        /* $character->categories()->sync(
+            $request->input('category_id', [])
+        ); */
+
+        return to_route('admin.characters.show', $character)->with('success', 'Character updated successfully.');
+
+
+
+        // $character->update($request->validated());
+
+        // return to_route('admin.characters.index')->with('success', 'Character updated successfully.');
     }
 
     /**
