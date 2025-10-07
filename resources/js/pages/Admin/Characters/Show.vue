@@ -203,9 +203,53 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     >
                                         <div class="flex items-center gap-2">
                                             {{
-                                                props.character.gender === 1
-                                                    ? 'Male'
-                                                    : 'Female'
+                                                props.character.gender === 0
+                                                    ? 'Other'
+                                                    : props.character.gender ===
+                                                        1
+                                                      ? 'Male'
+                                                      : props.character
+                                                              .gender === 2
+                                                        ? 'Female'
+                                                        : props.character
+                                                                .gender === 3
+                                                          ? 'Non-binary'
+                                                          : 'Unknown'
+                                            }}
+                                        </div>
+                                    </dd>
+                                </div>
+                                <div
+                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                                >
+                                    <dt
+                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                                    >
+                                        DOB
+                                    </dt>
+                                    <dd
+                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            {{ props.character.dob || 'N/A' }}
+                                        </div>
+                                    </dd>
+                                </div>
+                                <div
+                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                                >
+                                    <dt
+                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                                    >
+                                        Nationality
+                                    </dt>
+                                    <dd
+                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            {{
+                                                props.character.nationality ||
+                                                'N/A'
                                             }}
                                         </div>
                                     </dd>
@@ -271,18 +315,21 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <dt
                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
                                     >
-                                        Created at
+                                        Created/Updated at
                                     </dt>
                                     <dd
                                         class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
                                     >
                                         {{
-                                            props.character.created_at_formatted
+                                            props.character
+                                                .created_at_formatted +
+                                            ' / ' +
+                                            props.character.updated_at_formatted
                                         }}
                                     </dd>
                                 </div>
                                 <!-- Character Updated at -->
-                                <div
+                                <!-- <div
                                     class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
                                 >
                                     <dt
@@ -297,7 +344,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             props.character.updated_at_formatted
                                         }}
                                     </dd>
-                                </div>
+                                </div> -->
                             </dl>
                         </div>
                     </div>
