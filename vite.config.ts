@@ -13,9 +13,9 @@ export default defineConfig({
             refresh: true,
         }),
         tailwindcss(),
-        wayfinder({
+        /* wayfinder({
             formVariants: true,
-        }),
+        }), */
         vue({
             template: {
                 transformAssetUrls: {
@@ -25,6 +25,11 @@ export default defineConfig({
             },
         }),
     ],
+    server: {
+        watch: {
+            ignored: ['**/node_modules/**'],
+        },
+    },
     /* resolve: {
         alias: {
             'ziggy-js': path.resolve('vendor/tightenco/ziggy'),

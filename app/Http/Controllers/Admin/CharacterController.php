@@ -128,9 +128,14 @@ class CharacterController extends Controller
      */
     public function show(Character $character): Response
     {
+        // get character with categories
+        // dd($character->categories()->get());
+
         return Inertia::render('Admin/Characters/Show', [
             // 'character' => new CharacterResource($character),
             'character' => CharacterResource::make($character)->resolve(),
+            'categories' => $character->categories()->get(['id', 'name', 'slug'/* , 'category_character.elo_rating', 'category_character.status' */]), // get only name, id, and pivot elo_rating
+            // 'categories' => $character->categories()->withPivot('elo_rating', 'status')->get(['id', 'name']),
         ]);
     }
 

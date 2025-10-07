@@ -10,6 +10,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog/';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/composables/useToast';
@@ -26,6 +27,7 @@ interface Props {
         name: string;
         slug: string;
         status: number;
+        elo_rating: number;
         pivot: {
             category_id: number;
             character_id: number;
@@ -36,6 +38,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// console.log(props.categories);
 
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
@@ -203,16 +207,6 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                     ? 'Male'
                                                     : 'Female'
                                             }}
-                                            <Mars
-                                                v-if="
-                                                    props.character.gender === 1
-                                                "
-                                                class="size-6 text-blue-500"
-                                            />
-                                            <Venus
-                                                v-else
-                                                class="size-6 text-pink-500"
-                                            />
                                         </div>
                                     </dd>
                                 </div>
@@ -249,8 +243,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     >
                                         <ul class="flex flex-wrap gap-2">
                                             <li
-                                                v-for="category in props
-                                                    .character.category_ids"
+                                                v-for="category in props.categories"
                                                 :key="category.id"
                                             >
                                                 <Badge

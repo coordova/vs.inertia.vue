@@ -33,6 +33,9 @@ class CharacterResource extends JsonResource
             'meta_description' => $this->meta_description,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
+            'created_at_formatted' => $this->created_at->format('Y-m-d'),
+            'updated_at_formatted' => $this->updated_at->format('Y-m-d'),
             // 'deleted_at' => $this->when($this->trashed(), $this->deleted_at),
         ];
     }
