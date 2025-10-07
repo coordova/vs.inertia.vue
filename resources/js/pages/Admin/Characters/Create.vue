@@ -43,7 +43,7 @@ const form = useForm<CharacterResource>({
     slug: '', // O se genera automáticamente si se deja vacío en el backend
     bio: '',
     dob: '', // Date string
-    gender: 0, // Valor por defecto
+    gender: null, // Valor por defecto
     nationality: '',
     occupation: '',
     picture: null, // URL o path
@@ -108,9 +108,26 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 ><SelectValue placeholder="Select gender"
                             /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem :value="1">Male</SelectItem>
-                                <SelectItem :value="2">Female</SelectItem>
-                                <SelectItem :value="3">Other</SelectItem>
+                                <SelectItem
+                                    :value="0"
+                                    :selected="form.gender === 0"
+                                    >Other</SelectItem
+                                >
+                                <SelectItem
+                                    :value="1"
+                                    :selected="form.gender === 1"
+                                    >Male</SelectItem
+                                >
+                                <SelectItem
+                                    :value="2"
+                                    :selected="form.gender === 2"
+                                    >Female</SelectItem
+                                >
+                                <SelectItem
+                                    :value="3"
+                                    :selected="form.gender === 3"
+                                    >No-binario</SelectItem
+                                >
                             </SelectContent>
                         </Select>
                         <InputError :message="form.errors.gender" />

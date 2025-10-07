@@ -57,7 +57,7 @@ export interface CharacterResource { // Interfaz para el recurso individual resu
     slug: string;
     bio: string;
     dob: string | null; // Puede ser null si no tiene fecha de nacimiento
-    gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+    gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
     nationality: string;
     occupation: string;
     picture: File | null; // URL o path

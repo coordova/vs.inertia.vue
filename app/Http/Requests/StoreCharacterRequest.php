@@ -29,13 +29,17 @@ class StoreCharacterRequest extends FormRequest
             'slug' => 'required|string|max:255|unique:characters,slug',
             'bio' => 'nullable|string',
             'dob' => 'nullable|date',
-            'gender' => 'nullable|integer|in:0,1,2,3', // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+            'gender' => 'required|integer|in:0,1,2,3', // 0=otro, 1=masculino, 2=femenino, 3=no-binario
             'nationality' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
             'picture' => ['required', 'image', 'max:2048', 'mimes:jpeg,jpg,png,gif,svg'],
+            // 'picture_url' => ['nullable', 'string', 'max:255'],
             'status' => 'required|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+
+            'category_ids' => 'required|array', // Array de IDs de categorías
+            'category_ids.*' => 'exists:categories,id', // Cada ID debe existir en la tabla de categorías
         ];
     }
 
