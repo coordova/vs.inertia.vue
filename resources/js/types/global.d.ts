@@ -69,8 +69,31 @@ export interface CharacterResource { // Interfaz para el recurso individual resu
     created_at: string; // Formato ISO
     updated_at: string; // Formato ISO
     // Añadir otros campos devueltos por CharacterResource si es necesario
+    created_at_formatted: string;
+    updated_at_formatted: string;
     category_ids: number[];
 }
+
+export interface CharacterResourceForm { // Interfaz para el recurso individual resuelto
+    id: number;
+    fullname: string;
+    nickname: string;
+    slug: string;
+    bio: string;
+    dob: string | null; // Puede ser null si no tiene fecha de nacimiento
+    gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+    nationality: string;
+    occupation: string;
+    picture: File | null; // URL o path
+    picture_url: string | undefined;
+    status: boolean;
+    meta_title: string | null;
+    meta_description: string | null;
+    // Añadir otros campos devueltos por CharacterResource si es necesario
+    category_ids: number[];
+}
+
+
 
 export interface CharactersData { // Para la colección paginada resuelta
     data: CharacterResource[]; // Array de objetos CharacterResource directos

@@ -16,12 +16,12 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CategoryResource, CharacterResource } from '@/types/global'; // Interfaz CharacterResource
+import { CategoryResource, CharacterResourceForm } from '@/types/global'; // Interfaz CharacterResource
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 interface Props {
-    character: CharacterResource; // Usamos el tipo del recurso resuelto
+    character: CharacterResourceForm; // Usamos el tipo del recurso resuelto
     categories: CategoryResource[]; // Categorias disponibles
     characterCategories: CategoryResource[]; // Categorias del personaje
 }
@@ -33,14 +33,12 @@ const { success, error } = useToast();
 
 // --- Inicializar el formulario de Inertia con los datos iniciales ---
 // Solo incluimos los campos que se editan en el formulario
-const form = useForm<CharacterResource>({
+const form = useForm<CharacterResourceForm>({
     fullname: props.character.fullname,
     nickname: props.character.nickname ?? '', // Manejar null
     slug: props.character.slug,
     bio: props.character.bio ?? '', // Manejar null
-    // dob: props.character.dob ? new Date(props.character.dob).toISOString().split('T')[0] : '', // Convertir a formato 'YYYY-MM-DD' si no es null
     dob: props.character.dob,
-    dob_for_humans: props.character.dob_for_humans,
     gender: props.character.gender,
     nationality: props.character.nationality ?? '', // Manejar null
     occupation: props.character.occupation ?? '', // Manejar null
@@ -49,11 +47,7 @@ const form = useForm<CharacterResource>({
     status: props.character.status,
     meta_title: props.character.meta_title ?? '', // Manejar null
     meta_description: props.character.meta_description ?? '', // Manejar null
-
-    created_at: props.character.created_at,
-    updated_at: props.character.updated_at,
     id: props.character.id,
-
     category_ids: props.characterCategories.map((category) => category.id),
 });
 

@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CategoryResource, CharacterResource } from '@/types/global';
+import { CategoryResource, CharacterResourceForm } from '@/types/global';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -37,13 +37,13 @@ const props = defineProps({
 // --- Inicializar el formulario de Inertia ---
 // Usamos la interfaz CharacterResource, pero solo los campos relevantes para el formulario
 // y proporcionamos valores iniciales para aquellos que no se usan en el formulario
-const form = useForm<CharacterResource>({
+const form = useForm<CharacterResourceForm>({
+    id: 0,
     fullname: '',
     nickname: '',
     slug: '', // O se genera automáticamente si se deja vacío en el backend
     bio: '',
     dob: '', // Date string
-    dob_for_humans: '', // Date string
     gender: null, // Valor por defecto
     nationality: '',
     occupation: '',
@@ -53,11 +53,6 @@ const form = useForm<CharacterResource>({
     meta_title: '',
     meta_description: '',
     // Campos que no están en el formulario pero que requiere la interfaz CharacterResource
-    id: 0, // No se usa en el formulario
-    created_at: '', // No se usa en el formulario
-    updated_at: '', // No se usa en el formulario
-
-    // Campos adicionales
     category_ids: [],
 });
 

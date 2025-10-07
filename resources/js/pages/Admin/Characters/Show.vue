@@ -276,7 +276,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <dd
                                         class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
                                     >
-                                        {{ props.character.created_at }}
+                                        {{
+                                            props.character.created_at_formatted
+                                        }}
                                     </dd>
                                 </div>
                                 <!-- Character Updated at -->
@@ -291,7 +293,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <dd
                                         class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
                                     >
-                                        {{ props.character.updated_at }}
+                                        {{
+                                            props.character.updated_at_formatted
+                                        }}
                                     </dd>
                                 </div>
                             </dl>
