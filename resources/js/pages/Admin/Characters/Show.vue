@@ -17,7 +17,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CharacterResource } from '@/types/global'; // Asumiendo que tienes una interfaz CharacterResource o similar
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Mars, Pencil, Trash, User, Venus } from 'lucide-vue-next'; // Iconos
+import { Pencil, Trash, User } from 'lucide-vue-next'; // Iconos
 
 interface Props {
     character: CharacterResource; // Usamos el tipo del recurso resuelto
