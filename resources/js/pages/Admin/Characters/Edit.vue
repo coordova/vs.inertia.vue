@@ -40,6 +40,7 @@ const form = useForm<CharacterResource>({
     bio: props.character.bio ?? '', // Manejar null
     // dob: props.character.dob ? new Date(props.character.dob).toISOString().split('T')[0] : '', // Convertir a formato 'YYYY-MM-DD' si no es null
     dob: props.character.dob,
+    dob_for_humans: props.character.dob_for_humans,
     gender: props.character.gender,
     nationality: props.character.nationality ?? '', // Manejar null
     occupation: props.character.occupation ?? '', // Manejar null

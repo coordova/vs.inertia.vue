@@ -43,6 +43,7 @@ const form = useForm<CharacterResource>({
     slug: '', // O se genera automáticamente si se deja vacío en el backend
     bio: '',
     dob: '', // Date string
+    dob_for_humans: '', // Date string
     gender: null, // Valor por defecto
     nationality: '',
     occupation: '',
