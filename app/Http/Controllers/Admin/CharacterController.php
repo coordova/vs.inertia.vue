@@ -14,6 +14,7 @@ use Inertia\Inertia;
 use Inertia\Response;   
 use Inertia\InertiaResponse;
 use Illuminate\Support\Str;
+use App\Services\ImageService;
 
 class CharacterController extends Controller
 {
@@ -59,7 +60,51 @@ class CharacterController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCharacterRequest $request): RedirectResponse
+    public function store(StoreCharacterRequest $request, ImageService $imageService): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        // Procesar imagen: canvas + thumbnail
+        if ($request->hasFile('picture')) {
+            $filenameBase = Str::slug($request->fullname) . '-' . now()->timestamp;
+            try {
+                // Crea y guarda la imagen principal y el thumbnail
+                $result = $imageService->makeCanvasWithThumb(
+                    $request->file('picture'),  // UploadedFile
+                    $filenameBase,              // nombre base (sin extensión)
+                    600,                        // canvas width
+                    600,                        // canvas height
+                    180,                        // thumb width
+                    180,                        // thumb height
+                    'characters/',              // directorio principal
+                    'characters/thumbs/'        // directorio thumbnails
+                );
+
+                $validated['picture'] = $result['main']; // ruta guardada de imagen principal
+                $validated['picture_thumb'] = $result['thumb']; // (opcional, si tienes columna en la BD)
+            } catch (\Exception $e) {
+                \Log::error('Error al generar la imagen/canvas: ' . $e->getMessage());
+                return to_route('admin.characters.index')
+                    ->with('error', 'Error al procesar la imagen.');
+            }
+        }
+
+        try {
+            $character = Character::create($validated);
+            $categoryIds = $request->input('category_ids', []);
+            $character->categories()->attach($categoryIds);
+
+            return to_route('admin.characters.show', $character)
+                ->with('success', 'Character created successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error al crear el personaje: ' . $e->getMessage());
+            return to_route('admin.characters.index')
+                ->with('error', 'Error al crear el personaje.');
+        }
+    }
+
+
+    public function store_original_ok(StoreCharacterRequest $request): RedirectResponse
     {
         // 1. Obtén todos los datos que pasaron la validación.
         //    $request->validated() devuelve un array con solo los campos definidos en rules().
