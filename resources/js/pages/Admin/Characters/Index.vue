@@ -227,7 +227,7 @@ function goToPage(page: number) {
                     <TableRow>
                         <TableHead>Full Name</TableHead>
                         <TableHead>Nickname</TableHead>
-                        <TableHead>Occupation</TableHead>
+                        <!-- <TableHead>Occupation</TableHead> -->
                         <TableHead>Status</TableHead>
                         <TableHead>Created At</TableHead>
                         <TableHead class="text-right">Actions</TableHead>
@@ -253,7 +253,7 @@ function goToPage(page: number) {
                         }}</TableCell>
                         <TableCell>{{ character.nickname || '-' }}</TableCell>
                         <!-- Mostrar '-' si nickname es null -->
-                        <TableCell>{{ character.occupation || '-' }}</TableCell>
+                        <!-- <TableCell>{{ character.occupation || '-' }}</TableCell> -->
                         <TableCell>
                             <Badge
                                 :variant="
