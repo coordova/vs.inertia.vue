@@ -210,7 +210,58 @@ class CharacterController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCharacterRequest $request, Character $character): RedirectResponse
+    public function update(UpdateCharacterRequest $request, Character $character, ImageService $imageService): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        // Procesar y reemplazar imagen si se sube una nueva
+        if ($request->hasFile('picture')) {
+            $filenameBase = Str::slug($validated['fullname']) . '-' . now()->timestamp;
+
+            try {
+                $result = $imageService->makeCanvasWithThumb(
+                    $request->file('picture'),
+                    $filenameBase,
+                    600, 600, // canvas dims
+                    180, 180  // thumb dims
+                );
+
+                // Eliminar antiguo archivo principal y thumb si existen
+                if ($character->picture) {
+                    \Storage::disk('public')->delete($character->picture);
+                }
+                if ($character->picture_thumb ?? false) {
+                    \Storage::disk('public')->delete($character->picture_thumb);
+                }
+
+                $validated['picture'] = $result['main'];
+                $validated['picture_thumb'] = $result['thumb'];
+            } catch (\Exception $e) {
+                \Log::error('Error al procesar la imagen: '.$e->getMessage());
+                return to_route('admin.characters.show', $character)
+                    ->with('error', 'Error al actualizar la imagen.');
+            }
+        } else {
+            unset($validated['picture'], $validated['picture_thumb']);
+        }
+
+        try {
+            $character->update($validated);
+            $categoryIds = $request->input('category_ids', []);
+            $character->categories()->sync($categoryIds);
+
+            return to_route('admin.characters.show', $character)
+                ->with('success', 'Character updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar el personaje: '.$e->getMessage());
+            return to_route('admin.characters.index')
+                ->with('error', 'Error al actualizar el personaje.');
+        }
+    }
+
+
+
+    public function update_original_ok(UpdateCharacterRequest $request, Character $character): RedirectResponse
     {
         // La validación ya ocurrió automáticamente por el UpdateCharacterRequest, aqui solo obtenemos los datos validados
         $validated = $request->validated();

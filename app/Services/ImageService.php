@@ -132,52 +132,30 @@ class ImageService
         int $canvasHeight = 600,
         int $thumbWidth = 180,
         int $thumbHeight = 180,
-        string $mainDir = 'characters/',
-        string $thumbDir = 'characters/thumbs/',
-        string $bgColor = '#fff'
+        string $mainDir = 'characters',
+        string $thumbDir = 'characters/thumbs',
+        string $bgColor = '#fff',
+        string $extension = 'jpg',
+        int $quality = 90
     ): array {
+        $mainDir = rtrim($mainDir, '/') . '/';
+        $thumbDir = rtrim($thumbDir, '/') . '/';
         $original = $this->imageManager->read($file->getRealPath());
 
-        // --- Crear canvas principal ---
-        $mainCanvas = $this->imageManager
-            ->create($canvasWidth, $canvasHeight, $bgColor);
+        // Main image (canvas)
+        $mainCanvas = $original->contain($canvasWidth, $canvasHeight, $bgColor);
+        $mainPath = $mainDir . $filenameBase . '.' . $extension;
+        $mainCanvas->toJpeg($quality)->save(Storage::disk('public')->path($mainPath));
 
-        // Redimensionar la imagen original para que encaje dentro del canvas manteniendo aspecto
-        $resized = $original->resize(
-            $canvasWidth, $canvasHeight, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            }
-        );
-
-        // Centrar la imagen en el canvas
-        $mainCanvas->place($resized, 'center');
-
-        // Generar Filename único
-        $ext = 'jpg'; // Puedes parametrizar según formato si lo deseas
-        $mainPath = $mainDir . $filenameBase . '.' . $ext;
-
-        // Guardar imagen principal canvas
-        $mainCanvas->toJpeg(90)->save(Storage::disk('public')->path($mainPath));
-
-        // --- Generar thumbnail ---
-        $thumbCanvas = $this->imageManager
-            ->create($thumbWidth, $thumbHeight, $bgColor);
-        // Redimensionar original para el thumb manteniendo aspecto
-        $resizedThumb = $original->resize(
-            $thumbWidth, $thumbHeight, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            }
-        );
-        // Centrado en thumbnail
-        $thumbCanvas->place($resizedThumb, 'center');
-        $thumbPath = $thumbDir . $filenameBase . '_thumb.' . $ext;
-        $thumbCanvas->toJpeg(90)->save(Storage::disk('public')->path($thumbPath));
+        // Thumbnail
+        $thumbCanvas = $original->contain($thumbWidth, $thumbHeight, $bgColor);
+        $thumbPath = $thumbDir . $filenameBase . '_thumb.' . $extension;
+        $thumbCanvas->toJpeg($quality)->save(Storage::disk('public')->path($thumbPath));
 
         return [
             'main' => $mainPath,
             'thumb' => $thumbPath,
         ];
     }
+    
 }
