@@ -28,6 +28,7 @@ class CharacterResource extends JsonResource
             'occupation' => $this->occupation,
             'picture' => $this->picture, // $this->picture ? Storage::url($this->picture) : null,
             'picture_url' => $this->picture ? Storage::url($this->picture) : null,
+            'picture_thumb' => $this->picture ? $this->picture : null,
             'status' => $this->status,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
