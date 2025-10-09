@@ -29,6 +29,7 @@ class CharacterController extends Controller
                                 $query->where('name', 'like', '%' . $search . '%');
                             })
                             // orderBy('fullname', 'asc')
+                            ->latest()
                             ->paginate($request->get('per_page', 15))
                             ->withQueryString();
 

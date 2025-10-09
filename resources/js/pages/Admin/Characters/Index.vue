@@ -56,7 +56,7 @@ const props = defineProps<Props>();
 /*-------------- Watch --------------*/
 const search = ref(props.filters?.search);
 const page = ref(props.filters?.page);
-const perPage = ref(props.filters?.per_page);
+const perPage = ref(props.filters?.per_page ? props.filters?.per_page : '15');
 
 watch(
     search,
@@ -173,9 +173,9 @@ function goToPage(page: number) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
-                                    value="10"
-                                    :selected="perPage === '10'"
-                                    >10</SelectItem
+                                    value="15"
+                                    :selected="perPage === '15'"
+                                    >15</SelectItem
                                 >
                                 <SelectItem
                                     value="25"
