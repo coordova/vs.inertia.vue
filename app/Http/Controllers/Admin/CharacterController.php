@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCharacterRequest;
 use App\Http\Requests\UpdateCharacterRequest;
+use App\Http\Resources\CharacterIndexResource;
 use App\Http\Resources\CharacterResource;
 use App\Models\Character;
 use App\Models\Category;
@@ -41,7 +42,7 @@ class CharacterController extends Controller
         /*---------------------------------------------------------------------*/
 
         return Inertia::render('Admin/Characters/Index', [
-            'characters' => CharacterResource::collection($characters),
+            'characters' => CharacterIndexResource::collection($characters),
             'filters' => $request->only(['search', 'per_page', 'page']),
         ]);
     }

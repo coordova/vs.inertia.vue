@@ -133,7 +133,7 @@ class ImageService
         int $thumbWidth = 180,
         int $thumbHeight = 180,
         string $mainDir = 'characters',
-        string $thumbDir = 'characters_thumbs',
+        string $thumbDir = 'characters/thumbs',
         string $bgColor = '#fff',
         string $extension = 'jpg',
         int $quality = 90
@@ -149,8 +149,7 @@ class ImageService
 
         // Thumbnail
         $thumbCanvas = $original->contain($thumbWidth, $thumbHeight, $bgColor);
-        // $thumbPath = $thumbDir . $filenameBase . '_thumb.' . $extension;
-        $thumbPath = $thumbDir . $filenameBase . '.' . $extension;
+        $thumbPath = $thumbDir . $filenameBase . '_thumb.' . $extension;
         $thumbCanvas->toJpeg($quality)->save(Storage::disk('public')->path($thumbPath));
 
         return [
