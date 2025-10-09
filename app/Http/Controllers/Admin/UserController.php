@@ -106,9 +106,9 @@ class UserController extends Controller
      */
     public function changeStatus(User $user)
     {
-        $user->status = $user->status === 1 ? 0 : 1;
+        $user->status = $user->status === true ? false : true;
         $user->save();
 
-        // return to_route('users.index');
+        // return back()->with('success', 'User status changed.');
     }
 }
