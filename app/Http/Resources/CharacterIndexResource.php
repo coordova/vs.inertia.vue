@@ -35,7 +35,7 @@ class CharacterIndexResource extends JsonResource
             'fullname' => $this->fullname,
             'nickname' => $this->nickname,
             'gender' => $this->gender,
-            'thumbnail_url' => $thumbUrl,
+            'thumbnail_url' => $thumbUrl ?? null,
             'status' => $this->status,
             'created_at_formatted' => $this->created_at->translatedFormat('Y-m-d H:i:s'),
         ];

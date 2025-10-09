@@ -63,7 +63,7 @@ export interface CharacterResource { // Interfaz para el recurso individual resu
     occupation: string;
     picture: File | null; // URL o path
     picture_url: string | undefined;
-    thumbnail_url: string | undefined;
+    thumbnail_url: string;
     status: boolean;
     meta_title: string | null;
     meta_description: string | null;

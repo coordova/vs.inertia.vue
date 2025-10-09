@@ -14,6 +14,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog/';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -225,6 +226,7 @@ function goToPage(page: number) {
                 </TableCaption>
                 <TableHeader>
                     <TableRow>
+                        <TableHead>Picture</TableHead>
                         <TableHead>Full Name</TableHead>
                         <TableHead>Nickname</TableHead>
                         <!-- <TableHead>Occupation</TableHead> -->
@@ -248,6 +250,18 @@ function goToPage(page: number) {
                                 deleting[character.id],
                         }"
                     >
+                        <TableCell>
+                            <Avatar>
+                                <AvatarImage :src="character.thumbnail_url" />
+                                <AvatarFallback>
+                                    {{
+                                        character.fullname
+                                            .charAt(0)
+                                            .toUpperCase()
+                                    }}
+                                </AvatarFallback>
+                            </Avatar>
+                        </TableCell>
                         <TableCell class="font-medium">{{
                             character.fullname
                         }}</TableCell>
@@ -263,20 +277,13 @@ function goToPage(page: number) {
                                 {{ character.status ? 'Active' : 'Inactive' }}
                             </Badge>
                         </TableCell>
-                        <TableCell>{{
+                        <!-- <TableCell>{{
                             character.created_at
                                 ? new Date(
                                       character.created_at,
                                   ).toLocaleDateString()
                                 : '-'
-                        }}</TableCell>
-                        <TableCell>
-                            <Image
-                                :src="character.thumbnail_url"
-                                :alt="character.fullname"
-                                class="size-12 rounded"
-                            />
-                        </TableCell>
+                        }}</TableCell> -->
                         <TableCell>{{
                             character.created_at_formatted
                         }}</TableCell>
