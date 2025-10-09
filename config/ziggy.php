@@ -15,8 +15,10 @@ return [
         // 'admin.users.store',
         'admin.users.edit',
         'admin.users.change-status',
+        'admin.users.destroy',
+        'admin.users.restore',
+        'admin.users.force-delete',
         // 'admin.users.update',
-        // 'admin.users.destroy',
 
         'admin.categories.index',
         'admin.categories.show',

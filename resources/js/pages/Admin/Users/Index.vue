@@ -35,13 +35,13 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast'; // Importar el composable
-import { UserResource, UsersData } from '@/types/global';
+import { UsersData } from '@/types/global';
 import { debounce } from 'lodash';
 import { Eye, Pencil, Power, RotateCw, Search, Trash } from 'lucide-vue-next';
 import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
 
 // --- Tipado de datos recibidos ---
-interface User extends UserResource {
+/* interface User extends UserResource {
     id: number;
     type: string;
     name: string;
@@ -49,7 +49,7 @@ interface User extends UserResource {
     status: boolean;
     created_at_formatted: string;
     // Añade otros campos según CategoryResource
-}
+} */
 
 // Tipo para un enlace de paginación (Laravel)
 /* interface PaginationLink {
@@ -198,9 +198,10 @@ function goToPage(page: number) {
  * @param id ID del usuario a cambiar
  */
 const handleStatus = (e: Event, id: number) => {
+    // console.log(id);
     e.preventDefault();
     router.put(
-        route('users.change-status', id),
+        route('admin.users.change-status', id),
         {},
         {
             preserveState: true,

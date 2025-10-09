@@ -79,6 +79,36 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $user->delete();           // soft-delete
+        return back()->with('success', 'User deleted.');
+    }
+    
+    /**
+     * Restore the specified resource from storage.
+     */
+    public function restore(User $user)
+    {
+        $user->restore();          // restaurar
+        return back()->with('success', 'User restored.');
+    }
+
+    /**
+     * Force delete the specified resource from storage.
+     */
+    public function forceDelete(User $user)
+    {
+        $user->forceDelete();
+        return back()->with('success', 'User force deleted.');
+    }
+
+    /**
+     * Change status
+     */
+    public function changeStatus(User $user)
+    {
+        $user->status = $user->status === 1 ? 0 : 1;
+        $user->save();
+
+        // return to_route('users.index');
     }
 }

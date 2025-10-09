@@ -27,13 +27,18 @@ Route::middleware(['auth'])
     ->prefix('admin') // Prefijo para las rutas de administración
     ->name('admin.')   // Prefijo para los nombres de las rutas
     ->group(function () {
-        Route::resource('users', UserController::class);
+        /* Categorias */
         Route::resource('categories', CategoryController::class);
+        /* Personajes */
         Route::resource('characters', CharacterController::class);
-        Route::resource('surveys', SurveyController::class);
-
-        Route::get('users/change-status/{id}', [UserController::class, 'changeStatus'])->name('users.change-status');
-    });
+        /* Encuestas */
+        Route::resource('surveys', SurveyController::class);        
+        /* Usuarios */
+        Route::resource('users', UserController::class);
+        Route::patch('users/{user}/restore',  [UserController::class, 'restore'])->name('users.restore');
+        Route::delete('users/{user}/force',   [UserController::class, 'forceDelete'])->name('users.force-delete');
+        Route::put('users/{user}/change-status', [UserController::class, 'changeStatus'])->name('users.change-status');
+        });
 /* -------------------------------------------------------------*/
 Route::get('prueba', function () {
     return 'prueba';
