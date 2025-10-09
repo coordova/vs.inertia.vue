@@ -270,6 +270,16 @@ function goToPage(page: number) {
                                   ).toLocaleDateString()
                                 : '-'
                         }}</TableCell>
+                        <TableCell>
+                            <Image
+                                :src="character.thumbnail_url"
+                                :alt="character.fullname"
+                                class="size-12 rounded"
+                            />
+                        </TableCell>
+                        <TableCell>{{
+                            character.created_at_formatted
+                        }}</TableCell>
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">
