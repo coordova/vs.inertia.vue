@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             // 'deleted_at' => $this->when($this->trashed(), $this->deleted_at),
+            'created_at_formatted' => $this->created_at->format('Y-m-d H:i:s'),
         ];
     }
 }

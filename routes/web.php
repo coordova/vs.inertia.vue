@@ -31,6 +31,8 @@ Route::middleware(['auth'])
         Route::resource('categories', CategoryController::class);
         Route::resource('characters', CharacterController::class);
         Route::resource('surveys', SurveyController::class);
+
+        Route::get('users/change-status/{id}', [UserController::class, 'changeStatus'])->name('users.change-status');
     });
 /* -------------------------------------------------------------*/
 Route::get('prueba', function () {

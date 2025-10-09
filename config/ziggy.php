@@ -13,7 +13,8 @@ return [
         'admin.users.show',
         // 'admin.users.create',
         // 'admin.users.store',
-        // 'admin.users.edit',
+        'admin.users.edit',
+        'admin.users.change-status',
         // 'admin.users.update',
         // 'admin.users.destroy',
 

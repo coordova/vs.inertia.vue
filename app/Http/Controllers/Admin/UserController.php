@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
+use Inertia\Response;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): Response
     {
         // Cargar usuarios con paginación
         $users = User::query()

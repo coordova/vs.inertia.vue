@@ -21,6 +21,45 @@ declare module '@inertiajs/core' {
 
 // Definir interfaces para las entidades que se pasan como props específicas
 // Estas se usarán en defineProps de los componentes Vue
+interface Pagination {
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+}
+
+interface PaginationLinks {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface UserResource { // Interfaz para el recurso individual resuelto
+    id: number;
+    name: string;
+    email: string;
+    avatar: string;
+    timezone: string;
+    locale: string;
+    type: string;
+    status: boolean;
+    last_login_at: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    created_at_formatted: string;
+    updated_at_formatted: string;
+    // Añadir otros campos devueltos por UserResource si es necesario
+}
+
+export interface UsersData { // Para la colección paginada
+    data: UserResource[]; // Array de UserResource
+    meta: Pagination;
+    links: PaginationLinks[]; // Simplificado
+}
 
 export interface CategoryResource { // Renombrado para claridad
     id: number;
@@ -36,16 +75,8 @@ export interface CategoryResource { // Renombrado para claridad
 
 export interface CategoriesData { // Para la colección paginada
     data: CategoryResource[]; // Array de CategoryResource
-    meta: {
-        current_page: number;
-        from: number;
-        last_page: number;
-        path: string;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    links: { url: string | null; label: string; active: boolean }[]; // Simplificado
+    meta: Pagination;
+    links: PaginationLinks[]; // Simplificado
 }
 
 // --- Interfaces para otras entidades ---
@@ -98,16 +129,8 @@ export interface CharacterResourceForm { // Interfaz para el recurso individual 
 
 export interface CharactersData { // Para la colección paginada resuelta
     data: CharacterResource[]; // Array de objetos CharacterResource directos
-    meta: {
-        current_page: number;
-        from: number;
-        last_page: number;
-        path: string;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    links: { url: string | null; label: string; active: boolean }[];
+    meta: Pagination;
+    links: PaginationLinks[];
 }
 
 export interface SurveyResource { // Renombrado para claridad
@@ -121,8 +144,8 @@ export interface SurveyResource { // Renombrado para claridad
 
 export interface SurveysData {
     data: SurveyResource[];
-    meta: { /* ... */ };
-    links: { /* ... */ };
+    meta: Pagination;
+    links: PaginationLinks[];
 }
 
 // --- Tipos para Breadcrumbs (si no los tienes en otro lugar) ---
