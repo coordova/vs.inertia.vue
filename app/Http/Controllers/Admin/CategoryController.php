@@ -30,7 +30,8 @@ class CategoryController extends Controller
                             })
                             // ->orderBy('sort_order', 'asc')
                             // ->orderBy('name', 'asc')
-                            ->paginate($request->get('per_page', 10))
+                            ->latest()
+                            ->paginate($request->get('per_page', 15))
                             ->withQueryString();
 
         // $categories->appends($request->only(['search', 'per_page']));

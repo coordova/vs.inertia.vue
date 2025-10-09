@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CharacterController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\SurveyController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -25,9 +27,10 @@ Route::middleware(['auth'])
     ->prefix('admin') // Prefijo para las rutas de administración
     ->name('admin.')   // Prefijo para los nombres de las rutas
     ->group(function () {
+        Route::resource('users', UserController::class);
         Route::resource('categories', CategoryController::class);
         Route::resource('characters', CharacterController::class);
-        // Route::resource('surveys', SurveyController::class);
+        Route::resource('surveys', SurveyController::class);
     });
 /* -------------------------------------------------------------*/
 Route::get('prueba', function () {

@@ -9,6 +9,14 @@
 
 return [
     'only' => [
+        'admin.users.index',
+        'admin.users.show',
+        // 'admin.users.create',
+        // 'admin.users.store',
+        // 'admin.users.edit',
+        // 'admin.users.update',
+        // 'admin.users.destroy',
+
         'admin.categories.index',
         'admin.categories.show',
         'admin.categories.create',
