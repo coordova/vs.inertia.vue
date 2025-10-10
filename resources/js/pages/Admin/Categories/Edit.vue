@@ -169,7 +169,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             class="mr-2 h-4 w-4 animate-spin"
                         />
                         <span>{{
-                            form.processing ? 'Creating...' : 'Create category'
+                            form.processing ? 'Updating...' : 'Update'
                         }}</span>
                     </Button>
                 </div>

@@ -235,9 +235,10 @@ const handleStatus = (e: Event, id: number) => {
                 <div class="flex items-center gap-4">
                     <!-- Reload -->
                     <Button
+                        class="cursor-pointer"
                         type="button"
                         variant="outline"
-                        @click="router.visit(route('admin.categories.index'))"
+                        @click="router.visit(route('admin.users.index'))"
                     >
                         <RotateCw />
                     </Button>

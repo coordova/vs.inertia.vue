@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;   
-use Inertia\InertiaResponse;
 use Illuminate\Support\Str;
 use App\Services\ImageService;
 
@@ -22,7 +21,7 @@ class CharacterController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response|InertiaResponse|RedirectResponse
+    public function index(Request $request): Response
     {
         $characters = Character::query()
                             ->when(request('search'), function ($query, $search) {

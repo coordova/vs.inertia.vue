@@ -12,14 +12,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response; // Importar Response
-use Inertia\InertiaResponse;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request):  Response|InertiaResponse|RedirectResponse
+    public function index(Request $request):  Response
     {
         // dd($request->all());
         // print_r('<pre>'); print_r($request->all()); print_r('</pre>');exit;
@@ -81,8 +80,9 @@ class CategoryController extends Controller
         // $category->load(['characters', 'surveys']); // Ejemplo
         return Inertia::render('Admin/Categories/Show', [
             // 'category' => new CategoryResource($category), // Pasamos el modelo transformado
-            'category' => CategoryResource::make($category)->resolve(),
-            'characters' => CharacterResource::collection($category->characters)->resolve(),
+            'category' => CategoryResource::make($category->load('characters'))->resolve(),
+            'characters' => $category->characters,
+            // 'characters' => CharacterResource::collection($category->characters)->resolve(),
         ]);
     }
 

@@ -27,7 +27,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// console.log(props.category);
+// console.log(props.characters);
 
 // --- Inicializar el composable de toast ---
 // const { success: toastSuccess, error: toastError } = useToast();

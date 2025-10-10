@@ -11,13 +11,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch/';
 import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CategoryResource, CharacterResourceForm } from '@/types/global'; // Interfaz CharacterResource
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 interface Props {
@@ -247,13 +248,34 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <InputError :message="form.errors.status" class="mt-1" />
                 </div>
 
-                <Button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="w-full"
+                <Separator class="my-4" />
+                <div
+                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
                 >
-                    {{ form.processing ? 'Saving...' : 'Update Character' }}
-                </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="w-full cursor-pointer md:w-auto"
+                        :disabled="form.processing"
+                        @click="
+                            router.visit(
+                                route(
+                                    'admin.characters.show',
+                                    props.character.id,
+                                ),
+                            )
+                        "
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        class="w-full cursor-pointer md:w-auto"
+                        :disabled="form.processing || !form.isDirty"
+                    >
+                        {{ form.processing ? 'Saving...' : 'Update' }}
+                    </Button>
+                </div>
             </form>
         </div>
     </AppLayout>
