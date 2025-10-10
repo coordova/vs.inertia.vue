@@ -106,7 +106,8 @@ class UserController extends Controller
      */
     public function changeStatus(User $user)
     {
-        $user->status = $user->status === true ? false : true;
+        // $user->status = $user->status === 1 ? 0 : 1; // no funciona con Integers xq el valor definido en global.d.ts es (status: boolean;)
+        $user->status = $user->status === true ? false : true;    // verificar el valor que esta definido en global.d.ts para UserResource (status: boolean;)
         $user->save();
 
         // return back()->with('success', 'User status changed.');
