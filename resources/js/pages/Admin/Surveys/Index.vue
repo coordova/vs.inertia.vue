@@ -17,7 +17,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/ui/oox/TPagination.vue';
 import {
     Select,
     SelectContent,
@@ -55,7 +54,7 @@ const props = defineProps<Props>();
 /*-------------- Watch --------------*/
 const search = ref(props.filters?.search);
 const page = ref(props.filters?.page);
-const perPage = ref(props.filters?.per_page);
+const perPage = ref(props.filters?.per_page || '15');
 // const categoryId = ref(props.filters?.category_id); // Opcional: Filtro por categoría
 
 watch(
@@ -224,7 +223,10 @@ function goToPage(page: number) {
                 </div>
             </div>
             <Table>
-                <TableCaption class="text-right">
+                <TableCaption
+                    v-if="props.surveys?.meta.total > 0"
+                    class="text-right"
+                >
                     Showing {{ props.surveys?.meta.from }} to
                     {{ props.surveys?.meta.to }} of
                     {{ props.surveys?.meta.total }} surveys
@@ -331,12 +333,12 @@ function goToPage(page: number) {
                 </TableBody>
             </Table>
             <!-- Pagination -->
-            <TPagination
+            <!-- <TPagination
                 :current-page="props.surveys.meta.current_page"
                 :total-items="props.surveys.meta.total"
                 :items-per-page="props.surveys.meta.per_page"
                 @page-change="goToPage"
-            />
+            /> -->
         </div>
     </AppLayout>
 </template>

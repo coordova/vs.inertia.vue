@@ -19,20 +19,26 @@ class SurveyController extends Controller
      */
     public function index(Request $request): Response
     {
-        // Carga la categoría para mostrarla en la lista
-        $surveys = Survey::with(['category'])
-                       ->orderBy('created_at', 'desc')
-                       ->paginate($request->get('per_page', 15));
+        $surveys = Survey::query()
+                            ->when(request('search'), function ($query, $search) {
+                                $query->where('title', 'like', '%' . $search . '%');
+                            })
+                            // orderBy('fullname', 'asc')
+                            ->latest()
+                            ->paginate($request->get('per_page', 15))
+                            ->withQueryString();
 
-        // Opcional: Agregar búsqueda o filtrado por categoría
-        // $categoryId = $request->get('category_id');
-        // if ($categoryId) {
-        //     $surveys = $surveys->where('category_id', $categoryId);
-        // }
+        /*---------------------------------------------------------------------*/
+        // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
+        if ($surveys->lastPage() > 0 && $request->get('page', 1) > $surveys->lastPage()) {
+            // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
+            return redirect($surveys->url($surveys->lastPage()));
+        }
+        /*---------------------------------------------------------------------*/
 
         return Inertia::render('Admin/Surveys/Index', [
             'surveys' => SurveyResource::collection($surveys),
-            'filters' => $request->only(['search', 'category_id', 'per_page']), // Ejemplo de filtro por categoría
+            'filters' => $request->only(['search', 'per_page', 'page']), // Ejemplo de filtro por categoría
         ]);
     }
 
@@ -68,7 +74,7 @@ class SurveyController extends Controller
     {
         $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario
         return Inertia::render('Admin/Surveys/Show', [
-            'survey' => new SurveyResource($survey),
+            'survey' => SurveyResource::make($survey)->resolve(),
         ]);
     }
 
@@ -80,7 +86,7 @@ class SurveyController extends Controller
         // Puedes pasar datos auxiliares si es necesario (por ejemplo, lista de categorías)
         // $categories = Category::all();
         return Inertia::render('Admin/Surveys/Edit', [
-            'survey' => new SurveyResource($survey),
+            'survey' => SurveyResource::make($survey)->resolve(),
             // 'categories' => CategoryResource::collection($categories), // Si se necesita en edición
         ]);
     }

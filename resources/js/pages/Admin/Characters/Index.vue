@@ -219,7 +219,10 @@ function goToPage(page: number) {
                 </div>
             </div>
             <Table>
-                <TableCaption class="text-right">
+                <TableCaption
+                    v-if="props.characters?.meta.total > 0"
+                    class="text-right"
+                >
                     Showing {{ props.characters?.meta.from }} to
                     {{ props.characters?.meta.to }} of
                     {{ props.characters?.meta.total }} characters
