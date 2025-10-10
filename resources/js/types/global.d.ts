@@ -133,13 +133,32 @@ export interface CharactersData { // Para la colección paginada resuelta
     links: PaginationLinks[];
 }
 
-export interface SurveyResource { // Renombrado para claridad
+
+// --- Interfaces para Surveys ---
+export interface SurveyResource { // Interfaz para el recurso individual resuelto
     id: number;
+    category_id: number; // ID de la categoría
+    category: CategoryResource; // Objeto de la categoría relacionada (resuelto)
     title: string;
+    slug: string;
     description: string;
+    image: string | null; // URL o path
+    type: number; // 0=pública, 1=privada
     status: boolean;
-    created_at_formatted: string; // O created_at si se formatea en el frontend
-    // Añadir otros campos devueltos por SurveyResource
+    date_start: string; // Formato ISO
+    date_end: string; // Formato ISO
+    selection_strategy: string; // Nombre de la estrategia
+    max_votes_per_user: number | null; // 0=ilimitado
+    allow_ties: boolean;
+    tie_weight: number; // Decimal
+    is_featured: boolean;
+    sort_order: number;
+    counter: number;
+    meta_title: string | null;
+    meta_description: string | null;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Incluido si se maneja soft delete y se envía
 }
 
 export interface SurveysData {

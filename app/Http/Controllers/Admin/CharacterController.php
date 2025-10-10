@@ -105,7 +105,7 @@ class CharacterController extends Controller
     }
 
 
-    public function store_original_ok(StoreCharacterRequest $request): RedirectResponse
+    public function store_original_ok_deprecated(StoreCharacterRequest $request): RedirectResponse
     {
         // 1. Obtén todos los datos que pasaron la validación.
         //    $request->validated() devuelve un array con solo los campos definidos en rules().
@@ -262,7 +262,7 @@ class CharacterController extends Controller
 
 
 
-    public function update_original_ok(UpdateCharacterRequest $request, Character $character): RedirectResponse
+    public function update_original_ok_deprecated(UpdateCharacterRequest $request, Character $character): RedirectResponse
     {
         // La validación ya ocurrió automáticamente por el UpdateCharacterRequest, aqui solo obtenemos los datos validados
         $validated = $request->validated();
