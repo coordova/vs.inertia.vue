@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Lookup;
 
 class LookupValuesSeeder extends Seeder
 {
@@ -98,7 +99,7 @@ class LookupValuesSeeder extends Seeder
         ];
 
         foreach ($selectionStrategies as $strategy) {
-            LookupValue::updateOrCreate(
+            Lookup::updateOrCreate(
                 ['category' => $strategy['category'], 'code' => $strategy['code']],
                 $strategy
             );

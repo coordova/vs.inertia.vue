@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\LookupValue;
+use App\Models\Lookup;
 
 class LookupService
 {
     public static function getSelectionStrategies(): array
     {
-        return LookupValue::byCategory('selection_strategies')
+        return Lookup::byCategory('selection_strategies')
             ->get()
             ->map(fn($item) => [
                 'value' => $item->code,
@@ -22,7 +22,7 @@ class LookupService
 
     public static function getLookupByCategory(string $category): array
     {
-        return LookupValue::byCategory($category)
+        return Lookup::byCategory($category)
             ->get()
             ->map(fn($item) => [
                 'value' => $item->code,
@@ -34,7 +34,7 @@ class LookupService
 
     public static function isValidSelectionStrategy(string $code): bool
     {
-        return LookupValue::byCategory('selection_strategies')
+        return Lookup::byCategory('selection_strategies')
             ->byCode($code)
             ->exists();
     }

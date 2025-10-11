@@ -26,4 +26,18 @@ class Lookup extends Model
         'is_active' => 'boolean',
         'metadata' => 'array', // Laravel maneja JSON como array automáticamente
     ];
+
+    // Scope para categoría específica
+    public function scopeByCategory($query, string $category)
+    {
+        return $query->where('category', $category)
+                    ->where('is_active', true)
+                    ->orderBy('sort_order');
+    }
+
+    // Scope para código específico
+    public function scopeByCode($query, string $code)
+    {
+        return $query->where('code', $code);
+    }
 }

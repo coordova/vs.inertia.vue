@@ -1,323 +1,293 @@
 <script setup lang="ts">
+import { Head, useForm } from '@inertiajs/vue3';
+import { LoaderCircle } from 'lucide-vue-next';
+
+// Layouts & Components
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch/';
-import { Textarea } from '@/components/ui/textarea/';
-import { useToast } from '@/composables/useToast';
+import DatePicker from '@/components/ui/oox/TDatePicker.vue'; // <-- Importa el nuevo componente
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
 
-// --- Inicializar el composable de toast ---
+// Composables & Types
+import { useToast } from '@/composables/useToast';
+import { type BreadcrumbItem } from '@/types';
+import { DateValue } from '@internationalized/date';
+
+// Importar nuevo componente
+import CharacterTagsInput from '@/components/ui/oox/TCharacterTagsInput.vue';
+import { watch } from 'vue';
+
+// Tipos locales
+interface Category {
+    id: number;
+    name: string;
+}
+
+interface SelectionStrategy {
+    value: string;
+    label: string;
+    description?: string;
+}
+
+type SurveyForm = {
+    title: string;
+    description: string;
+    status: boolean;
+    category_id: number | null;
+    type: number;
+    reverse: boolean;
+    date_start: DateValue | null;
+    date_end: DateValue | null;
+    characters: number[];
+    selection_strategy: string; // ✅ Nuevo campo
+    // [key: string]: string | number | boolean | null; // <- Añadido
+};
+
+// Props
+const props = defineProps<{
+    categories: Category[];
+    selectionStrategies: SelectionStrategy[]; // ✅ Nueva prop
+}>();
+
+// Composable de notificaciones
 const { success, error } = useToast();
 
-// --- Inicializar el formulario de Inertia ---
-// Usamos la interfaz SurveyResource, pero solo los campos relevantes para el formulario
-// y proporcionamos valores iniciales para aquellos que no se usan en el formulario
+// Breadcrumbs
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Surveys', href: route('surveys.index') },
+    { title: 'Create', href: route('surveys.create') },
+];
+
+// Formulario con tipos de datos corregidos
 const form = useForm({
-    category_id: 0, // ID de la categoría, debe ser seleccionado
     title: '',
-    slug: '', // O se genera automáticamente si se deja vacío en el backend
     description: '',
-    image: '', // URL o path
-    type: 0, // Valor por defecto (pública)
-    status: true, // Valor por defecto
-    date_start: '', // Date string
-    date_end: '', // Date string
-    selection_strategy: 'cooldown', // Valor por defecto
-    max_votes_per_user: 0, // Valor por defecto (ilimitado)
-    allow_ties: false, // Valor por defecto
-    tie_weight: 0.5, // Valor por defecto
-    is_featured: false, // Valor por defecto
-    sort_order: 0, // Valor por defecto
-    counter: 0, // Valor por defecto
-    meta_title: '',
-    meta_description: '',
-    // Campos que no están en el formulario pero que requiere la interfaz SurveyResource
-    id: 0, // No se usa en el formulario
-    category: { id: 0, name: '' }, // No se usa en el formulario, pero está en la interfaz
-    created_at: '', // No se usa en el formulario
-    updated_at: '', // No se usa en el formulario
-    // deleted_at: null, // No se usa en el formulario
+    status: true, // 1 = enabled, 0 = disabled
+    // status: Boolean(1), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
+    category_id: null as number | null, // Tipado explícito para claridad
+    type: 0, // 0 = public, 1 = private
+    reverse: false, // 0 = no reverse, 1 = reverse
+    // reverse: Boolean(0), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
+    date_start: null,
+    date_end: null,
+    characters: [] as number[], // ✅ Array de números
+    selection_strategy: 'cooldown' as string, // ✅ Valor por defecto
+    // duration: null,
 });
 
-// --- Manejo de envío del formulario ---
-const submitForm = () => {
-    form.post(route('admin.surveys.store'), {
-        preserveState: true,
+// Envío del formulario
+const handleSubmit = () => {
+    form.post(route('surveys.store'), {
         onSuccess: () => {
-            success('Survey created successfully.');
+            success('Survey created successfully');
+            form.reset();
         },
         onError: () => {
-            error('Failed to create survey. Please check the errors below.');
+            // console.log(form.errors);
+            error(
+                'An error occurred while creating the survey. Please check the fields.',
+            );
         },
     });
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Surveys',
-        href: route('admin.surveys.index'),
+// Observar cambios en categoría para resetear personajes si es necesario
+watch(
+    () => form.category_id,
+    (newVal) => {
+        if (!newVal) {
+            form.characters = [];
+        }
     },
-    {
-        title: 'Create',
-        href: route('admin.surveys.create'),
+);
+
+// En Create.vue -- para depuración
+/* watch(
+    () => form.characters,
+    (newVal) => {
+        console.log('Form characters updated:', newVal);
     },
-];
+    { deep: true },
+); */
 </script>
 
 <template>
     <Head title="Create Survey" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full w-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6"
-        >
-            <form @submit.prevent="submitForm" class="w-full space-y-6 p-6">
+        <div class="flex h-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6">
+            <!-- <form @submit.prevent="handleSubmit" class="mx-auto w-full max-w-2xl space-y-6 rounded-lg border p-6 shadow-sm"> -->
+            <form @submit.prevent="handleSubmit" class="w-full space-y-6 p-6">
+                <!-- Title -->
                 <div class="space-y-2">
-                    <Label for="title">Title *</Label>
+                    <Label for="title">Survey Title</Label>
                     <Input
                         id="title"
                         type="text"
                         autoFocus
-                        :tabIndex="1"
-                        autocomplete="title"
-                        placeholder="Survey Title"
                         v-model="form.title"
                     />
                     <InputError :message="form.errors.title" />
                 </div>
 
-                <div class="space-y-2">
-                    <Label for="slug">Slug</Label>
-                    <Input
-                        id="slug"
-                        type="text"
-                        :tabIndex="2"
-                        autocomplete="slug"
-                        placeholder="Slug (optional, auto-generated if empty)"
-                        v-model="form.slug"
-                    />
-                    <InputError :message="form.errors.slug" />
-                </div>
-
-                <div class="space-y-2">
-                    <Label for="category_id">Category *</Label>
-                    <!-- Asumiendo que se cargan categorías en el backend y se pasan como prop o se obtienen aquí -->
-                    <select
-                        id="category_id"
-                        :tabIndex="3"
-                        v-model.number="form.category_id"
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <option value="0">Select a Category</option>
-                        <!-- Opciones de categorías se cargarían dinámicamente -->
-                        <!-- <option value="1">Beauty</option> -->
-                        <!-- <option value="2">Politics</option> -->
-                    </select>
-                    <InputError :message="form.errors.category_id" />
-                </div>
-
+                <!-- Description -->
                 <div class="space-y-2">
                     <Label for="description">Description</Label>
-                    <Textarea
-                        id="description"
-                        :tabIndex="4"
-                        autocomplete="description"
-                        placeholder="Survey Description"
-                        v-model="form.description"
-                        :rows="4"
-                    />
+                    <Textarea id="description" v-model="form.description" />
                     <InputError :message="form.errors.description" />
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <!-- Category -->
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="space-y-2">
-                        <Label for="date_start">Start Date *</Label>
-                        <Input
-                            id="date_start"
-                            type="date"
-                            :tabIndex="5"
-                            autocomplete="date_start"
-                            v-model="form.date_start"
-                        />
-                        <InputError :message="form.errors.date_start" />
+                        <Label for="category_id">Category</Label>
+                        <Select v-model="form.category_id">
+                            <SelectTrigger
+                                ><SelectValue placeholder="Select a category"
+                            /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="category in props.categories"
+                                    :key="category.id"
+                                    :value="category.id"
+                                >
+                                    {{ category.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.category_id" />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="date_end">End Date *</Label>
-                        <Input
-                            id="date_end"
-                            type="date"
-                            :tabIndex="6"
-                            autocomplete="date_end"
-                            v-model="form.date_end"
-                        />
-                        <InputError :message="form.errors.date_end" />
+                        <Label for="type">Type</Label>
+                        <Select v-model="form.type">
+                            <SelectTrigger
+                                ><SelectValue placeholder="Select type"
+                            /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem :value="0">Public</SelectItem>
+                                <SelectItem :value="1">Private</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <InputError :message="form.errors.type" />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div class="space-y-2">
-                        <Label for="image">Image URL</Label>
-                        <Input
-                            id="image"
-                            type="text"
-                            :tabIndex="7"
-                            autocomplete="image"
-                            placeholder="https://example.com/image.jpg"
-                            v-model="form.image"
-                        />
-                        <InputError :message="form.errors.image" />
-                    </div>
-
+                <!-- Selection Strategy -->
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="selection_strategy"
                             >Selection Strategy</Label
                         >
-                        <select
-                            id="selection_strategy"
-                            :tabIndex="8"
-                            v-model="form.selection_strategy"
-                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <option value="cooldown">Cooldown</option>
-                            <option value="random">Random</option>
-                            <option value="elo_based">ELO Based</option>
-                            <!-- Añadir otras estrategias si existen -->
-                        </select>
+                        <Select v-model="form.selection_strategy">
+                            <SelectTrigger
+                                ><SelectValue placeholder="Select a strategy"
+                            /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="strategy in props.selectionStrategies"
+                                    :key="strategy.value"
+                                    :value="strategy.value"
+                                >
+                                    {{ strategy.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                         <InputError :message="form.errors.selection_strategy" />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div class="space-y-2">
-                        <Label for="max_votes_per_user"
-                            >Max Votes per User (0=Unlimited)</Label
-                        >
-                        <Input
-                            id="max_votes_per_user"
-                            type="number"
-                            :tabIndex="9"
-                            min="0"
-                            autocomplete="max_votes_per_user"
-                            v-model.number="form.max_votes_per_user"
-                        />
-                        <InputError :message="form.errors.max_votes_per_user" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <Label for="tie_weight"
-                            >Tie Weight (if ties allowed)</Label
-                        >
-                        <Input
-                            id="tie_weight"
-                            type="number"
-                            :tabIndex="10"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            autocomplete="tie_weight"
-                            v-model.number="form.tie_weight"
-                        />
-                        <InputError :message="form.errors.tie_weight" />
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-4">
-                    <div class="flex items-center space-x-2">
-                        <Switch
-                            id="status"
-                            v-model="form.status"
-                            :disabled="form.processing"
-                        />
-                        <Label htmlFor="status">Active</Label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <Switch
-                            id="allow_ties"
-                            v-model="form.allow_ties"
-                            :disabled="form.processing"
-                        />
-                        <Label htmlFor="allow_ties">Allow Ties</Label>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <Switch
-                            id="is_featured"
-                            v-model="form.is_featured"
-                            :disabled="form.processing"
-                        />
-                        <Label htmlFor="is_featured">Featured</Label>
-                    </div>
-                </div>
-                <InputError :message="form.errors.status" />
-                <InputError :message="form.errors.allow_ties" />
-                <InputError :message="form.errors.is_featured" />
-
+                <!-- Characters in survey -->
                 <div class="space-y-2">
-                    <Label for="meta_title">Meta Title</Label>
-                    <Input
-                        id="meta_title"
-                        type="text"
-                        :tabIndex="11"
-                        autocomplete="meta_title"
-                        placeholder="Meta Title (for SEO)"
-                        v-model="form.meta_title"
+                    <!-- <Label for="characters">Characters in survey</Label> -->
+                    <CharacterTagsInput
+                        v-model="form.characters"
+                        :category-id="form.category_id"
                     />
-                    <InputError :message="form.errors.meta_title" />
+                    <InputError :message="form.errors.characters" />
                 </div>
 
-                <div class="space-y-2">
-                    <Label for="meta_description">Meta Description</Label>
-                    <Textarea
-                        id="meta_description"
-                        :tabIndex="12"
-                        autocomplete="meta_description"
-                        placeholder="Meta Description (for SEO)"
-                        v-model="form.meta_description"
-                        :rows="2"
-                    />
-                    <InputError :message="form.errors.meta_description" />
+                <!-- Dates -->
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div class="space-y-2">
+                        <Label for="date_start">Start Date</Label>
+                        <DatePicker v-model="form.date_start" />
+                        <!-- Mostrar fecha formateada para verificación -->
+                        <!-- <p class="mt-1 text-xs text-gray-500">Selected: {{ form.date_start ? new Date(form.date_start).toUTCString() : '' }}</p> -->
+                        <InputError :message="form.errors.date_start" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="date_end">End Date</Label>
+                        <DatePicker v-model="form.date_end" />
+                        <!-- Mostrar fecha formateada para verificación -->
+                        <!-- <p class="mt-1 text-xs text-gray-500">Selected: {{ form.date_end ? new Date(form.date_end).toUTCString() : '' }}</p> -->
+                        <InputError :message="form.errors.date_end" />
+                    </div>
                 </div>
 
-                <Separator class="my-4" />
+                <!-- Switches -->
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                        <div class="flex items-center space-x-2 pt-2">
+                            <Switch id="status" v-model="form.status" />
+                            <Label
+                                for="status"
+                                class="cursor-pointer text-sm leading-none font-medium"
+                            >
+                                Enable this survey upon creation
+                            </Label>
+                        </div>
+                        <InputError
+                            :message="form.errors.status"
+                            class="mt-1"
+                        />
+                    </div>
 
-                <div
-                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
+                    <div>
+                        <div class="flex items-center space-x-2 pt-2">
+                            <Switch id="reverse" v-model="form.reverse" />
+                            <Label
+                                for="reverse"
+                                class="cursor-pointer text-sm leading-none font-medium"
+                            >
+                                Reverse this survey upon creation
+                            </Label>
+                        </div>
+                        <InputError
+                            :message="form.errors.reverse"
+                            class="mt-1"
+                        />
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <Button
+                    type="submit"
+                    class="w-full cursor-pointer"
+                    :disabled="form.processing"
                 >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        class="w-full cursor-pointer md:w-auto"
-                        :disabled="form.processing"
-                        @click="router.visit(route('admin.surveys.index'))"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        class="w-full cursor-pointer md:w-auto"
-                        :tabIndex="13"
-                        :disabled="form.processing || !form.isDirty"
-                    >
-                        <LoaderCircle
-                            v-if="form.processing"
-                            class="mr-2 h-4 w-4 animate-spin"
-                        />
-                        <span>{{
-                            form.processing ? 'Creating...' : 'Create Survey'
-                        }}</span>
-                    </Button>
-                </div>
+                    <LoaderCircle
+                        v-if="form.processing"
+                        class="mr-2 h-4 w-4 animate-spin"
+                    />
+                    Create Survey
+                </Button>
             </form>
         </div>
+        <!-- Verifica que el formulario tenga el campo -->
+        <!-- <pre>{{ form }}</pre> -->
+        <!-- Agrega esto temporalmente para debug -->
     </AppLayout>
 </template>
-
-<style scoped>
-/* Estilos específicos si es necesario */
-</style>
