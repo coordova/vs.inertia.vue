@@ -250,7 +250,7 @@ watch(() => props.categoryId, async (newCategoryId) => {
           >
             <TagsInputInput 
               placeholder="Select characters..." 
-              class="min-w-[150px] w-full p-0 border-none focus-visible:ring-0 h-auto"
+              class="min-w-[150px] w-full p-0 border-none focus-visible:ring-0 h-auto shadow-none"
               @keydown.enter.prevent
             />
           </ComboboxInput>

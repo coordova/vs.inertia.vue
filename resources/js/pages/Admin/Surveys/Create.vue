@@ -25,7 +25,7 @@ import { type BreadcrumbItem } from '@/types';
 import { DateValue } from '@internationalized/date';
 
 // Importar nuevo componente
-import CharacterTagsInput from '@/components/ui/oox/TCharacterTagsInput.vue';
+import TCharacterTagsInput from '@/components/ui/oox/TCharacterTagsInput.vue';
 import { watch } from 'vue';
 
 // Tipos locales
@@ -65,8 +65,8 @@ const { success, error } = useToast();
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Surveys', href: route('surveys.index') },
-    { title: 'Create', href: route('surveys.create') },
+    { title: 'Surveys', href: route('admin.surveys.index') },
+    { title: 'Create', href: route('admin.surveys.create') },
 ];
 
 // Formulario con tipos de datos corregidos
@@ -88,7 +88,7 @@ const form = useForm({
 
 // Envío del formulario
 const handleSubmit = () => {
-    form.post(route('surveys.store'), {
+    form.post(route('admin.surveys.store'), {
         onSuccess: () => {
             success('Survey created successfully');
             form.reset();
@@ -211,7 +211,7 @@ watch(
                 <!-- Characters in survey -->
                 <div class="space-y-2">
                     <!-- <Label for="characters">Characters in survey</Label> -->
-                    <CharacterTagsInput
+                    <TCharacterTagsInput
                         v-model="form.characters"
                         :category-id="form.category_id"
                     />

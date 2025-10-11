@@ -325,4 +325,21 @@ class CharacterController extends Controller
 
         return to_route('admin.characters.index')->with('success', 'Character deleted successfully.');
     }
+
+    /**
+     * Get characters by category for AJAX.
+     */
+    public function getCharactersByCategoryAjax(Category $category)
+    {
+        $characters = $category
+            ->characters()
+            ->select('characters.id', 'characters.fullname')
+            ->get()
+            ->map(fn($char) => [
+                'value' => $char->id,
+                'label' => $char->fullname
+            ]);
+
+        return response()->json($characters)->header('X-Inertia', 'true');
+    }
 }

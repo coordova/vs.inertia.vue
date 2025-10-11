@@ -39,7 +39,11 @@ return [
         'admin.surveys.index',
         'admin.surveys.show',
         'admin.surveys.create',
+        'admin.surveys.store',
         'admin.surveys.edit',
+        'admin.surveys.update',
         'admin.surveys.destroy',
+
+        'ajax.categories.characters',
     ]
 ];

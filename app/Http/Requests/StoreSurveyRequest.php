@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Requests;
-
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSurveyRequest extends FormRequest
@@ -42,5 +42,20 @@ class StoreSurveyRequest extends FormRequest
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * Este método es perfecto para preparar datos antes de que se validen.
+     * Genera automáticamente el slug si no se proporciona.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Aquí podemos añadir el slug a los datos de la petición.
+        // Lo haremos en el controlador para más claridad en este caso.
+        $this->merge([
+            'slug' => $this->slug ?? Str::slug($this->title),
+        ]);
     }
 }

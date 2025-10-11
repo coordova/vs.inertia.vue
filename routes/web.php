@@ -39,6 +39,8 @@ Route::middleware(['auth'])
         Route::delete('users/{user}/force',   [UserController::class, 'forceDelete'])->name('users.force-delete');
         Route::put('users/{user}/change-status', [UserController::class, 'changeStatus'])->name('users.change-status');
         });
+        // Ajax Routes para cargar personajes por categoría
+        Route::get('/ajax/categories/{category}/characters', [CharacterController::class, 'getCharactersByCategoryAjax'])->name('ajax.categories.characters');
 /* -------------------------------------------------------------*/
 Route::get('prueba', function () {
     return 'prueba';
