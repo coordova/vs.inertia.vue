@@ -30,6 +30,7 @@ class StoreSurveyRequest extends FormRequest
             'image' => 'nullable|string|max:255',
             'type' => 'required|integer|in:0,1', // 0=pública, 1=privada
             'status' => 'required|boolean',
+            'reverse' => ['required', 'boolean'],
             'date_start' => 'required|date|before_or_equal:date_end',
             'date_end' => 'required|date|after_or_equal:date_start',
             'selection_strategy' => 'required|string|max:255',

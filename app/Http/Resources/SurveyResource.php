@@ -32,6 +32,7 @@ class SurveyResource extends JsonResource
             'tie_weight' => $this->tie_weight,
             'is_featured' => $this->is_featured,
             'sort_order' => $this->sort_order,
+            'reverse' => $this->reverse,
             'counter' => $this->counter,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,

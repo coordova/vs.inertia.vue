@@ -30,6 +30,7 @@ class SurveyController extends Controller
                             ->paginate($request->get('per_page', 15))
                             ->withQueryString();
 
+        // dd($surveys);
         /*---------------------------------------------------------------------*/
         // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
         if ($surveys->lastPage() > 0 && $request->get('page', 1) > $surveys->lastPage()) {
