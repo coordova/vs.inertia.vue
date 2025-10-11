@@ -7,10 +7,12 @@ use App\Http\Requests\StoreSurveyRequest;
 use App\Http\Requests\UpdateSurveyRequest;
 use App\Http\Resources\SurveyResource;
 use App\Models\Survey;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Services\LookupService;
 
 class SurveyController extends Controller
 {
@@ -48,10 +50,12 @@ class SurveyController extends Controller
     public function create(): Response
     {
         // Puedes pasar datos auxiliares si es necesario (por ejemplo, lista de categorías)
-        // $categories = Category::all(); // Asumiendo un modelo Category
-        return Inertia::render('Admin/Surveys/Create');
-        // O si necesitas categorías:
-        // return Inertia::render('Admin/Surveys/Create', ['categories' => CategoryResource::collection($categories)]);
+        $categories = Category::query()->select('id', 'name', 'status')->get();
+        $selectionStrategies = LookupService::getSelectionStrategies();
+        return Inertia::render('Admin/Surveys/Create', [
+            'categories' => $categories,
+            'selectionStrategies' => $selectionStrategies,
+        ]);
     }
 
     /**
