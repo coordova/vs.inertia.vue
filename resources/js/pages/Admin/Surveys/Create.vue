@@ -22,10 +22,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 // Composables & Types
 import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
-import { DateValue } from '@internationalized/date';
 
 // Importar nuevo componente
 import TCharacterTagsInput from '@/components/ui/oox/TCharacterTagsInput.vue';
+import { SurveyResourceForm } from '@/types/global';
 import { watch } from 'vue';
 
 // Tipos locales
@@ -40,10 +40,11 @@ interface SelectionStrategy {
     description?: string;
 }
 
-type SurveyForm = {
+/* type SurveyForm = {
     title: string;
     description: string;
     status: boolean;
+    is_featured: boolean;
     category_id: number | null;
     type: number;
     reverse: boolean;
@@ -52,7 +53,7 @@ type SurveyForm = {
     characters: number[];
     selection_strategy: string; // ✅ Nuevo campo
     // [key: string]: string | number | boolean | null; // <- Añadido
-};
+}; */
 
 // Props
 const props = defineProps<{
@@ -70,19 +71,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // Formulario con tipos de datos corregidos
-const form = useForm({
+const form = useForm<SurveyResourceForm>({
+    category_id: null as number | null, // Tipado explícito para claridad
     title: '',
     description: '',
-    status: true, // 1 = enabled, 0 = disabled
-    // status: Boolean(1), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
-    category_id: null as number | null, // Tipado explícito para claridad
     type: 0, // 0 = public, 1 = private
-    reverse: false, // 0 = no reverse, 1 = reverse
-    // reverse: Boolean(0), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
-    date_start: null,
-    date_end: null,
-    characters: [] as number[], // ✅ Array de números
+    status: true, // 1 = enabled, 0 = disabled
+    date_start: '',
+    date_end: '',
     selection_strategy: 'cooldown' as string, // ✅ Valor por defecto
+    is_featured: false,
+    characters: [] as number[], // ✅ Array de números
+    reverse: false, // 0 = no reverse, 1 = reverse
+    // status: Boolean(1), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
+    // reverse: Boolean(0), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
     // duration: null,
 });
 
