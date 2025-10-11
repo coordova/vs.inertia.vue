@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image', 255)->nullable();
             $table->tinyInteger('type')->unsigned()->default(0); // 0=pública, 1=privada
+            $table->boolean('reverse')->default(0); // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
             $table->boolean('status')->default(0); // 1=activa, 0=inactiva
             $table->date('date_start');
             $table->date('date_end');

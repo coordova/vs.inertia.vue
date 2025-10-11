@@ -21,7 +21,7 @@ class SurveyController extends Controller
      */
     public function index(Request $request): Response
     {
-        $surveys = Survey::query()
+        $surveys = Survey::with(['category:id,name'])
                             ->when(request('search'), function ($query, $search) {
                                 $query->where('title', 'like', '%' . $search . '%');
                             })

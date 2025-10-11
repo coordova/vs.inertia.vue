@@ -259,8 +259,8 @@ function goToPage(page: number) {
                         <TableCell class="font-medium">{{
                             survey.title
                         }}</TableCell>
-                        <TableCell>{{ survey.category.name }}</TableCell>
-                        <!-- Acceder al nombre de la categoría -->
+                        <TableCell>{{ survey.category?.name }}</TableCell
+                        ><!-- Acceder al nombre de la categoría -->
                         <TableCell>{{
                             new Date(survey.date_start).toLocaleDateString()
                         }}</TableCell>
