@@ -77,12 +77,12 @@ const form = useForm<SurveyResourceForm>({
     description: '',
     type: 0, // 0 = public, 1 = private
     status: true, // 1 = enabled, 0 = disabled
+    reverse: false, // 0 = no reverse, 1 = reverse
     date_start: '',
     date_end: '',
     selection_strategy: 'cooldown' as string, // ✅ Valor por defecto
     is_featured: false,
     characters: [] as number[], // ✅ Array de números
-    reverse: false, // 0 = no reverse, 1 = reverse
     // status: Boolean(1), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
     // reverse: Boolean(0), // Convertir a boolean, no string, para el checkbox, sino vue muestra warning
     // duration: null,

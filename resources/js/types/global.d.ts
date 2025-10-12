@@ -144,8 +144,8 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     description: string;
     image: string | null; // URL o path
     type: number; // 0=pública, 1=privada
-    reverse: boolean; // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
     status: boolean;
+    reverse: boolean; // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
     date_start: string; // Formato ISO
     date_end: string; // Formato ISO
     selection_strategy: string; // Nombre de la estrategia
@@ -171,8 +171,8 @@ export interface SurveyResourceForm { // Interfaz para el recurso individual res
     description: string;
     // image: string | null; // URL o path
     type: number; // 0=pública, 1=privada
-    reverse: boolean; // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
     status: boolean;
+    reverse: boolean; // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
     date_start: string; // Formato ISO
     date_end: string; // Formato ISO
     selection_strategy: string; // Nombre de la estrategia

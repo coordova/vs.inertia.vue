@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Survey extends Model
 {
@@ -26,6 +27,7 @@ class Survey extends Model
         'image',
         'type',
         'status',
+        'reverse',
         'date_start',
         'date_end',
         'selection_strategy',
@@ -48,6 +50,7 @@ class Survey extends Model
         'category_id' => 'integer',
         'type' => 'integer',
         'status' => 'boolean',
+        'reverse' => 'boolean',
         'date_start' => 'date',
         'date_end' => 'date',
         'max_votes_per_user' => 'integer',
