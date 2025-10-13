@@ -165,7 +165,13 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     date_start_formatted: string;
     date_end_formatted: string;
     duration: number;
-    selection_strategy_info: Object;
+    /* selection_strategy_info: {
+        name: string;
+        description: string;
+        metadata: {
+            [key: string]: any;
+        };
+    }; */
     character_count: number;
     combinations_count: number;
     user_votes_count: number;

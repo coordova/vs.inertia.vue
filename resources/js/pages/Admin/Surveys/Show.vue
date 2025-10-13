@@ -31,7 +31,13 @@ import {
 
 interface Props {
     survey: SurveyResource; // Usamos el tipo del recurso resuelto
-    selectionStrategyInfo: Object;
+    selectionStrategyInfo: {
+        name: string;
+        description: string;
+        metadata: {
+            [key: string]: any;
+        };
+    };
 }
 
 const props = defineProps<Props>();
@@ -73,7 +79,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="flex h-full flex-1 flex-col gap-4 p-4 md:p-6">
             <!-- Header con título y acciones -->
             <div
-                class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+                class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
             >
                 <div>
                     <h1
@@ -183,10 +189,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 />
                                 <div>
                                     <div class="font-medium">
-                                        {{ selectionStrategyInfo.name }}
+                                        {{ selectionStrategyInfo?.name }}
                                     </div>
                                     <p class="text-sm text-muted-foreground">
-                                        {{ selectionStrategyInfo.description }}
+                                        {{ selectionStrategyInfo?.description }}
                                     </p>
                                 </div>
                             </div>
