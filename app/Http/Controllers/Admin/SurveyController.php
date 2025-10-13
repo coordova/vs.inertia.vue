@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSurveyRequest;
 use App\Http\Requests\UpdateSurveyRequest;
+use App\Http\Resources\SurveyResource;
 use App\Http\Resources\SurveyShowResource;
+use App\Http\Resources\SurveyIndexResource;
 use App\Models\Survey;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -22,13 +24,15 @@ class SurveyController extends Controller
      */
     public function index(Request $request): Response
     {
+        $perPage = request('per_page', 15);
+
         $surveys = Survey::with(['category:id,name'])
                             ->when(request('search'), function ($query, $search) {
                                 $query->where('title', 'like', '%' . $search . '%');
                             })
                             // orderBy('fullname', 'asc')
                             ->latest()
-                            ->paginate($request->get('per_page', 15))
+                            ->paginate($perPage)
                             ->withQueryString();
 
         // dd($surveys);
@@ -41,7 +45,7 @@ class SurveyController extends Controller
         /*---------------------------------------------------------------------*/
 
         return Inertia::render('Admin/Surveys/Index', [
-            'surveys' => SurveyResource::collection($surveys),
+            'surveys' => SurveyIndexResource::collection($surveys),
             'filters' => $request->only(['search', 'per_page', 'page']), // Ejemplo de filtro por categoría
         ]);
     }
