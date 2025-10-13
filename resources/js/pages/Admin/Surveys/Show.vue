@@ -139,12 +139,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     :href="
                                         route(
                                             'admin.categories.show',
-                                            props.survey.category.id,
+                                            props.survey.category.data.id,
                                         )
                                     "
                                     class="text-indigo-600 hover:text-indigo-900"
                                 >
-                                    {{ props.survey.category.name }}
+                                    {{ props.survey.category.data.name }}
                                 </Link>
                             </dd>
                         </div>

@@ -138,7 +138,7 @@ export interface CharactersData { // Para la colección paginada resuelta
 export interface SurveyResource { // Interfaz para el recurso individual resuelto
     id: number;
     category_id: number; // ID de la categoría
-    category: CategoryResource; // Objeto de la categoría relacionada (resuelto)
+    category: CategoryData; // Objeto de la categoría relacionada (resuelto)
     title: string;
     slug: string;
     description: string;
