@@ -10,14 +10,24 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog/';
+import Badge from '@/components/ui/badge/Badge.vue';
 import { Button } from '@/components/ui/button';
+import DetailItem from '@/components/ui/oox/TDetailItem.vue';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { SurveyResource } from '@/types/global'; // Asumiendo que tienes una interfaz SurveyResource o similar
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Pencil, Trash } from 'lucide-vue-next'; // Iconos
+import {
+    Calendar,
+    Mars,
+    Pencil,
+    Settings,
+    Trash,
+    Users,
+    Venus,
+} from 'lucide-vue-next'; // Iconos
 
 interface Props {
     survey: SurveyResource; // Usamos el tipo del recurso resuelto
