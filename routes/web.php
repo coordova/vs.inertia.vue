@@ -42,7 +42,7 @@ Route::middleware(['auth'])
         // Ajax Routes para cargar personajes por categoría
         Route::get('/ajax/categories/{category}/characters', [CharacterController::class, 'getCharactersByCategoryAjax'])->name('ajax.categories.characters');
         // Ruta para votacion
-        Route::get('/surveys/{survey}/vote', [SurveyController::class, 'vote'])->name('surveys.vote');
+        Route::get('/surveys/{survey}/vote', [SurveyController::class, 'vote'])->name('admin.surveys.vote');
 /* -------------------------------------------------------------*/
 Route::get('prueba', function () {
     return 'prueba';

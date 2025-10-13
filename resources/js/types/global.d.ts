@@ -1,3 +1,4 @@
+import { Character } from './resources.d';
 // resources/js/types/global.d.ts
 
 // Importaciones (si se necesitan para otros tipos, pero no para extender PageProps aquí)
@@ -160,6 +161,20 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     created_at: string; // Formato ISO
     updated_at: string; // Formato ISO
     // deleted_at: string | null; // Incluido si se maneja soft delete y se envía
+
+    date_start_formatted: string;
+    date_end_formatted: string;
+    duration: number;
+    selection_strategy_info: Object;
+    character_count: number;
+    combinations_count: number;
+    user_votes_count: number;
+    progress_percentage: number;
+    is_completed: boolean;
+    created_at_formatted: string;
+    updated_at_formatted: string;
+    characters: CharacterResource[];
+    // votes: VoteResource[];
 }
 
 export interface SurveyResourceForm { // Interfaz para el recurso individual resuelto
