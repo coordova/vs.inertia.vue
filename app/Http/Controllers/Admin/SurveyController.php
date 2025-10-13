@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Lookup;
 use App\Services\LookupService;
 
 class SurveyController extends Controller
@@ -77,10 +78,35 @@ class SurveyController extends Controller
      */
     public function show(Survey $survey): Response
     {
-        $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario
+        $survey->load([
+            'characters:id,fullname,gender,status', 
+            'category:id,name',
+            'votes' => function ($query) {
+                $query->where('user_id', auth()->id())
+                    ->with(['winner:id,fullname', 'loser:id,fullname'])
+                    ->latest()
+                    ->limit(5);
+            }
+        ])->loadCount(['characters', 'votes as user_votes_count']); // ✅ Cargar conteo de votos
+    
+        $strategyInfo = Lookup::byCategory('selection_strategies')
+            ->byCode($survey->selection_strategy)
+            ->first();
+    
         return Inertia::render('Admin/Surveys/Show', [
             'survey' => SurveyShowResource::make($survey)->resolve(),
+            'selectionStrategyInfo' => $strategyInfo ? [
+                'name' => $strategyInfo->name,
+                'description' => $strategyInfo->description,
+                'metadata' => LookupService::parseMetadata($strategyInfo->metadata)
+            ] : null
         ]);
+
+
+        /* $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario
+        return Inertia::render('Admin/Surveys/Show', [
+            'survey' => SurveyShowResource::make($survey)->resolve(),
+        ]); */
     }
 
     /**

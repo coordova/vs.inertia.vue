@@ -43,6 +43,7 @@ return [
         'admin.surveys.edit',
         'admin.surveys.update',
         'admin.surveys.destroy',
+        'admin.surveys.vote',
 
         'ajax.categories.characters',
     ]

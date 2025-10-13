@@ -17,7 +17,6 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { SurveyResource } from '@/types/global'; // Asumiendo que tienes una interfaz SurveyResource o similar
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
     Calendar,
@@ -30,11 +29,12 @@ import {
 } from 'lucide-vue-next'; // Iconos
 
 interface Props {
-    survey: SurveyResource; // Usamos el tipo del recurso resuelto
+    survey: Object; // Usamos el tipo del recurso resuelto
+    selectionStrategyInfo: Object;
 }
 
 const props = defineProps<Props>();
-
+console.log(props);
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
 
@@ -86,12 +86,20 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
                 <div class="flex gap-2">
                     <Button asChild variant="outline">
-                        <Link :href="route('surveys.edit', props.survey?.id)">
+                        <Link
+                            :href="
+                                route('admin.surveys.edit', props.survey?.id)
+                            "
+                        >
                             <Pencil class="mr-2 h-4 w-4" /> Edit
                         </Link>
                     </Button>
                     <Button asChild variant="default">
-                        <Link :href="route('surveys.vote', props.survey?.id)">
+                        <Link
+                            :href="
+                                route('admin.surveys.vote', props.survey?.id)
+                            "
+                        >
                             Start Voting
                         </Link>
                     </Button>
