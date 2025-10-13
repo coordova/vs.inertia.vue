@@ -370,7 +370,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                             >
                                 <Link
                                     :href="
-                                        route('characters.show', character.id)
+                                        route(
+                                            'admin.characters.show',
+                                            character.id,
+                                        )
                                     "
                                     class="cursor-pointer"
                                 >

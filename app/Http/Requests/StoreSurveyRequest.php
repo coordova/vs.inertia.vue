@@ -39,9 +39,12 @@ class StoreSurveyRequest extends FormRequest
             // 'tie_weight' => 'required|numeric|min:0|max:1',
             'is_featured' => 'required|boolean',
             'sort_order' => 'nullable|integer|min:0',
-            'counter' => 'nullable|integer|min:0',
+            // 'counter' => 'nullable|integer|min:0',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+
+            'characters' => ['required', 'array', 'min:2'],
+            'characters.*' => ['required', 'exists:characters,id'],
         ];
     }
 

@@ -17,7 +17,7 @@ class SurveyIndexResource extends SurveyBaseResource
         // return parent::toArray($request);
         return array_merge($this->baseData($request), [
             'description' => $this->description,
-            'duration' => $this->duration,
+            'duration' => $this->date_start?->diffInDays($this->date_end),
             'counter' => $this->counter,
             'category' => $this->category ? [
                 'id' => $this->category->id,

@@ -10,6 +10,7 @@ use App\Http\Resources\SurveyShowResource;
 use App\Http\Resources\SurveyIndexResource;
 use App\Models\Survey;
 use App\Models\Category;
+use App\Models\Combinatoric;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -27,6 +28,8 @@ class SurveyController extends Controller
         $perPage = request('per_page', 15);
 
         $surveys = Survey::with(['category:id,name'])
+                            // ->withCount(['characters', 'votes as user_votes_count'])
+                            ->withCount(['characters'])
                             ->when(request('search'), function ($query, $search) {
                                 $query->where('title', 'like', '%' . $search . '%');
                             })
@@ -70,6 +73,15 @@ class SurveyController extends Controller
     public function store(StoreSurveyRequest $request): RedirectResponse
     {
         $survey = Survey::create($request->validated());
+
+        // Asociar personajes seleccionados
+        if (isset($request->validated()['characters']) && is_array($request->validated()['characters'])) {
+            $survey->characters()->attach($request->validated()['characters']);
+            // ✅ Generar combinatoria automáticamente
+            $this->generateCombinations($survey, $request->validated()['characters']);
+        }/*  else {
+            dd($request->validated());
+        } */
 
         // Opcional: Cargar relación si se necesita en la redirección
         // $survey->load('category');
@@ -147,5 +159,29 @@ class SurveyController extends Controller
         $survey->delete(); // Soft Delete
 
         return to_route('admin.surveys.index')->with('success', 'Survey deleted successfully.');
+    }
+
+    /**
+     * Generar combinaciones de personajes para una encuesta
+     */
+    private function generateCombinations(Survey $survey, array $characterIds)
+    {
+        // Generar todas las combinaciones posibles de 2 personajes
+        $combinations = [];
+        $count = count($characterIds);
+        
+        for ($i = 0; $i < $count; $i++) {
+            for ($j = $i + 1; $j < $count; $j++) {
+                $combinations[] = [
+                    'survey_id' => $survey->id,
+                    'character1_id' => $characterIds[$i],
+                    'character2_id' => $characterIds[$j],
+                    'created_at' => now(),
+                ];
+            }
+        }
+        
+        // Insertar todas las combinaciones
+        Combinatoric::insert($combinations);
     }
 }

@@ -180,6 +180,7 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     created_at_formatted: string;
     updated_at_formatted: string;
     characters: CharacterResource[];
+    strategy: string;
     // votes: VoteResource[];
 }
 

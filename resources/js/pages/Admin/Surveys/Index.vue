@@ -235,9 +235,14 @@ function goToPage(page: number) {
                     <TableRow>
                         <TableHead>Title</TableHead>
                         <TableHead>Category</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Strategy</TableHead>
                         <TableHead>Start Date</TableHead>
                         <TableHead>End Date</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Characters</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Created At</TableHead>
                         <TableHead class="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -256,17 +261,23 @@ function goToPage(page: number) {
                                 deleting[survey.id],
                         }"
                     >
-                        <TableCell class="font-medium">{{
-                            survey.title
-                        }}</TableCell>
+                        <TableCell class="font-medium"
+                            >{{ survey.title.slice(0, 20) }}...
+                        </TableCell>
                         <TableCell>{{ survey.category?.name }}</TableCell
                         ><!-- Acceder al nombre de la categoría -->
-                        <TableCell>{{
+                        <TableCell>{{ survey.type }}</TableCell>
+                        <TableCell>{{ survey.selection_strategy }}</TableCell>
+                        <TableCell>{{ survey.date_start_formatted }}</TableCell>
+                        <TableCell>{{ survey.date_end_formatted }}</TableCell>
+                        <TableCell>{{ survey.duration }}</TableCell>
+                        <TableCell>{{ survey.character_count }}</TableCell>
+                        <!-- <TableCell>{{
                             new Date(survey.date_start).toLocaleDateString()
                         }}</TableCell>
                         <TableCell>{{
                             new Date(survey.date_end).toLocaleDateString()
-                        }}</TableCell>
+                        }}</TableCell> -->
                         <TableCell>
                             <Badge
                                 :variant="
@@ -276,6 +287,7 @@ function goToPage(page: number) {
                                 {{ survey.status ? 'Active' : 'Inactive' }}
                             </Badge>
                         </TableCell>
+                        <TableCell>{{ survey.created_at_formatted }}</TableCell>
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">

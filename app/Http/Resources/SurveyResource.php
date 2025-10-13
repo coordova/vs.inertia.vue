@@ -14,7 +14,9 @@ class SurveyResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        return parent::toArray($request);
+
+        /* return [
             'id' => $this->id,
             'category_id' => $this->category_id,
             'category' => new CategoryResource($this->whenLoaded('category')), // Carga condicional
@@ -39,6 +41,6 @@ class SurveyResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             // 'deleted_at' => $this->when($this->trashed(), $this->deleted_at),
-        ];
+        ]; */
     }
 }
