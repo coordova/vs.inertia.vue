@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSurveyRequest;
 use App\Http\Requests\UpdateSurveyRequest;
-use App\Http\Resources\SurveyResource;
+use App\Http\Resources\SurveyShowResource;
 use App\Models\Survey;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -79,7 +79,7 @@ class SurveyController extends Controller
     {
         $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario
         return Inertia::render('Admin/Surveys/Show', [
-            'survey' => SurveyResource::make($survey)->resolve(),
+            'survey' => SurveyShowResource::make($survey)->resolve(),
         ]);
     }
 
