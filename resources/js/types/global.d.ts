@@ -66,6 +66,7 @@ export interface CategoryResource { // Renombrado para claridad
     id: number;
     name: string;
     description: string;
+    image: string | null;
     status: boolean;
     is_featured: boolean;
     slug: string;
