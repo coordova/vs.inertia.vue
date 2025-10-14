@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { SurveyResource } from '@/types/global'; // Interfaz SurveyResource
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
@@ -32,7 +31,7 @@ const form = useForm({
     selection_strategy: 'cooldown', // Valor por defecto
     max_votes_per_user: 0, // Valor por defecto (ilimitado)
     allow_ties: false, // Valor por defecto
-    tie_weight: 0.50, // Valor por defecto
+    tie_weight: 0.5, // Valor por defecto
     is_featured: false, // Valor por defecto
     sort_order: 0, // Valor por defecto
     counter: 0, // Valor por defecto
@@ -75,7 +74,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Create Survey" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full w-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6">
+        <div
+            class="flex h-full w-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6"
+        >
             <form @submit.prevent="submitForm" class="w-full space-y-6 p-6">
                 <div class="space-y-2">
                     <Label for="title">Title *</Label>
@@ -110,8 +111,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <select
                         id="category_id"
                         :tabIndex="3"
-                        v-model.number="form.category_id" // .number para convertir a número
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        v-model.number="form.category_id"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="0">Select a Category</option>
                         <!-- Opciones de categorías se cargarían dinámicamente -->
@@ -175,12 +176,14 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="selection_strategy">Selection Strategy</Label>
+                        <Label for="selection_strategy"
+                            >Selection Strategy</Label
+                        >
                         <select
                             id="selection_strategy"
                             :tabIndex="8"
                             v-model="form.selection_strategy"
-                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <option value="cooldown">Cooldown</option>
                             <option value="random">Random</option>
@@ -193,20 +196,24 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div class="space-y-2">
-                        <Label for="max_votes_per_user">Max Votes per User (0=Unlimited)</Label>
+                        <Label for="max_votes_per_user"
+                            >Max Votes per User (0=Unlimited)</Label
+                        >
                         <Input
                             id="max_votes_per_user"
                             type="number"
                             :tabIndex="9"
                             min="0"
                             autocomplete="max_votes_per_user"
-                            v-model.number="form.max_votes_per_user" // .number para convertir a número
+                            v-model.number="form.max_votes_per_user"
                         />
                         <InputError :message="form.errors.max_votes_per_user" />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="tie_weight">Tie Weight (if ties allowed)</Label>
+                        <Label for="tie_weight"
+                            >Tie Weight (if ties allowed)</Label
+                        >
                         <Input
                             id="tie_weight"
                             type="number"
@@ -215,7 +222,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             max="1"
                             step="0.01"
                             autocomplete="tie_weight"
-                            v-model.number="form.tie_weight" // .number para convertir a número
+                            v-model.number="form.tie_weight"
                         />
                         <InputError :message="form.errors.tie_weight" />
                     </div>
@@ -223,15 +230,27 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                 <div class="flex flex-wrap gap-4">
                     <div class="flex items-center space-x-2">
-                        <Switch id="status" v-model="form.status" :disabled="form.processing" />
+                        <Switch
+                            id="status"
+                            v-model="form.status"
+                            :disabled="form.processing"
+                        />
                         <Label htmlFor="status">Active</Label>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <Switch id="allow_ties" v-model="form.allow_ties" :disabled="form.processing" />
+                        <Switch
+                            id="allow_ties"
+                            v-model="form.allow_ties"
+                            :disabled="form.processing"
+                        />
                         <Label htmlFor="allow_ties">Allow Ties</Label>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <Switch id="is_featured" v-model="form.is_featured" :disabled="form.processing" />
+                        <Switch
+                            id="is_featured"
+                            v-model="form.is_featured"
+                            :disabled="form.processing"
+                        />
                         <Label htmlFor="is_featured">Featured</Label>
                     </div>
                 </div>
@@ -267,7 +286,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                 <Separator class="my-4" />
 
-                <div class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4">
+                <div
+                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
+                >
                     <Button
                         type="button"
                         variant="outline"
@@ -283,8 +304,13 @@ const breadcrumbs: BreadcrumbItem[] = [
                         :tabIndex="13"
                         :disabled="form.processing || !form.isDirty"
                     >
-                        <LoaderCircle v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-                        <span>{{ form.processing ? 'Creating...' : 'Create Survey' }}</span>
+                        <LoaderCircle
+                            v-if="form.processing"
+                            class="mr-2 h-4 w-4 animate-spin"
+                        />
+                        <span>{{
+                            form.processing ? 'Creating...' : 'Create Survey'
+                        }}</span>
                     </Button>
                 </div>
             </form>
