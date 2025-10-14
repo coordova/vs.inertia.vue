@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import TPagination from '@/components/ui/oox/TPagination.vue';
 import {
     Select,
     SelectContent,
@@ -345,12 +346,13 @@ function goToPage(page: number) {
                 </TableBody>
             </Table>
             <!-- Pagination -->
-            <!-- <TPagination
+            <TPagination
+                v-if="props.surveys.meta.total > props.surveys.meta.per_page"
                 :current-page="props.surveys.meta.current_page"
                 :total-items="props.surveys.meta.total"
                 :items-per-page="props.surveys.meta.per_page"
                 @page-change="goToPage"
-            /> -->
+            />
         </div>
     </AppLayout>
 </template>
