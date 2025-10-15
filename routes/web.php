@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\CharacterController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SurveyController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\PublicCategoryController;
+use App\Http\Controllers\PublicSurveyController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -24,14 +26,17 @@ Route::get('dashboard', function () {
     Route::resource('surveys', SurveyController::class);
 }); */
 
+/* -------------------------------------------------------------*/
 // Ruta para la landing page
-Route::get('/', [PublicController::class, 'index'])->name('landing.index');
+Route::get('/landing', [PublicController::class, 'index'])->name('landing.index');
 
 // Rutas para listados públicos (futuras)
-// Route::get('/categories', [PublicCategoryController::class, 'index'])->name('categories.public.index');
-// Route::get('/surveys', [PublicSurveyController::class, 'index'])->name('surveys.public.index');
+Route::get('/categories', [PublicCategoryController::class, 'index'])->name('categories.public.index');
+Route::get('/categories/{category}', [PublicCategoryController::class, 'show'])->name('categories.public.show');
+Route::get('/surveys', [PublicSurveyController::class, 'index'])->name('surveys.public.index');
 // Ruta para mostrar una encuesta específica
-// Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
+Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
+/* -------------------------------------------------------------*/
 
 Route::middleware(['auth'])
     ->prefix('admin') // Prefijo para las rutas de administración

@@ -46,5 +46,11 @@ return [
         'admin.surveys.vote',
 
         'ajax.categories.characters',
+
+        'categories.public.index',
+        'categories.public.show',
+
+        'surveys.public.index',
+        'surveys.public.show',
     ]
 ];
