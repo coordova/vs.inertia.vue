@@ -1,0 +1,541 @@
+app\Services\Survey\CombinatoricService.php
+
+<?php
+
+namespace App\Services\Survey;
+
+use App\Models\Combinatoric;
+use App\Models\Survey;
+use App\Models\Character;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
+use Illuminate\Database\Eloquent\Builder; // Para construir consultas
+
+class CombinatoricService
+{
+    /**
+     * Genera todas las combinaciones posibles de personajes para una encuesta.
+     * Este método se podría llamar desde un Observer de Survey o un servicio dedicado.
+     *
+     * @param Survey $survey La encuesta para la cual generar combinaciones.
+     * @param Collection|null $characters Colección opcional de personajes. Si no se provee, se cargan de la encuesta.
+     * @return void
+     */
+    public function generateInitialCombinations(Survey $survey, ?Collection $characters = null): void
+    {
+        $characters = $characters ?? $survey->characters()->wherePivot('is_active', true)->get(); // Filtrar personajes activos en la encuesta
+
+        $characterIds = $characters->pluck('id')->sort()->values()->toArray();
+        $n = count($characterIds);
+
+        // Lógica para generar combinaciones C(n, 2)
+        // Ejemplo simple con bucles anidados
+        // Para n grande, considerar algoritmos más eficientes o bibliotecas externas.
+        $combinationsToCreate = [];
+        for ($i = 0; $i < $n - 1; $i++) {
+            for ($j = $i + 1; $j < $n; $j++) {
+                // Asegurar que character1_id < character2_id para evitar duplicados tipo (A,B) y (B,A)
+                $char1Id = min($characterIds[$i], $characterIds[$j]);
+                $char2Id = max($characterIds[$i], $characterIds[$j]);
+
+                $combinationsToCreate[] = [
+                    'survey_id' => $survey->id,
+                    'character1_id' => $char1Id,
+                    'character2_id' => $char2Id,
+                    'status' => true, // Activa por defecto
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+        }
+
+        // Insertar en bloque para mejor rendimiento
+        if (!empty($combinationsToCreate)) {
+            // Opcional: Eliminar combinaciones antiguas si se está regenerando
+            // Combinatoric::where('survey_id', $survey->id)->delete();
+            // Opcional: Solo insertar si no existen
+            // DB::table('combinatorics')->insertOrIgnore($combinationsToCreate);
+
+            // Para evitar duplicados, una estrategia común es truncar y recrear o usar upsert.
+            // Upsert: Requiere que las columnas de la clave única estén en 'uniqueBy'
+            // DB::table('combinatorics')->upsert($combinationsToCreate, ['survey_id', 'character1_id', 'character2_id'], []);
+
+            // Por ahora, asumiremos que se llama en un contexto limpio o que se manejan duplicados externamente si es necesario.
+            // La clave única (survey_id, character1_id, character2_id) en la migración prevendrá duplicados reales.
+            DB::table('combinatorics')->insert($combinationsToCreate);
+        }
+    }
+
+    /**
+     * Selecciona la próxima pareja de personajes para mostrar al usuario en una encuesta.
+     *
+     * @param Survey $survey La encuesta activa.
+     * @param int $userId El ID del usuario que vota.
+     * @return Combinatoric|null El registro de combinación seleccionado, o null si no hay más.
+     */
+    public function getNextCombination(Survey $survey, int $userId): ?Combinatoric
+    {
+        // Obtener la estrategia de selección
+        $strategy = $survey->selection_strategy; // Ej: 'cooldown', 'random', 'elo_based'
+
+        // Construir la consulta base para combinaciones activas de esta encuesta
+        $query = $survey->combinatorics()->where('status', true);
+
+        // Aplicar la estrategia
+        switch ($strategy) {
+            case 'random':
+                // Seleccionar una combinación aleatoria
+                return $query->inRandomOrder()->first();
+            case 'elo_based':
+                // Lógica para seleccionar combinaciones basadas en ELO (más compleja)
+                // Por ejemplo, buscar combinaciones donde la diferencia de ELO sea mínima
+                // Esto implicaría JOINs con category_character y cálculos.
+                // Temporalmente, usar 'cooldown' o 'random' como fallback si no se implementa ahora.
+                // TODO: Implementar lógica de selección basada en ELO
+                \Log::warning("ELO-based selection not implemented yet for survey {$survey->id}. Falling back to cooldown.");
+                // break; // Continuar con cooldown
+            case 'cooldown':
+            default: // Por si acaso, usar cooldown como fallback
+                // Seleccionar la combinación menos usada recientemente (cooldown)
+                // O la que tenga el last_used_at más antiguo o null
+                return $query->orderByRaw('COALESCE(last_used_at, "1970-01-01") ASC')->first();
+        }
+
+        // Si no se encuentra ninguna combinación activa o la estrategia es desconocida
+        return null;
+    }
+
+    /**
+     * Marca una combinación específica como usada y actualiza métricas.
+     *
+     * @param Combinatoric $combinatoric La combinación a actualizar.
+     * @return void
+     */
+    public function markCombinationUsed(Combinatoric $combinatoric): void
+    {
+        $combinatoric->update([
+            'total_comparisons' => $combinatoric->total_comparisons + 1,
+            'last_used_at' => now(),
+        ]);
+    }
+}
+
+app\Services\Survey\SurveyProgressService.php
+<?php
+
+namespace App\Services\Survey;
+
+use App\Models\Survey;
+use App\Models\User;
+use App\Models\SurveyUser; // Modelo pivote
+use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
+
+class SurveyProgressService
+{
+    /**
+     * Verifica el estado de la encuesta para un usuario específico.
+     *
+     * @param Survey $survey La encuesta.
+     * @param User $user El usuario.
+     * @return array ['exists' => bool, 'is_completed' => bool, 'progress' => int, 'total_votes' => int, 'pivot' => SurveyUser|null]
+     */
+    public function getUserSurveyStatus(Survey $survey, User $user): array
+    {
+        $pivot = $survey->users()->where('user_id', $user->id)->first(); // Obtiene la entrada de survey_user
+
+        if (!$pivot) {
+            return [
+                'exists' => false,
+                'is_completed' => false,
+                'progress' => 0,
+                'total_votes' => 0,
+                'pivot' => null,
+            ];
+        }
+
+        return [
+            'exists' => true,
+            'is_completed' => $pivot->pivot->is_completed,
+            'progress' => $pivot->pivot->progress_percentage,
+            'total_votes' => $pivot->pivot->total_votes,
+            'pivot' => $pivot->pivot, // Devolver el objeto pivote para posibles actualizaciones
+        ];
+    }
+
+    /**
+     * Inicia una sesión de votación para un usuario en una encuesta si no existe.
+     *
+     * @param Survey $survey La encuesta.
+     * @param User $user El usuario.
+     * @return SurveyUser El objeto pivote de la relación usuario-encuesta.
+     */
+    public function startSurveySession(Survey $survey, User $user): SurveyUser
+    {
+        // Usamos firstOrCreate para evitar errores si se llama múltiples veces antes de que se complete la inicialización
+        return SurveyUser::firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'survey_id' => $survey->id,
+            ],
+            [
+                'progress_percentage' => 0.00,
+                'total_votes' => 0,
+                'started_at' => now(),
+                'is_completed' => false,
+                'last_activity_at' => now(),
+                // completion_time no aplica aún
+            ]
+        );
+    }
+
+    /**
+     * Actualiza el progreso del usuario en la encuesta después de un voto.
+     *
+     * @param SurveyUser $surveyUserPivot El objeto pivote ya existente.
+     * @param float $newProgress El nuevo porcentaje de progreso (0.00 a 100.00).
+     * @param int $newTotalVotes El nuevo número total de votos.
+     * @return void
+     */
+    public function updateProgress(SurveyUser $surveyUserPivot, float $newProgress, int $newTotalVotes): void
+    {
+        $surveyUserPivot->update([
+            'progress_percentage' => $newProgress,
+            'total_votes' => $newTotalVotes,
+            'last_activity_at' => now(),
+        ]);
+    }
+
+    /**
+     * Marca la sesión de votación del usuario como completada.
+     *
+     * @param SurveyUser $surveyUserPivot El objeto pivote ya existente.
+     * @return void
+     */
+    public function markAsCompleted(SurveyUser $surveyUserPivot): void
+    {
+        $surveyUserPivot->update([
+            'is_completed' => true,
+            'completed_at' => now(),
+            // completion_time se podría calcular aquí si no se almacena como campo separado
+            // 'completion_time' => now()->diffInSeconds($surveyUserPivot->started_at),
+        ]);
+    }
+}
+
+
+app\Services\Rating\EloRatingService.php
+<?php
+
+namespace App\Services\Rating;
+
+use App\Models\CategoryCharacter; // Modelo pivote
+use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
+
+class EloRatingService
+{
+    private float $K_FACTOR_DEFAULT = 32.0; // Constante K estándar, se podría hacer configurable
+    private float $K_FACTOR_NEW_PLAYER = 40.0; // K factor inicial para nuevos jugadores, opcional
+    private int $MATCHES_FOR_K_FACTOR_REDUCTION = 30; // Número de partidas para reducir K
+
+    /**
+     * Calcula los nuevos ratings ELO para dos personajes basado en el resultado de un enfrentamiento.
+     *
+     * @param float $rating1 Rating ELO actual del personaje 1.
+     * @param float $rating2 Rating ELO actual del personaje 2.
+     * @param string $result Resultado: 'win' (personaje 1 gana), 'loss' (personaje 1 pierde), 'draw' (empate).
+     * @param float $tieWeight Peso del empate (0.5 para empate estándar, configurable).
+     * @return array [newRating1, newRating2]
+     */
+    public function calculateNewRatings(float $rating1, float $rating2, string $result, float $tieWeight = 0.5): array
+    {
+        $expected1 = $this->calculateExpectedScore($rating2, $rating1);
+        $expected2 = $this->calculateExpectedScore($rating1, $rating2);
+
+        $score1 = match ($result) {
+            'win' => 1.0,
+            'loss' => 0.0,
+            'draw' => $tieWeight, // Permitir peso configurable para empates
+            default => 0.5, // Valor por defecto, aunque debería validarse antes
+        };
+        $score2 = 1 - $score1; // Si 1 gana (score1=1), 2 pierde (score2=0). Si empate (score1=0.5), score2=0.5.
+
+        // Obtener K factor (podría depender del número de partidas o ser fijo)
+        $k1 = $this->getKFactorForCharacter($rating1); // TODO: Implementar lógica de K factor dinámico si es necesario
+        $k2 = $this->getKFactorForCharacter($rating2);
+
+        $newRating1 = $rating1 + $k1 * ($score1 - $expected1);
+        $newRating2 = $rating2 + $k2 * ($score2 - $expected2);
+
+        // Asegurar que los ratings no sean negativos
+        $newRating1 = max(0, $newRating1);
+        $newRating2 = max(0, $newRating2);
+
+        return [$newRating1, $newRating2];
+    }
+
+    /**
+     * Aplica los nuevos ratings calculados a los registros CategoryCharacter.
+     * Actualiza también estadísticas como partidas jugadas, victorias, derrotas, win rate, etc.
+     *
+     * @param int $categoryId ID de la categoría.
+     * @param int $character1Id ID del personaje 1.
+     * @param int $character2Id ID del personaje 2.
+     * @param float $newRating1 Nuevo rating para personaje 1.
+     * @param float $newRating2 Nuevo rating para personaje 2.
+     * @param string $result Resultado del enfrentamiento ('win', 'loss', 'draw').
+     * @return void
+     */
+    public function applyRatings(int $categoryId, int $character1Id, int $character2Id, float $newRating1, float $newRating2, string $result): void
+    {
+        DB::transaction(function () use ($categoryId, $character1Id, $character2Id, $newRating1, $newRating2, $result) {
+            // Actualizar personaje 1
+            $pivot1 = CategoryCharacter::where('category_id', $categoryId)->where('character_id', $character1Id)->firstOrFail();
+            $pivot1->elo_rating = $newRating1;
+            $pivot1->matches_played += 1;
+            if ($result === 'win') {
+                $pivot1->wins += 1;
+            } elseif ($result === 'loss') {
+                $pivot1->losses += 1;
+            } // Empate no incrementa wins ni losses directamente aquí, pero se refleja en $score
+            $pivot1->win_rate = $pivot1->matches_played > 0 ? ($pivot1->wins / $pivot1->matches_played) * 100 : 0.00;
+            $pivot1->highest_rating = max($pivot1->highest_rating, $newRating1);
+            $pivot1->lowest_rating = min($pivot1->lowest_rating, $newRating1);
+            $pivot1->last_match_at = now();
+            $pivot1->save();
+
+            // Actualizar personaje 2
+            $pivot2 = CategoryCharacter::where('category_id', $categoryId)->where('character_id', $character2Id)->firstOrFail();
+            $pivot2->elo_rating = $newRating2;
+            $pivot2->matches_played += 1;
+            if ($result === 'loss') { // Si 1 ganó, 2 perdió
+                $pivot2->wins += 1;
+            } elseif ($result === 'win') { // Si 1 perdió, 2 ganó
+                $pivot2->losses += 1;
+            } // Empate se maneja igual que para 1
+            $pivot2->win_rate = $pivot2->matches_played > 0 ? ($pivot2->wins / $pivot2->matches_played) * 100 : 0.00;
+            $pivot2->highest_rating = max($pivot2->highest_rating, $newRating2);
+            $pivot2->lowest_rating = min($pivot2->lowest_rating, $newRating2);
+            $pivot2->last_match_at = now();
+            $pivot2->save();
+        });
+    }
+
+    /**
+     * Calcula la puntuación esperada para un jugador basado en la diferencia de rating.
+     *
+     * @param float $opponentRating Rating del oponente.
+     * @param float $playerRating Rating del jugador.
+     * @return float Puntuación esperada (0.0 a 1.0).
+     */
+    private function calculateExpectedScore(float $opponentRating, float $playerRating): float
+    {
+        return 1.0 / (1.0 + pow(10, ($opponentRating - $playerRating) / 400.0));
+    }
+
+    /**
+     * Determina el K factor para un personaje (podría ser dinámico basado en partidas jugadas).
+     * Por ahora, devuelve un valor fijo.
+     *
+     * @param float $currentRating El rating actual del personaje (podría usarse para lógica futura).
+     * @return float El K factor a usar.
+     */
+    private function getKFactorForCharacter(float $currentRating): float
+    {
+        // TODO: Implementar lógica de K factor dinámico (ej: K=40 para primeras X partidas, K=32 después)
+        // Por ahora, usar K factor estándar
+        return $this->K_FACTOR_DEFAULT;
+    }
+}
+
+
+app\Http\Controllers\SurveyVoteController.php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Models\Survey;
+use App\Models\Combinatoric;
+use App\Models\Vote;
+use App\Models\User;
+use App\Models\CategoryCharacter; // Nuevo: para cargar ratings eficientemente
+use App\Services\Survey\CombinatoricService;
+use App\Services\Survey\SurveyProgressService;
+use App\Services\Rating\EloRatingService;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+class SurveyVoteController extends Controller
+{
+    // Inyección de dependencias en el constructor
+    public function __construct(
+        protected CombinatoricService $combinatoricService,
+        protected SurveyProgressService $surveyProgressService,
+        protected EloRatingService $eloRatingService,
+    ) {
+        // Aplicar middleware de autenticación si es necesario
+        // $this->middleware('auth');
+    }
+
+    /**
+     * Recibe un voto para una combinación específica dentro de una encuesta.
+     * Optimizado para minimizar consultas a la base de datos.
+     *
+     * @param Request $request
+     * @param int $surveyId ID de la encuesta
+     * @return JsonResponse
+     */
+    public function store(Request $request, int $surveyId): JsonResponse
+    {
+        // 1. Verificar autenticación
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required.'], 401);
+        }
+
+        // 2. Validar los datos del voto (sin reglas que disparen consultas innecesarias aquí)
+        $validatedData = $request->validate([
+            'combinatoric_id' => 'required|integer|exists:combinatorics,id', // Validar existencia básica, relación se verifica con JOIN
+            'winner_id' => 'required_without:tie|integer|exists:characters,id',
+            'loser_id' => 'required_without:tie|integer|exists:characters,id',
+            'tie' => 'required_without:winner_id,loser_id|boolean',
+        ]);
+
+        // 3. Cargar datos críticos en una sola transacción con JOINs para evitar N+1 y consultas redundantes
+        // Cargamos la encuesta, la combinación, los personajes de la combinación y sus ratings ELO en la categoría de la encuesta
+        $surveyData = Survey::with(['combinatorics' => function ($query) use ($validatedData) {
+                $query->where('id', $validatedData['combinatoric_id']) // Filtrar por la combinación específica
+                      ->with(['character1', 'character2']); // Cargar personajes
+            }])
+            ->where('id', $surveyId)
+            ->where('status', true) // Verificar estado activo
+            ->where('date_start', '<=', now()) // Verificar fecha de inicio
+            ->where('date_end', '>=', now()) // Verificar fecha de fin
+            ->first();
+
+        if (!$surveyData) {
+            // Encuesta no encontrada, inactiva o fuera de rango de fechas
+            return response()->json(['message' => 'Survey not found or not active.'], 404);
+        }
+
+        $combinatoric = $surveyData->combinatorics->first();
+        if (!$combinatoric) {
+            // Combinación no encontrada o no pertenece a la encuesta (verificado por el where en with)
+            return response()->json(['message' => 'Invalid combination for this survey.'], 400);
+        }
+
+        // 4. Verificar si el usuario ya votó por esta combinación específica (fuera de la transacción principal)
+        $existingVote = Vote::where('user_id', $user->id)
+                            ->where('combinatoric_id', $combinatoric->id)
+                            ->exists(); // Usar exists() es más eficiente que first() si solo se quiere saber si existe
+        if ($existingVote) {
+            return response()->json(['message' => 'User has already voted on this combination.'], 400);
+        }
+
+        // 5. Verificar que las IDs de ganador/perdedor coincidan con la combinación actual
+        $validCharacterIds = [$combinatoric->character1_id, $combinatoric->character2_id];
+        if (isset($validatedData['winner_id']) && !in_array($validatedData['winner_id'], $validCharacterIds)) {
+            return response()->json(['message' => 'Winner ID does not match characters in the combination.'], 400);
+        }
+        if (isset($validatedData['loser_id']) && !in_array($validatedData['loser_id'], $validCharacterIds)) {
+            return response()->json(['message' => 'Loser ID does not match characters in the combination.'], 400);
+        }
+        if (isset($validatedData['winner_id']) && isset($validatedData['loser_id']) && $validatedData['winner_id'] === $validatedData['loser_id']) {
+            return response()->json(['message' => 'Winner and loser cannot be the same character.'], 400);
+        }
+
+        // 6. Verificar estado del progreso del usuario (fuera de la transacción principal para lectura)
+        $status = $this->surveyProgressService->getUserSurveyStatus($surveyData, $user);
+        if ($status['is_completed']) {
+            return response()->json(['message' => 'Survey already completed for this user.'], 400);
+        }
+
+        // 7. Determinar el resultado
+        $tie = $validatedData['tie'] ?? false;
+        $winnerId = $validatedData['winner_id'] ?? null;
+        $loserId = $validatedData['loser_id'] ?? null;
+
+        $result = '';
+        if ($tie) {
+            $result = 'draw';
+        } else {
+            if ($winnerId === $combinatoric->character1_id && $loserId === $combinatoric->character2_id) {
+                $result = 'win';
+            } elseif ($winnerId === $combinatoric->character2_id && $loserId === $combinatoric->character1_id) {
+                $result = 'loss';
+            } else {
+                return response()->json(['message' => 'Invalid winner/loser combination.'], 400);
+            }
+        }
+
+        // 8. Cargar ratings ELO de los personajes en la categoría de la encuesta (fuera de la transacción principal también)
+        // Usamos una sola consulta para obtener ambos ratings
+        $characterIds = [$combinatoric->character1_id, $combinatoric->character2_id];
+        $eloRatings = CategoryCharacter::where('category_id', $surveyData->category_id)
+                                      ->whereIn('character_id', $characterIds)
+                                      ->pluck('elo_rating', 'character_id'); // Colección ['char_id' => rating]
+
+        if ($eloRatings->count() !== 2) {
+             // Uno o ambos personajes no tienen entrada en category_character para esta categoría
+            return response()->json(['message' => 'Ratings not found for one or both characters in this category.'], 500); // Error interno o inconsistencia de datos
+        }
+
+        $character1Rating = $eloRatings[$combinatoric->character1_id];
+        $character2Rating = $eloRatings[$combinatoric->character2_id];
+
+
+        // 9. Iniciar transacción solo para operaciones de escritura y cálculos críticos
+        DB::transaction(function () use ($user, $surveyData, $combinatoric, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating) {
+            // 10. Registrar el voto
+            Vote::create([
+                'user_id' => $user->id,
+                'combinatoric_id' => $combinatoric->id,
+                'survey_id' => $surveyData->id,
+                'winner_id' => $tie ? null : $winnerId,
+                'loser_id' => $tie ? null : $loserId,
+                'tie_score' => $tie ? $surveyData->tie_weight : null,
+            ]);
+
+            // 11. Marcar la combinación como usada (OK, delegado al servicio)
+            $this->combinatoricService->markCombinationUsed($combinatoric);
+
+            // 12. Actualizar el progreso del usuario (OK, delegado al servicio)
+            // Obtenemos el progreso *dentro* de la transacción para asegurar consistencia si se comparte entre hilos
+            $currentProgress = $this->surveyProgressService->getUserSurveyStatus($surveyData, $user);
+            $newTotalVotes = $currentProgress['total_votes'] + 1;
+            // Cálculo de progreso se mantiene como placeholder o se implementa lógica real aquí si es necesario
+            $progressPercentage = $currentProgress['progress'];
+            $surveyUserPivot = $currentProgress['pivot'] ?? $this->surveyProgressService->startSurveySession($surveyData, $user);
+            $this->surveyProgressService->updateProgress($surveyUserPivot, $progressPercentage, $newTotalVotes);
+
+            // 13. Calcular y aplicar los nuevos ratings ELO (OK, delegado al servicio)
+            // Pasamos los ratings ya cargados
+            if ($tie) {
+                 [$newRating1, $newRating2] = $this->eloRatingService->calculateNewRatings($character1Rating, $character2Rating, 'draw', $surveyData->tie_weight);
+            } else {
+                 // Determinar quién es el ganador/perdedor para el cálculo ELO
+                 $winnerRating = $winnerId === $combinatoric->character1_id ? $character1Rating : $character2Rating;
+                 $loserRating = $winnerId === $combinatoric->character1_id ? $character2Rating : $character1Rating;
+
+                 [$newWinnerRating, $newLoserRating] = $this->eloRatingService->calculateNewRatings($winnerRating, $loserRating, 'win');
+
+                 // Asignar los nuevos ratings a las variables correctas
+                 if ($winnerId === $combinatoric->character1_id) {
+                    $newRating1 = $newWinnerRating;
+                    $newRating2 = $newLoserRating;
+                 } else {
+                    $newRating1 = $newLoserRating;
+                    $newRating2 = $newWinnerRating;
+                 }
+            }
+
+            $this->eloRatingService->applyRatings($surveyData->category_id, $combinatoric->character1_id, $combinatoric->character2_id, $newRating1, $newRating2, $result);
+        });
+
+        // 14. Devolver respuesta de éxito
+        return response()->json(['message' => 'Vote processed successfully.'], 200);
+    }
+}
