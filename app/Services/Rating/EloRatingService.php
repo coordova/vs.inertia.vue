@@ -3,6 +3,7 @@
 namespace App\Services\Rating;
 
 use App\Models\CategoryCharacter; // Modelo pivote
+use Illuminate\Support\Collection; // Importar Collection
 use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
 
 class EloRatingService
@@ -62,34 +63,54 @@ class EloRatingService
     public function applyRatings(int $categoryId, int $character1Id, int $character2Id, float $newRating1, float $newRating2, string $result): void
     {
         DB::transaction(function () use ($categoryId, $character1Id, $character2Id, $newRating1, $newRating2, $result) {
+            // --- Mejora 1: Cargar ambos pivotes en una sola consulta ---
+            $characterIds = [$character1Id, $character2Id];
+            // Usamos with(['category', 'character']) si necesitáramos relaciones, pero aquí solo accedemos a los campos pivote.
+            $pivotsCollection = CategoryCharacter::where('category_id', $categoryId)
+                                                 ->whereIn('character_id', $characterIds)
+                                                 // ->lockForUpdate() // Opcional: Descomentar si se anticipa alta concurrencia para prevenir race conditions
+                                                 ->get()
+                                                 ->keyBy('character_id'); // Clave: character_id, Valor: instancia de CategoryCharacter
+
+            // Verificar que se encontraron ambos registros
+            if ($pivotsCollection->count() !== 2) {
+                // Esto podría suceder si uno de los personajes no está registrado en la categoría
+                throw new \Exception("Ratings not found for one or both characters ({$character1Id}, {$character2Id}) in category {$categoryId}.");
+            }
+
+            // Obtener los objetos pivote usando la colección
+            $pivot1 = $pivotsCollection[$character1Id];
+            $pivot2 = $pivotsCollection[$character2Id];
+
+            // --- Actualizar en memoria ---
             // Actualizar personaje 1
-            $pivot1 = CategoryCharacter::where('category_id', $categoryId)->where('character_id', $character1Id)->firstOrFail();
             $pivot1->elo_rating = $newRating1;
             $pivot1->matches_played += 1;
             if ($result === 'win') {
                 $pivot1->wins += 1;
             } elseif ($result === 'loss') {
                 $pivot1->losses += 1;
-            } // Empate no incrementa wins ni losses directamente aquí, pero se refleja en $score
+            }
             $pivot1->win_rate = $pivot1->matches_played > 0 ? ($pivot1->wins / $pivot1->matches_played) * 100 : 0.00;
             $pivot1->highest_rating = max($pivot1->highest_rating, $newRating1);
             $pivot1->lowest_rating = min($pivot1->lowest_rating, $newRating1);
             $pivot1->last_match_at = now();
-            $pivot1->save();
 
             // Actualizar personaje 2
-            $pivot2 = CategoryCharacter::where('category_id', $categoryId)->where('character_id', $character2Id)->firstOrFail();
             $pivot2->elo_rating = $newRating2;
             $pivot2->matches_played += 1;
             if ($result === 'loss') { // Si 1 ganó, 2 perdió
                 $pivot2->wins += 1;
             } elseif ($result === 'win') { // Si 1 perdió, 2 ganó
                 $pivot2->losses += 1;
-            } // Empate se maneja igual que para 1
+            }
             $pivot2->win_rate = $pivot2->matches_played > 0 ? ($pivot2->wins / $pivot2->matches_played) * 100 : 0.00;
             $pivot2->highest_rating = max($pivot2->highest_rating, $newRating2);
             $pivot2->lowest_rating = min($pivot2->lowest_rating, $newRating2);
             $pivot2->last_match_at = now();
+
+            // --- Guardar ambos cambios ---
+            $pivot1->save();
             $pivot2->save();
         });
     }
