@@ -8,7 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
-    CharacterResource,
+    CharactersData,
     SurveyResource,
     UserSurveyProgress,
 } from '@/types/global'; // Tipos actualizados
@@ -16,7 +16,7 @@ import { Head, Link } from '@inertiajs/vue3';
 
 interface Props {
     survey: SurveyResource; // Detalles de la encuesta
-    characters: CharacterResource[]; // Personajes participantes
+    characters: CharactersData; // Personajes participantes
     userProgress: UserSurveyProgress; // Estado del usuario en la encuesta
 }
 
@@ -90,7 +90,7 @@ const canVote = !props.userProgress.is_completed;
                 <CardContent>
                     <div class="flex flex-wrap gap-4">
                         <div
-                            v-for="character in props.characters"
+                            v-for="character in props.characters.data"
                             :key="character.id"
                             class="flex flex-col items-center"
                         >

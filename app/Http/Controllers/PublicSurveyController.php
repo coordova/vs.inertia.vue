@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
+use App\Http\Resources\CharacterResource;
 
 class PublicSurveyController extends Controller
 {
@@ -52,7 +53,7 @@ class PublicSurveyController extends Controller
         // Pasar datos a la vista Inertia
         return Inertia::render('Surveys/PublicShow', [
             'survey' => $survey, // Se asume que SurveyResource se usa aquí o se formatea directamente
-            'characters' => $activeCharacters, // Se asume que CharacterResource se usa aquí o se formatea directamente
+            'characters' => CharacterResource::collection($activeCharacters), // Se asume que CharacterResource se usa aquí o se formatea directamente
             'userProgress' => $progressStatus, // Información del progreso del usuario
             // Puedes pasar otros datos necesarios aquí
         ]);
