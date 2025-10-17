@@ -149,9 +149,7 @@ const props = defineProps<Props>();
                         </CardHeader>
                         <CardFooter>
                             <Link
-                                :href="
-                                    route('surveys.public.show', survey.slug)
-                                "
+                                :href="route('surveys.public.show', survey.id)"
                                 class="w-full"
                             >
                                 <Button class="w-full">Participar</Button>
