@@ -219,6 +219,36 @@ export interface SurveysData {
     links: PaginationLinks[];
 }
 
+/*--------------------------------------------------------------------------*/
+// --- Interfaces para el Progreso del Usuario en una Encuesta ---
+export interface UserSurveyProgress {
+    exists: boolean;
+    is_completed: boolean;
+    progress: number; // Porcentaje de progreso
+    total_votes: number;
+    total_expected: number | null; // Total de combinaciones esperadas
+    pivot: SurveyUser | null; // El objeto pivote completo, si es necesario
+}
+
+// Asumiendo que SurveyUser es la estructura del modelo pivote
+export interface SurveyUser {
+    user_id: number;
+    survey_id: number;
+    progress_percentage: number;
+    total_votes: number;
+    total_combinations_expected: number | null; // Campo añadido
+    completed_at: string | null;
+    started_at: string;
+    last_activity_at: string;
+    is_completed: boolean;
+    completion_time: number | null;
+}
+
+// Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
+// export interface SurveyResource { ... }
+// export interface CharacterResource { ... }
+
+/*--------------------------------------------------------------------------*/
 // --- Tipos para Breadcrumbs (si no los tienes en otro lugar) ---
 /* export interface BreadcrumbItem {
     title: string;
