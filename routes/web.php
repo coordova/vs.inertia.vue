@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\SurveyController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\PublicSurveyController;
+use App\Http\Controllers\SurveyVoteController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -36,6 +37,11 @@ Route::get('/categories/{category}', [PublicCategoryController::class, 'show'])-
 Route::get('/surveys', [PublicSurveyController::class, 'index'])->name('surveys.public.index');
 // Ruta para mostrar una encuesta específica
 Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
+/* -------------------------------------------------------------*/
+// Ruta para votar - dentro del grupo auth
+Route::middleware('auth')->group(function () {
+    Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
+});
 /* -------------------------------------------------------------*/
 
 Route::middleware(['auth'])

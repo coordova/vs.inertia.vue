@@ -14,7 +14,7 @@ class SurveyProgressService
      *
      * @param Survey $survey La encuesta.
      * @param User $user El usuario.
-     * @return array ['exists' => bool, 'is_completed' => bool, 'progress' => float, 'total_votes' => int, 'total_expected' => int|null, 'pivot' => SurveyUser|null]
+     * @return array ['exists' => bool, 'is_completed' => bool, 'progress' => int, 'total_votes' => int, 'pivot' => SurveyUser|null]
      */
     public function getUserSurveyStatus(Survey $survey, User $user): array
     {
@@ -24,33 +24,23 @@ class SurveyProgressService
             return [
                 'exists' => false,
                 'is_completed' => false,
-                'progress' => 0.0,
+                'progress' => 0,
                 'total_votes' => 0,
-                'total_expected' => null, // No aplica si no existe
                 'pivot' => null,
             ];
-        }
-
-        // Calcular progreso basado en votos actuales vs esperados
-        $totalExpected = $pivot->pivot->total_combinations_expected; // Asumiendo que el nombre de la columna es total_combinations_expected
-        $progress = 0.0;
-        if ($totalExpected && $totalExpected > 0) {
-            $progress = min(100.0, ($pivot->pivot->total_votes / $totalExpected) * 100);
         }
 
         return [
             'exists' => true,
             'is_completed' => $pivot->pivot->is_completed,
-            'progress' => $progress,
+            'progress' => $pivot->pivot->progress_percentage,
             'total_votes' => $pivot->pivot->total_votes,
-            'total_expected' => $totalExpected,
             'pivot' => $pivot->pivot, // Devolver el objeto pivote para posibles actualizaciones
         ];
     }
 
     /**
      * Inicia una sesión de votación para un usuario en una encuesta si no existe.
-     * Calcula y almacena el número total de combinaciones esperadas.
      *
      * @param Survey $survey La encuesta.
      * @param User $user El usuario.
@@ -58,13 +48,6 @@ class SurveyProgressService
      */
     public function startSurveySession(Survey $survey, User $user): SurveyUser
     {
-        // Calcula el total de combinaciones posibles basado en los personajes activos en la encuesta
-        // Carga los personajes activos en la relación pivote
-        $activeCharacterCount = $survey->characters()->wherePivot('is_active', true)->count();
-
-        // Calcula C(n, 2)
-        $totalCombinationsExpected = $activeCharacterCount > 1 ? ($activeCharacterCount * ($activeCharacterCount - 1)) / 2 : 0;
-
         // Usamos firstOrCreate para evitar errores si se llama múltiples veces antes de que se complete la inicialización
         return SurveyUser::firstOrCreate(
             [
@@ -72,9 +55,8 @@ class SurveyProgressService
                 'survey_id' => $survey->id,
             ],
             [
-                'progress_percentage' => 0.00, // Este campo puede volverse redundante si calculamos progreso sobre la marcha
+                'progress_percentage' => 0.00,
                 'total_votes' => 0,
-                'total_combinations_expected' => $totalCombinationsExpected, // Almacenamos el total calculado
                 'started_at' => now(),
                 'is_completed' => false,
                 'last_activity_at' => now(),
@@ -85,24 +67,17 @@ class SurveyProgressService
 
     /**
      * Actualiza el progreso del usuario en la encuesta después de un voto.
-     * El progreso se calcula en base al total almacenado previamente.
      *
      * @param SurveyUser $surveyUserPivot El objeto pivote ya existente.
+     * @param float $newProgress El nuevo porcentaje de progreso (0.00 a 100.00).
      * @param int $newTotalVotes El nuevo número total de votos.
      * @return void
      */
-    public function updateProgress(SurveyUser $surveyUserPivot, int $newTotalVotes): void
+    public function updateProgress(SurveyUser $surveyUserPivot, float $newProgress, int $newTotalVotes): void
     {
-        // Recalculamos el progreso basado en el total almacenado
-        $totalExpected = $surveyUserPivot->total_combinations_expected;
-        $progress = 0.0;
-        if ($totalExpected && $totalExpected > 0) {
-            $progress = min(100.0, ($newTotalVotes / $totalExpected) * 100);
-        }
-
         $surveyUserPivot->update([
+            'progress_percentage' => $newProgress,
             'total_votes' => $newTotalVotes,
-            'progress_percentage' => $progress, // Actualizamos el campo en la DB también, por consistencia o si se usa en otros lugares
             'last_activity_at' => now(),
         ]);
     }

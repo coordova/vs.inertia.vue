@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamp('last_activity_at')->nullable(); // Última actividad
             $table->boolean('is_completed')->default(false); // Completada (1=sí, 0=no)
             $table->integer('completion_time')->nullable(); // Tiempo total (segundos)
+            $table->integer('total_combinations_expected')->nullable(); // O ajusta la posición
             $table->timestamps(); // created_at, updated_at
 
             // Índice para FK survey
