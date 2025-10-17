@@ -2,47 +2,55 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/composables/useToast';
+import type { CharacterResource } from '@/types/global'; // Asumiendo que CharacterResource tiene id, fullname, picture
 import { useForm } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 
-// Definir props
+// --- Tipos ---
+// Definimos un tipo para la combinación actual que esperamos recibir del backend
+interface CurrentCombination {
+    combinatoric_id: number;
+    character1: CharacterResource;
+    character2: CharacterResource;
+}
+
+// --- Props ---
 interface Props {
     surveyId: number; // ID de la encuesta activa
 }
 const props = defineProps<Props>();
 
-// Inicializar toast
+// --- Inicializar toast ---
 const { success, error } = useToast();
 
-// Estado local para las parejas de personajes
-const currentCombination = ref<{ character1: any; character2: any } | null>(
-    null,
-); // Ajustar tipo según CharacterResource
+// --- Estado Local ---
+const currentCombination = ref<CurrentCombination | null>(null);
 const isLoading = ref(false);
 const noMoreCombinations = ref(false);
 
-// Inicializar Inertia Form para el voto
+// --- Inertia Form para el voto ---
+// Inicializamos el formulario con valores vacíos
 const voteForm = useForm({
-    combinatoric_id: 0, // Se llenará dinámicamente
-    winner_id: 0, // Se llenará al hacer clic
-    loser_id: 0, // Se llenará al hacer clic
-    tie: false, // Se llenará al hacer clic
+    combinatoric_id: 0,
+    winner_id: 0,
+    loser_id: 0,
+    tie: false,
 });
 
-// --- Lógica de obtención de pareja ---
-// Opción 1: Hacer una llamada API al backend para obtener la próxima pareja
+// --- Lógica de Carga de la Próxima Combinación ---
+// Opción 1: Hacer una solicitud al backend para obtener la próxima combinación
+// Este endpoint debe usar CombinatoricService->getNextCombination
+// y devolver la estructura de la combinación o null si no hay más.
 // const fetchNextCombination = async () => { ... }
 
-// Opción 2: El backend ya pasó la pareja inicial, y el frontend maneja la lógica de mostrar la siguiente
-// (esto implica que el backend calcule la siguiente pareja en cada respuesta de voto, lo cual es menos eficiente)
-// La opción 1 es más común y eficiente para el backend.
+// Opción 2: (Más eficiente para el backend) Obtener la *próxima* combinación
+// *junto con la respuesta de éxito* del voto anterior.
+// Por ahora, implementaremos una llamada separada para simplificar, pero
+// idealmente se integraría con la respuesta de `voteForm.post`.
 
-// Para esta implementación, asumiremos que hay un endpoint que devuelve la próxima combinación
-// basada en el ID de la encuesta y el usuario autenticado (lo cual ya está implementado en el backend).
-// Simularemos la obtención de la primera pareja al montar el componente.
-// En una implementación real, llamarías a una API aquí o recibirías la primera pareja del padre.
-
-onMounted(async () => {
+// Simulamos la carga de la primera combinación al montar el componente
+// En la práctica, llamarías a una API aquí.
+onMounted(() => {
     loadNextCombination();
 });
 
@@ -51,167 +59,141 @@ const loadNextCombination = async () => {
 
     isLoading.value = true;
     try {
-        // Simular una llamada API para obtener la próxima pareja
-        // En la práctica, usarías axios o fetch para llamar a un endpoint como
-        // GET /api/surveys/{surveyId}/next-combination
-        // y ese endpoint usaría CombinatoricService->getNextCombination
-        // Por ahora, simulamos una respuesta:
+        // --- Simulación de llamada API ---
+        // En la práctica, usarías `axios` o `fetch` para llamar a un endpoint como:
         // const response = await axios.get(`/api/surveys/${props.surveyId}/next-combination`);
-        // currentCombination.value = response.data.combination;
+        // if (response.data.combination) {
+        //     currentCombination.value = response.data.combination;
+        //     noMoreCombinations.value = false;
+        // } else {
+        //     currentCombination.value = null;
+        //     noMoreCombinations.value = true;
+        // }
 
-        // Simulación:
-        // Supongamos que recibimos datos de personajes desde el backend o se cargan previamente
-        // Por simplicidad, usaremos datos fijos para la demostración
-        // Deberías reemplazar esta lógica con una llamada real al backend.
-        // Por ejemplo, podrías tener un servicio JS que haga la llamada y lo inyectes aquí.
-        // const combinationData = await fetchNextCombinationFromApi(props.surveyId);
-        // currentCombination.value = combinationData;
+        // Simulación temporal: Supongamos que obtenemos una combinación del backend
+        // Debes reemplazar esta lógica con una llamada real.
+        // Ejemplo real (requiere crear el endpoint en el backend):
+        // const { data } = await axios.get(`/api/surveys/${props.surveyId}/next-combination`);
+        // currentCombination.value = data.combination;
 
-        // Simulación temporal: Mostrar un mensaje o estructura vacía
-        // currentCombination.value = {
-        //     character1: { id: 1, fullname: 'Character 1', picture: '...' },
-        //     character2: { id: 2, fullname: 'Character 2', picture: '...' },
-        //     combinatoric_id: 10 // ID de la combinación específica
-        // };
-        console.log(
-            'Cargando próxima combinación para la encuesta:',
-            props.surveyId,
-        );
-        // Simular carga exitosa o fallo (por ejemplo, no hay más combinaciones)
-        // Por ahora, simulamos que no hay más combinaciones para simplificar
-        noMoreCombinations.value = true;
-        currentCombination.value = null;
+        // Por ahora, simulamos una respuesta vacía o con datos fijos para desarrollo
+        // Simulamos que hay una combinación
+        currentCombination.value = {
+            combinatoric_id: 999, // ID simulado
+            character1: {
+                id: 1,
+                fullname: 'Character A',
+                picture: 'https://placehold.co/200', // URL simulada
+                // ... otros campos según CharacterResource
+            },
+            character2: {
+                id: 2,
+                fullname: 'Character B',
+                picture: 'https://placehold.co/200', // URL simulada
+                // ... otros campos según CharacterResource
+            },
+        };
+        noMoreCombinations.value = false; // Indicamos que hay combinaciones
+
+        // Simulamos que no hay más combinaciones
+        // currentCombination.value = null;
+        // noMoreCombinations.value = true;
     } catch (err) {
         console.error('Error loading next combination:', err);
         error('Failed to load next combination. Please try again.');
-        noMoreCombinations.value = true; // O manejar el error de otra manera
+        // Opcional: Podrías querer mostrar un botón para reintentar
         currentCombination.value = null;
+        noMoreCombinations.value = true; // Detenemos la carga si falla
     } finally {
         isLoading.value = false;
     }
 };
 
-// --- Lógica de manejo de voto ---
-const handleVote = (characterId: number) => {
+// --- Lógica de Manejo de Voto ---
+const handleVote = (selectedCharacterId: number) => {
     if (!currentCombination.value || isLoading.value) return;
 
-    // Lógica para determinar ganador/perdedor
-    // Suponiendo que currentCombination.value tiene { character1, character2, combinatoric_id }
-    const combinatoricId = currentCombination.value.combinatoric_id; // Asumiendo que el backend lo provee
-    const char1Id = currentCombination.value.character1.id;
-    const char2Id = currentCombination.value.character2.id;
+    const { combinatoric_id, character1, character2 } =
+        currentCombination.value;
 
-    if (characterId === char1Id) {
-        voteForm.combinatoric_id = combinatoricId;
-        voteForm.winner_id = char1Id;
-        voteForm.loser_id = char2Id;
-        voteForm.tie = false;
-    } else if (characterId === char2Id) {
-        voteForm.combinatoric_id = combinatoricId;
-        voteForm.winner_id = char2Id;
-        voteForm.loser_id = char1Id;
-        voteForm.tie = false;
-    } else {
-        // Si characterId no coincide con ninguno, no hacer nada o lanzar error
+    // Verificar que el ID seleccionado sea uno de los dos personajes de la combinación
+    if (
+        selectedCharacterId !== character1.id &&
+        selectedCharacterId !== character2.id
+    ) {
         error('Invalid character selection.');
         return;
     }
 
+    // Determinar ganador y perdedor
+    const winner_id = selectedCharacterId;
+    const loser_id =
+        selectedCharacterId === character1.id ? character2.id : character1.id;
+
+    // Configurar los datos del formulario
+    voteForm.combinatoric_id = combinatoric_id;
+    voteForm.winner_id = winner_id;
+    voteForm.loser_id = loser_id;
+    voteForm.tie = false; // No es empate
+
+    // Enviar el voto
     submitVote();
 };
 
 const handleTie = () => {
     if (!currentCombination.value || isLoading.value) return;
 
-    const combinatoricId = currentCombination.value.combinatoric_id;
-    const char1Id = currentCombination.value.character1.id;
-    const char2Id = currentCombination.value.character2.id;
+    const { combinatoric_id } = currentCombination.value;
 
-    voteForm.combinatoric_id = combinatoricId;
-    voteForm.winner_id = 0; // o null
-    voteForm.loser_id = 0; // o null
+    // Configurar los datos del formulario para empate
+    voteForm.combinatoric_id = combinatoric_id;
+    voteForm.winner_id = 0; // o null, dependiendo de la API backend
+    voteForm.loser_id = 0; // o null, dependiendo de la API backend
     voteForm.tie = true;
 
+    // Enviar el voto
     submitVote();
 };
 
 const submitVote = () => {
     voteForm.post(route('surveys.vote.store', props.surveyId), {
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: (page) => {
+            // page contiene la respuesta del backend
             success('Vote recorded successfully!');
-            // Limpiar el formulario
+            // Limpiar el formulario de votos anteriores
             voteForm.reset();
-            // Cargar la próxima combinación
+            // Opcional: Limpiar la combinación actual mostrada
+            currentCombination.value = null;
+
+            // --- OPCIÓN A: Recargar la siguiente combinación ---
+            // Esto implica una nueva solicitud al backend
             loadNextCombination();
+
+            // --- OPCIÓN B: El backend devuelve la siguiente combinación ---
+            // Si el backend devuelve la próxima combinación en la respuesta de éxito,
+            // podrías hacer algo como:
+            // const nextCombination = page.props.nextCombination; // Asumiendo que el backend lo envía
+            // if (nextCombination) {
+            //     currentCombination.value = nextCombination;
+            //     noMoreCombinations.value = false;
+            // } else {
+            //     noMoreCombinations.value = true;
+            //     currentCombination.value = null;
+            // }
+            // isLoading.value = false; // Si manejas isLoading aquí también
         },
         onError: (errors) => {
             console.error('Errors submitting vote:', errors);
             error('Failed to submit vote. Please check the errors below.');
-            // El helper `useForm` maneja automáticamente la visualización de errores
-            // en el componente si se usa `voteForm.errors.fieldName`
+            // useForm maneja automáticamente los errores en voteForm.errors
         },
         onFinish: () => {
             // Acciones que se realizan siempre al finalizar (éxito o error)
+            // isLoading.value se maneja internamente o se puede reiniciar aquí si es necesario
+            // isLoading.value = false; // Si se pone isLoading = true antes de post, descomentar
         },
     });
-};
-
-// --- Lógica para mostrar la interfaz ---
-const renderVotingInterface = () => {
-    if (isLoading.value) {
-        return <div class="py-8 text-center">Loading next match...</div>;
-    }
-
-    if (noMoreCombinations.value || !currentCombination.value) {
-        return (
-            <div class="py-8 text-center">
-                No more combinations! You have voted on all available matches.
-            </div>
-        );
-    }
-
-    const { character1, character2 } = currentCombination.value;
-
-    return (
-        <div class="flex flex-col items-center justify-center gap-8 md:flex-row">
-            {/* Personaje 1 */}
-            <div class="flex flex-col items-center">
-                <img
-                    src={character1.picture}
-                    alt={character1.fullname}
-                    class="mb-4 h-32 w-32 rounded-full object-cover"
-                />
-                <h3 class="text-lg font-semibold">{character1.fullname}</h3>
-                <Button onClick={() => handleVote(character1.id)} class="mt-2">
-                    Votar
-                </Button>
-            </div>
-
-            {/* VS */}
-            <div class="text-2xl font-bold">VS</div>
-
-            {/* Personaje 2 */}
-            <div class="flex flex-col items-center">
-                <img
-                    src={character2.picture}
-                    alt={character2.fullname}
-                    class="mb-4 h-32 w-32 rounded-full object-cover"
-                />
-                <h3 class="text-lg font-semibold">{character2.fullname}</h3>
-                <Button onClick={() => handleVote(character2.id)} class="mt-2">
-                    Votar
-                </Button>
-            </div>
-
-            {/* Botón de Empate */}
-            <div class="mt-4 md:mt-0">
-                <Button variant="outline" onClick={handleTie}>
-                    Empate
-                </Button>
-            </div>
-        </div>
-    );
 };
 </script>
 
@@ -221,7 +203,74 @@ const renderVotingInterface = () => {
             <CardTitle>Encuentro Actual</CardTitle>
         </CardHeader>
         <CardContent>
-            <div v-if="renderVotingInterface">{ renderVotingInterface() }</div>
+            <!-- Indicador de Carga -->
+            <div v-if="isLoading" class="py-8 text-center">
+                Loading next match...
+            </div>
+
+            <!-- Mensaje de Fin de Encuesta -->
+            <div
+                v-else-if="noMoreCombinations || !currentCombination"
+                class="py-8 text-center"
+            >
+                No more combinations! You have voted on all available matches.
+            </div>
+
+            <!-- Interfaz de Votación -->
+            <div
+                v-else
+                class="flex flex-col items-center justify-center gap-8 md:flex-row"
+            >
+                <!-- Personaje 1 -->
+                <div class="flex flex-col items-center">
+                    <img
+                        :src="currentCombination.character1.picture"
+                        :alt="currentCombination.character1.fullname"
+                        class="mb-4 h-32 w-32 rounded-full border-4 border-indigo-500 object-cover"
+                    />
+                    <h3 class="text-lg font-semibold">
+                        {{ currentCombination.character1.fullname }}
+                    </h3>
+                    <Button
+                        @click="handleVote(currentCombination.character1.id)"
+                        class="mt-2 bg-indigo-600 hover:bg-indigo-700"
+                    >
+                        Votar
+                    </Button>
+                </div>
+
+                <!-- VS -->
+                <div class="text-2xl font-bold text-gray-500">VS</div>
+
+                <!-- Personaje 2 -->
+                <div class="flex flex-col items-center">
+                    <img
+                        :src="currentCombination.character2.picture"
+                        :alt="currentCombination.character2.fullname"
+                        class="mb-4 h-32 w-32 rounded-full border-4 border-pink-500 object-cover"
+                    />
+                    <h3 class="text-lg font-semibold">
+                        {{ currentCombination.character2.fullname }}
+                    </h3>
+                    <Button
+                        @click="handleVote(currentCombination.character2.id)"
+                        class="mt-2 bg-pink-600 hover:bg-pink-700"
+                    >
+                        Votar
+                    </Button>
+                </div>
+
+                <!-- Botón de Empate -->
+                <div class="mt-4 md:mt-0">
+                    <Button
+                        variant="outline"
+                        @click="handleTie"
+                        :disabled="voteForm.processing"
+                    >
+                        Empate
+                    </Button>
+                </div>
+            </div>
         </CardContent>
     </Card>
 </template>

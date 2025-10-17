@@ -119,7 +119,7 @@ const canVote = !props.userProgress.is_completed;
                     <div v-if="canVote">
                         <!-- Renderizar el componente de votación -->
                         <!-- Pasamos el ID de la encuesta y cualquier otro dato necesario -->
-                        <!-- <VoteInterface :survey-id="survey.id" /> -->
+                        <VoteInterface :survey-id="survey.id" />
                     </div>
                     <div v-else class="py-8 text-center">
                         <p class="text-lg">¡Has completado esta encuesta!</p>
