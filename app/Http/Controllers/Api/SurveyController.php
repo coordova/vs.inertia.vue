@@ -9,6 +9,7 @@ use App\Services\Survey\SurveyProgressService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\CharacterResource;
 
 class SurveyController extends Controller
 {
@@ -83,12 +84,28 @@ class SurveyController extends Controller
         // Suponiendo que CombinatoricService->getNextCombination puede devolver el modelo
         // sin las relaciones cargadas, las cargamos aquí.
         // OJO: Idealmente, la consulta en CombinatoricService debería incluir 'with' si se sabe que se necesitan.
-        // Por ahora, lo hacemos aquí para garantizar los datos.
+        // Por ahora, lo hacemos aquí para garantizar los datos.// No necesitamos loadMissing aquí si el servicio ya lo hizo con 'with'
         // $nextCombination->loadMissing(['character1', 'character2']); // Carga si no está cargada las relaciones de character1 y character2 
 
+        // Verificar que las relaciones se hayan cargado
+        if (!$nextCombination->relationLoaded('character1') || !$nextCombination->relationLoaded('character2')) {
+            \Log::warning("Relations character1 or character2 not loaded for combinatoric ID: {$nextCombination->id}");
+            return response()->json(['message' => 'Internal error: character data not loaded.'], 500);
+        }
+
+        // Devolver la combinación encontrada
+        // Usar CharacterResource para serializar correctamente cada personaje
+        return response()->json([
+            'combination' => [
+                'combinatoric_id' => $nextCombination->id, // Usamos 'id' del modelo Combinatoric
+                'character1' => new CharacterResource($nextCombination->character1), // <-- Usar Resource
+                'character2' => new CharacterResource($nextCombination->character2), // <-- Usar Resource
+            ]
+        ], 200);
+        
         // Devolver la combinación encontrada
         // Suponiendo que 'character1' y 'character2' están disponibles vía relaciones
-        return response()->json([
+        /* return response()->json([
             'combination' => [
                 'combinatoric_id' => $nextCombination->id, // Usamos 'id' del modelo Combinatoric
                 'character1' => [
@@ -104,6 +121,6 @@ class SurveyController extends Controller
                     // ... otros campos necesarios de CharacterResource ...
                 ],
             ]
-        ], 200);
+        ], 200); */
     }
 }

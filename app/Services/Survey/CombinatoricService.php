@@ -82,8 +82,13 @@ class CombinatoricService
         // Aplicar la estrategia
         switch ($strategy) {
             case 'random':
-                // Seleccionar una combinación aleatoria
-                return $query->inRandomOrder()->first();
+                // Seleccionar una combinación aleatoria entre las disponibles
+                $query = $survey->combinatorics()
+                                ->where('status', true)
+                                ->whereDoesntHave('votes', function ($subQuery) use ($userId) {
+                                    $subQuery->where('user_id', $userId);
+                                });
+                return $query->with(['character1', 'character2'])->inRandomOrder()->first(); // <-- CARGA RELACIONES
             case 'elo_based':
                 // Lógica para seleccionar combinaciones basadas en ELO (más compleja)
                 // Por ejemplo, buscar combinaciones donde la diferencia de ELO sea mínima
@@ -96,7 +101,16 @@ class CombinatoricService
             default: // Por si acaso, usar cooldown como fallback
                 // Seleccionar la combinación menos usada recientemente (cooldown)
                 // O la que tenga el last_used_at más antiguo o null
-                return $query->orderByRaw('COALESCE(last_used_at, "1970-01-01") ASC')->first();
+                // return $query->orderByRaw('COALESCE(last_used_at, "1970-01-01") ASC')->first();
+                $query = $survey->combinatorics()
+                                ->where('status', true)
+                                ->whereDoesntHave('votes', function ($subQuery) use ($userId) {
+                                    $subQuery->where('user_id', $userId);
+                                });
+                return $query // <-- CARGA RELACIONES
+                        ->with(['character1', 'character2']) // Asegura que character1 y character2 se carguen
+                        ->orderByRaw('COALESCE(last_used_at, "1970-01-01") ASC')
+                        ->first();
         }
 
         // Si no se encuentra ninguna combinación activa o la estrategia es desconocida

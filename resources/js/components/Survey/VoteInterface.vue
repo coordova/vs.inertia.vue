@@ -198,7 +198,7 @@ onMounted(() => {
                 <!-- Personaje 1 -->
                 <div class="flex flex-col items-center">
                     <img
-                        :src="currentCombination.character1.picture"
+                        :src="currentCombination.character1.picture_url"
                         :alt="currentCombination.character1.fullname"
                         class="mb-4 h-32 w-32 rounded-full border-4 border-indigo-500 object-cover"
                     />
@@ -220,7 +220,7 @@ onMounted(() => {
                 <!-- Personaje 2 -->
                 <div class="flex flex-col items-center">
                     <img
-                        :src="currentCombination.character2.picture"
+                        :src="currentCombination.character2.picture_url"
                         :alt="currentCombination.character2.fullname"
                         class="mb-4 h-32 w-32 rounded-full border-4 border-pink-500 object-cover"
                     />
