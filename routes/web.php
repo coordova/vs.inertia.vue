@@ -10,6 +10,7 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\PublicSurveyController;
 use App\Http\Controllers\SurveyVoteController;
+use App\Http\Controllers\Api\SurveyController as ApiSurveyController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -27,6 +28,16 @@ Route::get('dashboard', function () {
     Route::resource('surveys', SurveyController::class);
 }); */
 
+/* -------------------------------------------------------------*/
+// Agrupamos las rutas de la API pública de encuestas
+Route::middleware(['auth']) // O 'auth' si usas sesión web para Inertia
+    ->prefix('public')
+    ->name('api.public.')
+    ->group(function () {
+        // Ruta para obtener la próxima combinación para votar
+        Route::get('/surveys/{survey}/next-combination', [ApiSurveyController::class, 'getNextCombination'])
+             ->name('surveys.next_combination');
+    });
 /* -------------------------------------------------------------*/
 // Ruta para la landing page
 Route::get('/landing', [PublicController::class, 'index'])->name('landing.index');

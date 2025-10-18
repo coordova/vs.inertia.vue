@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import VoteInterface from '@/components/Survey/VoteInterface.vue';
 import { Button } from '@/components/ui/button';
+
 import {
     Card,
     CardContent,
