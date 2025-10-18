@@ -52,5 +52,8 @@ return [
 
         'surveys.public.index',
         'surveys.public.show',
+        // 'surveys.public.next_combination',
+
+        'api.public.surveys.next_combination',
     ]
 ];

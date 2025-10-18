@@ -51,7 +51,7 @@ const loadNextCombination = async () => {
         // Hacer la solicitud GET al endpoint
         // La URL se construye usando el ID de la encuesta
         const response = await axios.get(
-            route('surveys.public.next_combination', props.surveyId),
+            route('api.public.surveys.next_combination', props.surveyId),
         );
         /* `/api/public/surveys/${props.surveyId}/next-combination`,
         ); */
