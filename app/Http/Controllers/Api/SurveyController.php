@@ -84,7 +84,7 @@ class SurveyController extends Controller
         // sin las relaciones cargadas, las cargamos aquí.
         // OJO: Idealmente, la consulta en CombinatoricService debería incluir 'with' si se sabe que se necesitan.
         // Por ahora, lo hacemos aquí para garantizar los datos.
-        $nextCombination->loadMissing(['character1', 'character2']);
+        // $nextCombination->loadMissing(['character1', 'character2']); // Carga si no está cargada las relaciones de character1 y character2 
 
         // Devolver la combinación encontrada
         // Suponiendo que 'character1' y 'character2' están disponibles vía relaciones
