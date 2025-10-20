@@ -6,6 +6,7 @@ use App\Models\Survey;
 use App\Models\User;
 use App\Models\SurveyUser; // Modelo pivote
 use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
+use Illuminate\Database\Eloquent\Relations\Pivot as EloquentPivot; // Alias para claridad
 
 class SurveyProgressService
 {
@@ -91,16 +92,23 @@ class SurveyProgressService
     /**
      * Actualiza el progreso del usuario en la encuesta después de un voto.
      *
-     * @param Pivot|null $surveyUserPivot El objeto pivote de la relación survey_user.
+     * @param Pivot|null $surveyUserPivot El objeto pivote de la relación survey_user (adjuntado por Laravel).
      * @param float $newProgress El nuevo porcentaje de progreso (0.00 a 100.00).
      * @param int $newTotalVotes El nuevo número total de votos.
      * @return void
      */
-    public function updateProgress(Pivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- Cambiado tipo
+    // public function updateProgress(Pivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- ANTES (Incorrecto si no hay 'use')
+    public function updateProgress(EloquentPivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- Usar el alias correcto
     {
         if (!$surveyUserPivot) {
-            throw new \InvalidArgumentException('SurveyUserPivot cannot be null for updateProgress.');
+             // O lanzar excepción si es un error crítico
+            // throw new \InvalidArgumentException('SurveyUserPivot cannot be null for updateProgress.');
+            // O simplemente retornar si es válido que sea null (aunque raro en este contexto)
+             \Log::warning('updateProgress called with null pivot.');
+            return;
         }
+        // Llamar al método update en el objeto pivote.
+        // Esto funciona porque el objeto pivote tiene acceso a sus atributos y puede actualizarlos.
         $surveyUserPivot->update([
             'progress_percentage' => $newProgress,
             'total_votes' => $newTotalVotes,

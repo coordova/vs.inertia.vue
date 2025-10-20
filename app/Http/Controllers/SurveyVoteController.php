@@ -13,6 +13,7 @@ use App\Services\Survey\SurveyProgressService;
 use App\Services\Rating\EloRatingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -35,14 +36,14 @@ class SurveyVoteController extends Controller
      *
      * @param Request $request
      * @param int $surveyId ID de la encuesta
-     * @return JsonResponse
+     * @return RedirectResponse
      */
-    public function store(Request $request, int $surveyId): JsonResponse
+    public function store(Request $request, int $surveyId): RedirectResponse
     {
         // 1. Verificar autenticación
         $user = Auth::user();
         if (!$user) {
-            return response()->json(['message' => 'Authentication required.'], 401);
+            return redirect()->route('login')->with('error', 'Authentication required.');
         }
 
         // 2. Validar los datos del voto (sin reglas que disparen consultas innecesarias aquí)
@@ -67,13 +68,13 @@ class SurveyVoteController extends Controller
 
         if (!$surveyData) {
             // Encuesta no encontrada, inactiva o fuera de rango de fechas
-            return response()->json(['message' => 'Survey not found or not active.'], 404);
+            return redirect()->route('surveys.public.index')->with('error', 'Survey not found or not active.');
         }
 
         $combinatoric = $surveyData->combinatorics->first();
         if (!$combinatoric) {
             // Combinación no encontrada o no pertenece a la encuesta (verificado por el where en with)
-            return response()->json(['message' => 'Invalid combination for this survey.'], 400);
+            return redirect()->route('surveys.public.index')->with('error', 'Invalid combination for this survey.');
         }
 
         // 4. Verificar si el usuario ya votó por esta combinación específica (fuera de la transacción principal)
@@ -81,25 +82,25 @@ class SurveyVoteController extends Controller
                             ->where('combinatoric_id', $combinatoric->id)
                             ->exists(); // Usar exists() es más eficiente que first() si solo se quiere saber si existe
         if ($existingVote) {
-            return response()->json(['message' => 'User has already voted on this combination.'], 400);
+            return redirect()->route('surveys.public.index')->with('error', 'User has already voted on this combination.');
         }
 
         // 5. Verificar que las IDs de ganador/perdedor coincidan con la combinación actual
         $validCharacterIds = [$combinatoric->character1_id, $combinatoric->character2_id];
         if (isset($validatedData['winner_id']) && !in_array($validatedData['winner_id'], $validCharacterIds)) {
-            return response()->json(['message' => 'Winner ID does not match characters in the combination.'], 400);
+            return redirect()->route('surveys.public.index')->with('error', 'Winner ID does not match characters in the combination.');
         }
         if (isset($validatedData['loser_id']) && !in_array($validatedData['loser_id'], $validCharacterIds)) {
-            return response()->json(['message' => 'Loser ID does not match characters in the combination.'], 400);
+            return redirect()->route('surveys.public.index')->with('error', 'Loser ID does not match characters in the combination.');
         }
         if (isset($validatedData['winner_id']) && isset($validatedData['loser_id']) && $validatedData['winner_id'] === $validatedData['loser_id']) {
-            return response()->json(['message' => 'Winner and loser cannot be the same character.'], 400);
+            return redirect()->route('surveys.public.index')->with('error', 'Winner and loser cannot be the same character.');
         }
 
         // 6. Verificar estado del progreso del usuario (fuera de la transacción principal para lectura)
         $status = $this->surveyProgressService->getUserSurveyStatus($surveyData, $user);
         if ($status['is_completed']) {
-            return response()->json(['message' => 'Survey already completed for this user.'], 400);
+            return redirect()->route('surveys.public.index')->with('error', 'Survey already completed for this user.');
         }
 
         // 7. Determinar el resultado
@@ -116,7 +117,7 @@ class SurveyVoteController extends Controller
             } elseif ($winnerId === $combinatoric->character2_id && $loserId === $combinatoric->character1_id) {
                 $result = 'loss';
             } else {
-                return response()->json(['message' => 'Invalid winner/loser combination.'], 400);
+                return redirect()->route('surveys.public.index')->with('error', 'Invalid winner/loser combination.');
             }
         }
 
@@ -129,7 +130,7 @@ class SurveyVoteController extends Controller
 
         if ($eloRatings->count() !== 2) {
              // Uno o ambos personajes no tienen entrada en category_character para esta categoría
-            return response()->json(['message' => 'Ratings not found for one or both characters in this category.'], 500); // Error interno o inconsistencia de datos
+            return redirect()->route('surveys.public.index')->with('error', 'Ratings not found for one or both characters in this category.'); // Error interno o inconsistencia de datos
         }
 
         $character1Rating = $eloRatings[$combinatoric->character1_id];
@@ -158,7 +159,15 @@ class SurveyVoteController extends Controller
             // Cálculo de progreso se mantiene como placeholder o se implementa lógica real aquí si es necesario
             $progressPercentage = $currentProgress['progress'];
             $surveyUserPivot = $currentProgress['pivot'] ?? $this->surveyProgressService->startSurveySession($surveyData, $user);
-            $this->surveyProgressService->updateProgress($surveyUserPivot, $progressPercentage, $newTotalVotes);
+            // $this->surveyProgressService->updateProgress($surveyUserPivot, $progressPercentage, $newTotalVotes);
+            // Pasar el objeto pivote al servicio
+            // Asegúrate de que $currentProgress['pivot'] NO es null antes de pasar.
+            if ($currentProgress['pivot']) {
+                $this->surveyProgressService->updateProgress($currentProgress['pivot'], $progressPercentage, $newTotalVotes);
+            } else {
+                // Manejar el caso donde no hay pivote (aunque getUserSurveyStatus debería haberlo creado o cargado)
+                \Log::warning("Attempted to update progress but pivot was null for user {$user->id} on survey {$survey->id}.");
+            }
 
             // 13. Calcular y aplicar los nuevos ratings ELO (OK, delegado al servicio)
             // Pasamos los ratings ya cargados
@@ -185,6 +194,9 @@ class SurveyVoteController extends Controller
         });
 
         // 14. Devolver respuesta de éxito
-        return response()->json(['message' => 'Vote processed successfully.'], 200);
+        // return response()->json(['message' => 'Vote processed successfully.'], 200);
+        return back()->with('success', 'Vote processed successfully.'); // <-- CORRECTO
+        // O redirigir a la misma encuesta
+        // return to_route('surveys.public.show', $survey)->with('success', 'Vote processed successfully.');
     }
 }
