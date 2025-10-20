@@ -23,6 +23,7 @@ class SurveyUser extends Model
         'last_activity_at',
         'is_completed',
         'completion_time',
+        'total_combinations_expected',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class SurveyUser extends Model
         'last_activity_at' => 'datetime',
         'is_completed' => 'boolean',
         'completion_time' => 'integer', // segundos
+        'total_combinations_expected' => 'integer',
     ];
 
     // --- Relaciones ---

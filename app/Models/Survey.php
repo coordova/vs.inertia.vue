@@ -87,6 +87,7 @@ class Survey extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'survey_user')
+                    // ->using(SurveyUser::class) // <-- Indica el modelo pivote
                     ->withPivot(['progress_percentage', 'total_votes', 'completed_at', 'started_at', 'last_activity_at', 'is_completed', 'completion_time'])
                     ->withTimestamps();
     }

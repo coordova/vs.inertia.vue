@@ -52,6 +52,7 @@ return [
 
         'surveys.public.index',
         'surveys.public.show',
+        'surveys.vote.store',
         // 'surveys.public.next_combination',
 
         'api.public.surveys.next_combination',

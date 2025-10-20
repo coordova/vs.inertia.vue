@@ -55,6 +55,8 @@ Route::middleware('auth')->group(function () {
 
     // Ruta para ver una encuesta específica (pública o privada, según necesidad) - se requiere autenticación para ver los detalles de la encuesta:
     Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
+    // Ruta para procesar un voto (requiere autenticación)
+    // Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
 });
 
 // Ruta para procesar un voto (requiere autenticación)
