@@ -1,0 +1,30 @@
+[
+  {
+    "user_id": 1,
+    "survey_id": 10,
+    "progress_percentage": "0",
+    "total_votes": 0,
+    "completed_at": null,
+    "started_at": "2025-10-21 19:29:31",
+    "last_activity_at": "2025-10-21 19:29:31",
+    "is_completed": "0",
+    "completion_time": null,
+    "created_at": "2025-10-21 19:29:31",
+    "updated_at": "2025-10-21 19:29:31",
+    "total_combinations_expected": 15
+  },
+  {
+    "user_id": 1,
+    "survey_id": 11,
+    "progress_percentage": "0",
+    "total_votes": 5,
+    "completed_at": null,
+    "started_at": "2025-10-18 21:00:07",
+    "last_activity_at": "2025-10-20 22:03:22",
+    "is_completed": "0",
+    "completion_time": null,
+    "created_at": "2025-10-18 21:00:07",
+    "updated_at": "2025-10-20 22:03:22",
+    "total_combinations_expected": null
+  }
+]

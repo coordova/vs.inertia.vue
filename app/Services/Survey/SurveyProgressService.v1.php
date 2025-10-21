@@ -19,37 +19,70 @@ class SurveyProgressService
      */
     public function getUserSurveyStatus(Survey $survey, User $user): array
     {
-        // Obtener la entrada pivote SurveyUser REAL desde la base de datos
-        // Esto es más explícito y seguro para actualizaciones posteriores.
-        $surveyUserPivot = SurveyUser::where('survey_id', $survey->id)
-                                      ->where('user_id', $user->id)
-                                      ->first();
+        $pivotEntry = SurveyUser::where('survey_id', $survey->id)->where('user_id', $user->id)->first();
 
-        if (!$surveyUserPivot) {
+        if (!$pivotEntry) {
             return [
                 'exists' => false,
                 'is_completed' => false,
                 'progress' => 0.0,
                 'total_votes' => 0,
                 'total_expected' => null,
-                'pivot_id' => null, // Devolvemos el ID, no el objeto
+                'pivot' => null, // O incluso omitir 'pivot' si se devuelve $pivotEntry
             ];
         }
 
-        // Calcular progreso basado en votos actuales vs esperados
-        $totalExpected = $surveyUserPivot->total_combinations_expected;
+        // Calcular progreso basado en $pivotEntry
+        $totalExpected = $pivotEntry->total_combinations_expected;
         $progress = 0.0;
         if ($totalExpected && $totalExpected > 0) {
-            $progress = min(100.0, ($surveyUserPivot->total_votes / $totalExpected) * 100);
+            $progress = min(100.0, ($pivotEntry->total_votes / $totalExpected) * 100);
         }
 
         return [
             'exists' => true,
-            'is_completed' => $surveyUserPivot->is_completed,
+            'is_completed' => $pivotEntry->is_completed,
             'progress' => $progress,
-            'total_votes' => $surveyUserPivot->total_votes,
+            'total_votes' => $pivotEntry->total_votes,
             'total_expected' => $totalExpected,
-            'pivot_id' => $surveyUserPivot->id, // Devolvemos el ID del modelo
+            'pivot' => $pivotEntry, // Ahora es una instancia de SurveyUser
+        ];
+    }
+
+    public function getUserSurveyStatus___(Survey $survey, User $user): array
+    {
+        // Usamos el acceso directo a la relación pivote a través de belongsToMany
+        // Esto debería devolver una instancia de SurveyUser si la relación está bien definida
+        $pivot = $survey->users()->where('user_id', $user->id)->first(); // Devuelve el modelo User con la relación pivote cargada // Obtiene la entrada de survey_user
+        
+        if (!$pivot) {
+            return [
+                'exists' => false,
+                'is_completed' => false,
+                'progress' => 0.0,
+                'total_votes' => 0,
+                'total_expected' => null, // No aplica si no existe
+                'pivot' => null,
+            ];
+        }
+
+        // $pivot->pivot es el modelo pivote (SurveyUser en este caso)
+        $pivotModel = $pivot->pivot; // <-- Este debería ser de tipo SurveyUser // <-- Este es el objeto Pivot de Laravel, no SurveyUser
+
+        // Calcular progreso basado en votos actuales vs esperados
+        $totalExpected = $pivotModel->total_combinations_expected;
+        $progress = 0.0;
+        if ($totalExpected && $totalExpected > 0) {
+            $progress = min(100.0, ($pivotModel->total_votes / $totalExpected) * 100);
+        }
+
+        return [
+            'exists' => true,
+            'is_completed' => $pivotModel->is_completed,
+            'progress' => $progress,
+            'total_votes' => $pivotModel->total_votes,
+            'total_expected' => $totalExpected,
+            'pivot' => $pivotModel, // Devolver el objeto pivote para posibles actualizaciones
         ];
     }
 
@@ -90,34 +123,33 @@ class SurveyProgressService
 
     /**
      * Actualiza el progreso del usuario en la encuesta después de un voto.
-     * Carga el modelo SurveyUser por ID y lo actualiza.
      *
-     * @param int|null $surveyUserId ID del modelo SurveyUser.
+     * @param Pivot|null $surveyUserPivot El objeto pivote de la relación survey_user (adjuntado por Laravel).
+     * @param float $newProgress El nuevo porcentaje de progreso (0.00 a 100.00).
      * @param int $newTotalVotes El nuevo número total de votos.
      * @return void
      */
-    public function updateProgress(?int $surveyUserId, int $newTotalVotes): void
+    // public function updateProgress(Pivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- ANTES (Incorrecto si no hay 'use')
+    public function updateProgress(SurveyUser|null $surveyUserPivot, /* float $newProgress, */ int $newTotalVotes): void // <-- Usar el alias correcto
     {
-        if (!$surveyUserId) {
-            \Log::warning('updateProgress called with null survey_user ID.');
-            return;
-        }
-
-        // Cargar el modelo SurveyUser real por su ID
-        $surveyUserPivot = SurveyUser::find($surveyUserId);
-
         if (!$surveyUserPivot) {
-            \Log::error("SurveyUser model with ID {$surveyUserId} not found for updateProgress.");
+             // O lanzar excepción si es un error crítico
+            // throw new \InvalidArgumentException('SurveyUserPivot cannot be null for updateProgress.');
+            // O simplemente retornar si es válido que sea null (aunque raro en este contexto)
+             \Log::warning('updateProgress called with null pivot.');
             return;
         }
 
+        // --- Calcular el progreso DENTRO del método ---
         $totalExpected = $surveyUserPivot->total_combinations_expected ?? 0;
         $calculatedProgress = 0.0;
         if ($totalExpected > 0) {
-            $calculatedProgress = min(100.0, ($newTotalVotes / $totalExpected) * 100);
+            // min(100.0, ...) asegura que no supere el 100% si hay más votos que lo esperado (aunque eso sería raro)
+            $calculatedProgress = min(100.0, ($newTotalVotes / $totalExpected) * 100); 
         }
 
-        // Actualizar el modelo Eloquent real
+        // Llamar al método update en el objeto pivote.
+        // Esto funciona porque el objeto pivote tiene acceso a sus atributos y puede actualizarlos.
         $surveyUserPivot->update([
             'progress_percentage' => $calculatedProgress,
             'total_votes' => $newTotalVotes,
