@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Http\Requests\StoreVoteRequest;
 
 class SurveyVoteController extends Controller
 {
@@ -34,11 +35,11 @@ class SurveyVoteController extends Controller
      * Recibe un voto para una combinación específica dentro de una encuesta.
      * Optimizado para minimizar consultas a la base de datos.
      *
-     * @param Request $request
+     * @param StoreVoteRequest $request
      * @param int $surveyId ID de la encuesta
      * @return RedirectResponse
      */
-    public function store(Request $request, int $surveyId): RedirectResponse
+    public function store(StoreVoteRequest $request, int $surveyId): RedirectResponse
     {
         // 1. Verificar autenticación
         $user = Auth::user();
@@ -47,12 +48,15 @@ class SurveyVoteController extends Controller
         }
 
         // 2. Validar los datos del voto (sin reglas que disparen consultas innecesarias aquí)
-        $validatedData = $request->validate([
+        /* $validatedData = $request->validate([
             'combinatoric_id' => 'required|integer|exists:combinatorics,id', // Validar existencia básica, relación se verifica con JOIN
             'winner_id' => 'required_without:tie|integer|exists:characters,id',
             'loser_id' => 'required_without:tie|integer|exists:characters,id',
             'tie' => 'required_without:winner_id,loser_id|boolean',
-        ]);
+        ]); */
+
+        // Usar los datos validados del Request
+        $validatedData = $request->validated(); // <-- Usar datos validados
 
         // 3. Cargar datos críticos en una sola transacción con JOINs para evitar N+1 y consultas redundantes
         // Cargamos la encuesta, la combinación, los personajes de la combinación y sus ratings ELO en la categoría de la encuesta
@@ -167,13 +171,14 @@ class SurveyVoteController extends Controller
             $currentProgress = $this->surveyProgressService->getUserSurveyStatus($surveyData, $user);
             $newTotalVotes = $currentProgress['total_votes'] + 1;
             // Cálculo de progreso se mantiene como placeholder o se implementa lógica real aquí si es necesario
-            $progressPercentage = $currentProgress['progress'];
-            $surveyUserPivot = $currentProgress['pivot'] ?? $this->surveyProgressService->startSurveySession($surveyData, $user);
+            // $progressPercentage = $currentProgress['progress'];
+            // $surveyUserPivot = $currentProgress['pivot'] ?? $this->surveyProgressService->startSurveySession($surveyData, $user);
             // $this->surveyProgressService->updateProgress($surveyUserPivot, $progressPercentage, $newTotalVotes);
             // Pasar el objeto pivote al servicio
+            
             // Asegúrate de que $currentProgress['pivot'] NO es null antes de pasar.
             if ($currentProgress['pivot']) {
-                $this->surveyProgressService->updateProgress($currentProgress['pivot'], $progressPercentage, $newTotalVotes);
+                $this->surveyProgressService->updateProgress($currentProgress['pivot'], /* $progressPercentage, */ $newTotalVotes);
             } else {
                 // Manejar el caso donde no hay pivote (aunque getUserSurveyStatus debería haberlo creado o cargado)
                 \Log::warning("Attempted to update progress but pivot was null for user {$user->id} on survey {$surveyData->id}.");

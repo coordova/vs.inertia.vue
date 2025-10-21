@@ -130,7 +130,7 @@ class SurveyProgressService
      * @return void
      */
     // public function updateProgress(Pivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- ANTES (Incorrecto si no hay 'use')
-    public function updateProgress(SurveyUser|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- Usar el alias correcto
+    public function updateProgress(SurveyUser|null $surveyUserPivot, /* float $newProgress, */ int $newTotalVotes): void // <-- Usar el alias correcto
     {
         if (!$surveyUserPivot) {
              // O lanzar excepción si es un error crítico
@@ -139,10 +139,19 @@ class SurveyProgressService
              \Log::warning('updateProgress called with null pivot.');
             return;
         }
+
+        // --- Calcular el progreso DENTRO del método ---
+        $totalExpected = $surveyUserPivot->total_combinations_expected ?? 0;
+        $calculatedProgress = 0.0;
+        if ($totalExpected > 0) {
+            // min(100.0, ...) asegura que no supere el 100% si hay más votos que lo esperado (aunque eso sería raro)
+            $calculatedProgress = min(100.0, ($newTotalVotes / $totalExpected) * 100); 
+        }
+
         // Llamar al método update en el objeto pivote.
         // Esto funciona porque el objeto pivote tiene acceso a sus atributos y puede actualizarlos.
         $surveyUserPivot->update([
-            'progress_percentage' => $newProgress,
+            'progress_percentage' => $calculatedProgress,
             'total_votes' => $newTotalVotes,
             'last_activity_at' => now(),
         ]);
