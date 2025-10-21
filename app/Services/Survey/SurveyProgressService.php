@@ -48,7 +48,7 @@ class SurveyProgressService
             'pivot' => $pivotEntry, // Ahora es una instancia de SurveyUser
         ];
     }
-    
+
     public function getUserSurveyStatus___(Survey $survey, User $user): array
     {
         // Usamos el acceso directo a la relación pivote a través de belongsToMany
@@ -130,7 +130,7 @@ class SurveyProgressService
      * @return void
      */
     // public function updateProgress(Pivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- ANTES (Incorrecto si no hay 'use')
-    public function updateProgress(EloquentPivot|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- Usar el alias correcto
+    public function updateProgress(SurveyUser|null $surveyUserPivot, float $newProgress, int $newTotalVotes): void // <-- Usar el alias correcto
     {
         if (!$surveyUserPivot) {
              // O lanzar excepción si es un error crítico
