@@ -138,7 +138,11 @@ class SurveyVoteController extends Controller
 
 
         // 9. Iniciar transacción solo para operaciones de escritura y cálculos críticos
-        DB::transaction(function () use ($user, $surveyData, $combinatoric, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating) {
+        DB::transaction(function () use ($request, $user, $surveyData, $combinatoric, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating) {
+            // --- Capturar información adicional del voto ---
+            $ipAddress = $request->ip(); // Obtener la IP del cliente
+            $userAgent = $request->userAgent(); // Obtener el User-Agent
+            
             // 10. Registrar el voto
             Vote::create([
                 'user_id' => $user->id,
@@ -147,6 +151,12 @@ class SurveyVoteController extends Controller
                 'winner_id' => $tie ? null : $winnerId,
                 'loser_id' => $tie ? null : $loserId,
                 'tie_score' => $tie ? $surveyData->tie_weight : null,
+                // --- Campos adicionales ---
+                'ip_address' => $ipAddress, // <-- Almacenar IP
+                'user_agent' => $userAgent, // <-- Almacenar User-Agent
+                'voted_at' => now(), // Fecha/hora específica del voto
+                'is_valid' => true, // Asumimos válido por ahora
+                // notes se deja null por defecto
             ]);
 
             // 11. Marcar la combinación como usada (OK, delegado al servicio)
