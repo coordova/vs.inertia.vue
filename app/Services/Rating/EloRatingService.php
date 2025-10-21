@@ -72,6 +72,16 @@ class EloRatingService
                                                  ->get()
                                                  ->keyBy('character_id'); // Clave: character_id, Valor: instancia de CategoryCharacter
 
+            // NOTA: Si se descomenta esta línea (->lockForUpdate()), la consulta fallará porque keyBy es un método de Collection, no de Query Builder. El lockForUpdate() debe ir antes del ->get().
+            // fix: (Correcto)
+            /*             $query = CategoryCharacter::where('category_id', $categoryId)
+                                    ->whereIn('character_id', $characterIds);
+            // if ($useLock) { // Bandera opcional
+            //     $query->lockForUpdate();
+            // }
+            $pivotsCollection = $query->get()->keyBy('character_id');
+            */
+
             // Verificar que se encontraron ambos registros
             if ($pivotsCollection->count() !== 2) {
                 // Esto podría suceder si uno de los personajes no está registrado en la categoría

@@ -19,6 +19,38 @@ class SurveyProgressService
      */
     public function getUserSurveyStatus(Survey $survey, User $user): array
     {
+        $pivotEntry = SurveyUser::where('survey_id', $survey->id)->where('user_id', $user->id)->first();
+
+        if (!$pivotEntry) {
+            return [
+                'exists' => false,
+                'is_completed' => false,
+                'progress' => 0.0,
+                'total_votes' => 0,
+                'total_expected' => null,
+                'pivot' => null, // O incluso omitir 'pivot' si se devuelve $pivotEntry
+            ];
+        }
+
+        // Calcular progreso basado en $pivotEntry
+        $totalExpected = $pivotEntry->total_combinations_expected;
+        $progress = 0.0;
+        if ($totalExpected && $totalExpected > 0) {
+            $progress = min(100.0, ($pivotEntry->total_votes / $totalExpected) * 100);
+        }
+
+        return [
+            'exists' => true,
+            'is_completed' => $pivotEntry->is_completed,
+            'progress' => $progress,
+            'total_votes' => $pivotEntry->total_votes,
+            'total_expected' => $totalExpected,
+            'pivot' => $pivotEntry, // Ahora es una instancia de SurveyUser
+        ];
+    }
+    
+    public function getUserSurveyStatus___(Survey $survey, User $user): array
+    {
         // Usamos el acceso directo a la relación pivote a través de belongsToMany
         // Esto debería devolver una instancia de SurveyUser si la relación está bien definida
         $pivot = $survey->users()->where('user_id', $user->id)->first(); // Devuelve el modelo User con la relación pivote cargada // Obtiene la entrada de survey_user

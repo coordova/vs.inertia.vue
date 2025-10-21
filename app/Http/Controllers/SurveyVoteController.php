@@ -166,7 +166,7 @@ class SurveyVoteController extends Controller
                 $this->surveyProgressService->updateProgress($currentProgress['pivot'], $progressPercentage, $newTotalVotes);
             } else {
                 // Manejar el caso donde no hay pivote (aunque getUserSurveyStatus debería haberlo creado o cargado)
-                \Log::warning("Attempted to update progress but pivot was null for user {$user->id} on survey {$survey->id}.");
+                \Log::warning("Attempted to update progress but pivot was null for user {$user->id} on survey {$surveyData->id}.");
             }
 
             // 13. Calcular y aplicar los nuevos ratings ELO (OK, delegado al servicio)
