@@ -58,6 +58,30 @@ class SurveyVoteController extends Controller
         // Usar los datos validados del Request
         $validatedData = $request->validated(); // <-- Usar datos validados
 
+        /*--------------------------------------------------*/
+        // --- Validación de Lógica de Negocio DESPUÉS de la validación básica ---
+        $tie = $validatedData['tie'] ?? false;
+        $winnerId = $validatedData['winner_id'] ?? null;
+        $loserId = $validatedData['loser_id'] ?? null;
+
+        if ($tie) {
+            // Si es empate, winner_id y loser_id DEBEN estar ausentes o ser null
+            if ($winnerId !== null || $loserId !== null) {
+                return back()->withErrors(['tie' => 'If tie is selected, winner_id and loser_id must be absent.'])->withInput();
+            }
+        } else {
+            // Si NO es empate, winner_id y loser_id SON obligatorios
+            if (!$winnerId || !$loserId) {
+                return back()->withErrors(['winner_id' => 'Winner and loser are required if not a tie.'])->withInput();
+            }
+            if ($winnerId === $loserId) {
+                return back()->withErrors(['winner_id' => 'Winner and loser cannot be the same.'])->withInput();
+            }
+            // Validar que winner_id y loser_id sean parte de la combinación actual
+            // (Este código ya lo tienes más abajo, solo lo menciono para completar la lógica)
+        }
+        /*--------------------------------------------------*/
+
         // 3. Cargar datos críticos en una sola transacción con JOINs para evitar N+1 y consultas redundantes
         // Cargamos la encuesta, la combinación, los personajes de la combinación y sus ratings ELO en la categoría de la encuesta
         $surveyData = Survey::with(['combinatorics' => function ($query) use ($validatedData) {
@@ -142,7 +166,7 @@ class SurveyVoteController extends Controller
 
 
         // 9. Iniciar transacción solo para operaciones de escritura y cálculos críticos
-        DB::transaction(function () use ($request, $user, $surveyData, $combinatoric, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating) {
+        DB::transaction(function () use ($user, $surveyData, $combinatoric, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating, $request) {
             // --- Capturar información adicional del voto ---
             $ipAddress = $request->ip(); // Obtener la IP del cliente
             $userAgent = $request->userAgent(); // Obtener el User-Agent
@@ -167,6 +191,14 @@ class SurveyVoteController extends Controller
             $this->combinatoricService->markCombinationUsed($combinatoric);
 
             // 12. Actualizar el progreso del usuario (OK, delegado al servicio)
+            $currentProgress = $this->surveyProgressService->getUserSurveyStatus($surveyData, $user);
+            $newTotalVotes = $currentProgress['total_votes'] + 1;
+            // $progressPercentage = $currentProgress['progress']; // Ya no se usa
+
+            // Pasar el ID del pivote al servicio
+            $this->surveyProgressService->updateProgress($currentProgress['pivot_id'], $newTotalVotes);
+            
+            /* 
             // Obtenemos el progreso *dentro* de la transacción para asegurar consistencia si se comparte entre hilos
             $currentProgress = $this->surveyProgressService->getUserSurveyStatus($surveyData, $user);
             $newTotalVotes = $currentProgress['total_votes'] + 1;
@@ -178,11 +210,12 @@ class SurveyVoteController extends Controller
             
             // Asegúrate de que $currentProgress['pivot'] NO es null antes de pasar.
             if ($currentProgress['pivot']) {
-                $this->surveyProgressService->updateProgress($currentProgress['pivot'], /* $progressPercentage, */ $newTotalVotes);
+                $this->surveyProgressService->updateProgress($currentProgress['pivot'], $newTotalVotes);
             } else {
                 // Manejar el caso donde no hay pivote (aunque getUserSurveyStatus debería haberlo creado o cargado)
                 \Log::warning("Attempted to update progress but pivot was null for user {$user->id} on survey {$surveyData->id}.");
-            }
+            } 
+            */
 
             // 13. Calcular y aplicar los nuevos ratings ELO (OK, delegado al servicio)
             // Pasamos los ratings ya cargados

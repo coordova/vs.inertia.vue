@@ -27,29 +27,22 @@ class StoreVoteRequest extends FormRequest
             'combinatoric_id' => [
                 'required',
                 'integer',
-                // Validar que la combinación exista y pertenezca a la encuesta (se puede reforzar en el controlador)
                 'exists:combinatorics,id',
             ],
+            // Reglas básicas, sin lógica compleja de "required_without"
             'winner_id' => [
-                'required_without:tie', // Requerido si 'tie' no está presente
-                'nullable', // Permite null si 'tie' está presente
+                'nullable', // Puede ser null
                 'integer',
                 'exists:characters,id', // Solo se valida si no es null
-                // 'different:loser_id', // Opcional: Asegurar que sean diferentes
             ],
             'loser_id' => [
-                'required_without:tie', // Requerido si 'tie' no está presente
-                'nullable', // Permite null si 'tie' está presente
+                'nullable', // Puede ser null
                 'integer',
                 'exists:characters,id', // Solo se valida si no es null
-                // 'different:winner_id', // Opcional: Asegurar que sean diferentes
             ],
             'tie' => [
-                'required_without_all:winner_id,loser_id', // Requerido si ni winner_id ni loser_id están presentes
-                'nullable', // Permite null si winner/loser están presentes
+                'nullable', // Puede ser null
                 'boolean',
-                // 'prohibited_if:winner_id,*', // Prohibir si winner_id está presente
-                // 'prohibited_if:loser_id,*', // Prohibir si loser_id está presente
             ],
         ];
     }
@@ -58,7 +51,7 @@ class StoreVoteRequest extends FormRequest
      * Configure the validator instance.
      * Permite personalizar mensajes o reglas condicionales complejas.
      */
-    public function withValidator($validator)
+    /* public function withValidator($validator)
     {
         $validator->sometimes('winner_id', 'different:loser_id', function ($input) {
             return !empty($input->winner_id) && !empty($input->loser_id);
@@ -67,5 +60,5 @@ class StoreVoteRequest extends FormRequest
         $validator->sometimes('loser_id', 'different:winner_id', function ($input) {
             return !empty($input->winner_id) && !empty($input->loser_id);
         });
-    }
+    } */
 }

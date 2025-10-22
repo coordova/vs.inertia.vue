@@ -112,13 +112,18 @@ const handleVote = (selectedCharacterId: number) => {
 const handleTie = () => {
     if (!currentCombination.value || isLoading.value) return;
 
-    const { combinatoric_id } = currentCombination.value;
+    const combinatoricId = currentCombination.value.combinatoric_id;
 
     // Configurar los datos del formulario para empate
-    voteForm.combinatoric_id = combinatoric_id;
-    voteForm.winner_id = 0; // o null, dependiendo de la API backend
-    voteForm.loser_id = 0; // o null, dependiendo de la API backend
-    voteForm.tie = true;
+    // voteForm.combinatoric_id = combinatoricId;
+    // voteForm.winner_id = 0; // o null, dependiendo de la API backend
+    // voteForm.loser_id = 0; // o null, dependiendo de la API backend
+    // voteForm.tie = true;
+
+    // resetea los campos que no aplican
+    voteForm.reset(); // Limpia todos los campos
+    voteForm.combinatoric_id = combinatoricId; // Vuelve a setear los necesarios
+    voteForm.tie = true; // Solo setea tie
 
     // Enviar el voto
     submitVote();

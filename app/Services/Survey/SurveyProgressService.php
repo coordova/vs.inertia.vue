@@ -70,22 +70,25 @@ class SurveyProgressService
         // Calcula C(n, 2)
         $totalCombinationsExpected = $activeCharacterCount > 1 ? ($activeCharacterCount * ($activeCharacterCount - 1)) / 2 : 0;
 
-        // Usamos firstOrCreate para evitar errores si se llama múltiples veces antes de que se complete la inicialización
-        return SurveyUser::firstOrCreate(
+        // Usamos updateOrCreate para asegurar que siempre devolvemos una instancia válida
+        // y actualizamos last_activity_at si ya existía.
+        $surveyUser = SurveyUser::updateOrCreate(
             [
                 'user_id' => $user->id,
                 'survey_id' => $survey->id,
             ],
             [
-                'progress_percentage' => 0.00, // Este campo puede volverse redundante si calculamos progreso sobre la marcha
+                'progress_percentage' => 0.00,
                 'total_votes' => 0,
-                'total_combinations_expected' => $totalCombinationsExpected, // Almacenamos el total calculado
+                'total_combinations_expected' => $totalCombinationsExpected,
                 'started_at' => now(),
                 'is_completed' => false,
                 'last_activity_at' => now(),
                 // completion_time no aplica aún
             ]
         );
+
+        return $surveyUser; // Devolvemos la instancia guardada
     }
 
     /**
