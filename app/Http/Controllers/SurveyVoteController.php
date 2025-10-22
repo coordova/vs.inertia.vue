@@ -57,7 +57,7 @@ class SurveyVoteController extends Controller
 
         // Usar los datos validados del Request
         $validatedData = $request->validated(); // <-- Usar datos validados
-
+        
         /*--------------------------------------------------*/
         // --- Validación de Lógica de Negocio DESPUÉS de la validación básica ---
         $tie = $validatedData['tie'] ?? false;

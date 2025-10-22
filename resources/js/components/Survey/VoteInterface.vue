@@ -30,11 +30,18 @@ const isLoading = ref(false);
 const noMoreCombinations = ref(false);
 
 // --- Inertia Form para el voto ---
+// Interfaz para el formulario de votación
+interface VoteForm {
+    combinatoric_id: number;
+    winner_id: number | null;
+    loser_id: number | null;
+    tie: boolean;
+}
 // Inicializamos el formulario con valores vacíos
-const voteForm = useForm({
+const voteForm = useForm<VoteForm>({
     combinatoric_id: 0,
-    winner_id: 0,
-    loser_id: 0,
+    winner_id: null,
+    loser_id: null,
     tie: false,
 });
 
@@ -122,6 +129,8 @@ const handleTie = () => {
 
     // resetea los campos que no aplican
     voteForm.reset(); // Limpia todos los campos
+    voteForm.winner_id = null;
+    voteForm.loser_id = null;
     voteForm.combinatoric_id = combinatoricId; // Vuelve a setear los necesarios
     voteForm.tie = true; // Solo setea tie
 
