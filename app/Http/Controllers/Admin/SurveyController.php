@@ -17,9 +17,18 @@ use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Lookup;
 use App\Services\LookupService;
+use App\Services\Survey\CombinatoricService;
 
 class SurveyController extends Controller
 {
+    // Inyectar el servicio en el constructor
+    public function __construct(
+        protected CombinatoricService $combinatoricService // <-- Inyección
+    ) {
+        // Si necesitas aplicar middleware a todos los métodos del controlador
+        // $this->middleware('auth'); // o el que corresponda
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -77,11 +86,16 @@ class SurveyController extends Controller
         // Asociar personajes seleccionados
         if (isset($request->validated()['characters']) && is_array($request->validated()['characters'])) {
             $survey->characters()->attach($request->validated()['characters']);
-            // ✅ Generar combinatoria automáticamente
-            $this->generateCombinations($survey, $request->validated()['characters']);
-        }/*  else {
-            dd($request->validated());
-        } */
+            // ✅ Generar combinatoria automáticamente - con el metodo generateCombinations de esta misma clase
+            // $this->generateCombinations($survey, $request->validated()['characters']);
+        }
+
+        // --- NUEVO: Generar combinaciones iniciales ---
+        // Llamar al servicio para generar todas las combinaciones C(n,2)
+        // basadas en los personajes asociados a la encuesta.
+        // Pasamos la instancia de la encuesta recién creada.
+        $this->combinatoricService->generateInitialCombinations($survey);
+        // ---------------------------------------------
 
         // Opcional: Cargar relación si se necesita en la redirección
         // $survey->load('category');

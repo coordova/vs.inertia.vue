@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('survey_matches')->default(0);
             $table->integer('survey_wins')->default(0);
             $table->integer('survey_losses')->default(0);
-            $table->integer('survey_ties')->default(0); // Futuro
+            $table->integer('survey_ties')->unsigned()->default(0);
             $table->boolean('is_active')->default(1); // Activo en encuesta
             $table->smallInteger('sort_order')->unsigned()->default(0);
             $table->timestamps(); // created_at, updated_at

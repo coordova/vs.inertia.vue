@@ -30,6 +30,7 @@ return new class extends Migration
             $table->boolean('is_featured')->default(0); // 1=sí, 0=no
             $table->smallInteger('sort_order')->unsigned()->default(0);
             $table->integer('counter')->unsigned()->default(0); // Contador de actualizaciones
+            $table->integer('total_combinations')->unsigned()->nullable();
             $table->string('meta_title', 255)->nullable();
             $table->string('meta_description', 500)->nullable();
             $table->timestamps();

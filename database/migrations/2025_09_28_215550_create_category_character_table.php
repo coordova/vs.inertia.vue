@@ -21,6 +21,7 @@ return new class extends Migration
             $table->integer('matches_played')->default(0);
             $table->integer('wins')->default(0);
             $table->integer('losses')->default(0);
+            $table->integer('ties')->unsigned()->default(0);
             $table->decimal('win_rate', 5, 2)->default(0.00); // Porcentaje
             $table->integer('highest_rating')->default(1200);
             $table->integer('lowest_rating')->default(1200);

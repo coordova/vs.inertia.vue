@@ -14,7 +14,6 @@ class CombinatoricResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        dd($this->character1);
         return [
             'id' => $this->id,
             'survey_id' => $this->survey_id,
