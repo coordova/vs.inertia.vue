@@ -26,6 +26,10 @@ class CategoryCharacter extends Model
      */
     public $timestamps = true; // Asumiendo que tiene timestamps
 
+   /*  protected $fillable = [
+        'ties',
+    ]; */
+
     /**
      * The attributes that should be cast.
      *
@@ -36,6 +40,7 @@ class CategoryCharacter extends Model
         'matches_played' => 'integer',
         'wins' => 'integer',
         'losses' => 'integer',
+        'ties' => 'integer',
         'win_rate' => 'decimal:2',
         'highest_rating' => 'integer',
         'lowest_rating' => 'integer',

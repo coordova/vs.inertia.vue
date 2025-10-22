@@ -37,6 +37,7 @@ class Survey extends Model
         'is_featured',
         'sort_order',
         'counter',
+        'total_combinations',
         'meta_title',
         'meta_description',
     ];
@@ -59,6 +60,7 @@ class Survey extends Model
         'is_featured' => 'boolean',
         'sort_order' => 'integer',
         'counter' => 'integer',
+        'total_combinations' => 'integer',
     ];
 
     // --- Relaciones ---
