@@ -81,6 +81,48 @@ class SurveyController extends Controller
      */
     public function store(StoreSurveyRequest $request): RedirectResponse
     {
+        // 1. Crear la encuesta con los datos validados
+        $survey = Survey::create($request->validated());
+
+        // 2. Asociar personajes seleccionados (si se proporcionan)
+        $characterIds = $request->validated()['characters'] ?? [];
+        if (is_array($characterIds) && !empty($characterIds)) {
+            $survey->characters()->attach($characterIds);
+        }
+
+        // --- NUEVO: Calcular y almacenar el total de combinaciones ---
+        // Contar los personajes activos asociados a la encuesta.
+        // Es importante contar los que están marcados como 'is_active' en la tabla pivote 'character_survey'.
+        // El conteo debe hacerse después de asociar los personajes.
+        $activeCharacterCount = $survey->characters()->wherePivot('is_active', true)->count();
+
+        // Calcular C(n, 2) = n * (n - 1) / 2
+        $totalCombinations = 0;
+        if ($activeCharacterCount >= 2) {
+            $totalCombinations = ($activeCharacterCount * ($activeCharacterCount - 1)) / 2;
+        }
+
+        // Actualizar el campo 'total_combinations' en el modelo de la encuesta.
+        // Esto asegura que el valor esté disponible inmediatamente.
+        $survey->update(['total_combinations' => $totalCombinations]);
+        // ---------------------------------------------
+
+        // --- NUEVO: Generar combinaciones iniciales ---
+        // Llamar al servicio para generar todas las combinaciones C(n,2)
+        // basadas en los personajes asociados a la encuesta.
+        // Pasamos la instancia de la encuesta recién creada (con total_combinations actualizado).
+        $this->combinatoricService->generateInitialCombinations($survey);
+        // ---------------------------------------------
+
+        // Opcional: Cargar relación si se necesita en la redirección
+        // $survey->load('category');
+
+        return to_route('admin.surveys.index')->with('success', 'Survey created successfully.');
+    }
+
+     
+    public function store_old(StoreSurveyRequest $request): RedirectResponse
+    {
         $survey = Survey::create($request->validated());
 
         // Asociar personajes seleccionados
