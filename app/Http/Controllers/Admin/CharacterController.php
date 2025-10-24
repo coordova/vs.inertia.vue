@@ -333,11 +333,12 @@ class CharacterController extends Controller
     {
         $characters = $category
             ->characters()
-            ->select('characters.id', 'characters.fullname')
+            ->select('characters.id', 'characters.fullname', 'characters.status')
+            ->where('characters.status', true)     // ✅ Solo personajes activos 
             ->get()
             ->map(fn($char) => [
                 'value' => $char->id,
-                'label' => $char->fullname
+                'label' => $char->fullname,
             ]);
 
         return response()->json($characters)->header('X-Inertia', 'true');

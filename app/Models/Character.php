@@ -48,7 +48,7 @@ class Character extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'category_character')
-                    ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
+                    ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'ties', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
                     ->withTimestamps();
     }
 
