@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('character1_id')->constrained('characters')->onDelete('cascade'); // FK a characters
             $table->foreignId('character2_id')->constrained('characters')->onDelete('cascade'); // FK a characters
             $table->integer('total_comparisons')->default(0);
-            $table->timestamp('last_used_at')->nullable(); // Última vez usada
+            $table->timestamp('last_used_at')->nullable()->default('1970-01-01 00:00:00'); // Última vez usada
             $table->boolean('status')->default(1); // 1=activa, 0=no
             $table->timestamps(); // created_at, updated_at
 

@@ -175,9 +175,8 @@ class CombinatoricService
                                 });
                 return $query // <-- CARGA RELACIONES
                         ->with(['character1', 'character2']) // Asegura que character1 y character2 se carguen
-                        // ->where('character1.status', true)
-                        // ->where('character2.status', true)
-                        ->orderByRaw('COALESCE(last_used_at, "1970-01-01") ASC')
+                        // ->orderByRaw('COALESCE(last_used_at, "1970-01-01") ASC')
+                        ->orderBy('combinatorics.last_used_at', 'ASC') // <-- Simplificado
                         ->first();
         }
 
