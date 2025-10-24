@@ -41,6 +41,8 @@ class CombinatoricService
                     'character1_id' => $char1Id,
                     'character2_id' => $char2Id,
                     'status' => true, // Activa por defecto
+                    // Establecer explícitamente last_used_at a una fecha antigua al crear
+                    'last_used_at' => '1970-01-01 00:00:00', // <-- Valor inicial explícito
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -60,7 +62,15 @@ class CombinatoricService
 
             // Por ahora, asumiremos que se llama en un contexto limpio o que se manejan duplicados externamente si es necesario.
             // La clave única (survey_id, character1_id, character2_id) en la migración prevendrá duplicados reales.
-            DB::table('combinatorics')->insert($combinationsToCreate);
+            // DB::table('combinatorics')->insert($combinationsToCreate);
+
+            // Usar upsert para evitar duplicados si se llama múltiples veces
+            // Asegúrate de que las columnas de la clave única estén en 'uniqueBy'
+            DB::table('combinatorics')->upsert(
+                $combinationsToCreate,
+                ['survey_id', 'character1_id', 'character2_id'], // uniqueBy
+                [] // updateColumns - vacío significa no actualizar si ya existe, solo insertar/ignorar
+            );
         }
     }
 
@@ -192,8 +202,11 @@ class CombinatoricService
      */
     public function markCombinationUsed(Combinatoric $combinatoric): void
     {
+        // Actualizar usando incremento y fecha actual
+        // Usar update con DB::raw es atómico y evita problemas de concurrencia
         $combinatoric->update([
-            'total_comparisons' => $combinatoric->total_comparisons + 1,
+            // 'total_comparisons' => $combinatoric->total_comparisons + 1,
+            'total_comparisons' => DB::raw('total_comparisons + 1'),
             'last_used_at' => now(),
         ]);
     }

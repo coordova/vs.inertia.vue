@@ -20,6 +20,20 @@ class PublicSurveyController extends Controller
         // $this->middleware('auth');
     }
 
+    public function index(Request $request): Response
+    {
+        // Obtener encuestas públicas activas
+        $surveys = Survey::where('status', true)
+                         ->where('date_start', '<=', now())
+                         ->where('date_end', '>=', now())
+                         ->get();
+
+        // Pasar datos a la vista Inertia
+        return Inertia::render('Surveys/PublicIndex', [
+            'surveys' => $surveys,
+        ]);
+    }
+
     /**
      * Muestra la página de una encuesta específica para votar.
      *
