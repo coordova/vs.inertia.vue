@@ -26,6 +26,8 @@ return new class extends Migration
 
             // Índices para claves foráneas y búsqueda
             $table->index(['character1_id', 'character2_id']);
+            $table->index('last_used_at'); // Crea combinatorics_last_used_at_index
+            $table->index(['survey_id', 'status']); // Crea combinatorics_survey_id_status_index
             // Los índices de FK se crean implícitamente por 'constrained()'
         });
     }

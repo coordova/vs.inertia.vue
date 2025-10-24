@@ -30,6 +30,8 @@ return new class extends Migration
 
             $table->unique('fullname'); // Asegura unicidad de fullname
             // $table->unique('slug');     // Asegura unicidad de slug
+
+            $table->index('status'); // Crea characters_status_index
         });
     }
 

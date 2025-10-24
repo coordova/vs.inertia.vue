@@ -33,6 +33,7 @@ return new class extends Migration
             $table->index(['voted_at']); // Para consultas temporales
             $table->index(['user_id', 'survey_id']); // Para progreso de usuario por encuesta
             $table->index(['survey_id', 'voted_at']); // Para análisis de votos por encuesta y tiempo
+            $table->index(['combinatoric_id', 'user_id']); // Crea votes_combinatoric_id_user_id_index
             // Los índices de FK individuales ya están cubiertos por las definiciones de FK
         });
     }
