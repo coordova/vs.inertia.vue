@@ -95,6 +95,7 @@ class SurveyVoteController extends Controller
         }
 
         $combinatoric = $surveyData->combinatorics->first();
+        // dd($combinatoric);
         if (!$combinatoric) {
             // Combinación no encontrada o no pertenece a la encuesta (verificado por el where en with)
             return redirect()->route('surveys.public.index')->with('error', 'Invalid combination for this survey.');
@@ -187,10 +188,16 @@ class SurveyVoteController extends Controller
 
             // --- PASO 2: Marcar la combinación como usada ---
             // Incrementar total_comparisons y actualizar last_used_at
-            $combinatoric->update([
+            /* $combinatoric->update([
                 'total_comparisons' => DB::raw('total_comparisons + 1'),
                 'last_used_at' => now(),
-            ]);
+            ]); */
+            // Incrementar total_comparisons de forma atómica
+            $combinatoric->increment('total_comparisons');
+
+            // Actualizar last_used_at
+            $combinatoric->update(['last_used_at' => now()]);
+
             // Nota: Usar update con DB::raw es atómico. Alternativa: $combinatoric->increment('total_comparisons'); pero eso requiere recargar el modelo después.
 
             // --- PASO 3: Actualizar el progreso del usuario en `survey_user` ---
