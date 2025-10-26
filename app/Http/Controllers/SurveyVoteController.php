@@ -315,7 +315,12 @@ class SurveyVoteController extends Controller
             } elseif ($result === 'draw') {
                 $updateDataChar1['survey_ties'] = DB::raw('survey_ties + 1');
             }
-            $characterSurvey1Pivot->update($updateDataChar1);
+            // $characterSurvey1Pivot->update($updateDataChar1);
+            // Actualizar estadísticas para character1 usando DB::table para evitar errores con DB::raw
+            DB::table('character_survey')
+                ->where('character_id', $character1Id)
+                ->where('survey_id', $surveyData->id)
+                ->update($updateDataChar1); 
 
             // Actualizar estadísticas para character2
             $updateDataChar2 = [
@@ -330,7 +335,12 @@ class SurveyVoteController extends Controller
             } elseif ($result === 'draw') {
                 $updateDataChar2['survey_ties'] = DB::raw('survey_ties + 1');
             }
-            $characterSurvey2Pivot->update($updateDataChar2);
+            // $characterSurvey2Pivot->update($updateDataChar2);
+            // Actualizar estadísticas para character2 usando DB::table para evitar errores con DB::raw
+            DB::table('character_survey')
+                ->where('character_id', $character2Id)
+                ->where('survey_id', $surveyData->id)
+                ->update($updateDataChar2); 
 
         }); // --- Fin de la transacción DB::transaction ---
 
