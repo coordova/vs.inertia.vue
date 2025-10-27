@@ -141,6 +141,7 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     id: number;
     category_id: number; // ID de la categoría
     category: CategoryData; // Objeto de la categoría relacionada (resuelto)
+    category: CategoryResource;
     title: string;
     slug: string;
     description: string;

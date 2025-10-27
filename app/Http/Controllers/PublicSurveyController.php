@@ -10,7 +10,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Http\Resources\CharacterResource;
-use App\Http\Resources\SurveyResource; // Asegúrate de importar SurveyResource
+use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
+use App\Http\Resources\SurveyShowResource; // Asegúrate de importar SurveyResource
 
 class PublicSurveyController extends Controller
 {
@@ -34,7 +35,7 @@ class PublicSurveyController extends Controller
 
         // Pasar datos a la vista Inertia
         return Inertia::render('Surveys/PublicIndex', [
-            'surveys' => SurveyResource::collection($surveys), // Usar Resource para coherencia
+            'surveys' => SurveyIndexResource::collection($surveys), // Usar Resource para coherencia
         ]);
     }
 
@@ -70,7 +71,7 @@ class PublicSurveyController extends Controller
 
         // Pasar datos a la vista Inertia de resumen
         return Inertia::render('Surveys/PublicShow', [ // O 'Surveys/Summary'
-            'survey' => new SurveyResource($survey), // Usar Resource
+            'survey' => /* new SurveyShowResource */($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
             'userProgress' => $progressStatus,
             // Puedes pasar otros datos necesarios aquí (estadísticas generales, etc.)
@@ -129,7 +130,7 @@ class PublicSurveyController extends Controller
 
         // Pasar datos a la vista Inertia de votación
         return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
-            'survey' => new SurveyResource($survey), // Usar Resource
+            'survey' => /* new SurveyShowResource */($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
             'userProgress' => $progressStatus,
             // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService

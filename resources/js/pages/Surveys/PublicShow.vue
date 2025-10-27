@@ -23,7 +23,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
+console.log(props);
 // Determinar si el usuario puede votar (no ha completado la encuesta)
 const canVote = !props.userProgress.is_completed;
 </script>
