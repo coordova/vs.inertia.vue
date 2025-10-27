@@ -178,9 +178,9 @@ function goToPage(page: number) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
-                                    value="10"
-                                    :selected="perPage === '10'"
-                                    >10</SelectItem
+                                    value="15"
+                                    :selected="perPage === '15'"
+                                    >15</SelectItem
                                 >
                                 <SelectItem
                                     value="25"

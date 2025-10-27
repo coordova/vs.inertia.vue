@@ -104,7 +104,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <Button asChild variant="default">
                         <Link
                             :href="
-                                route('admin.surveys.vote', props.survey?.id)
+                                route('surveys.public.show', props.survey?.id)
                             "
                         >
                             Start Voting
@@ -432,7 +432,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </Link>
                 </Button>
                 <Button asChild variant="default">
-                    <Link :href="route('admin.surveys.vote', props.survey?.id)">
+                    <Link
+                        :href="route('surveys.public.show', props.survey?.id)"
+                    >
                         Start Voting
                     </Link>
                 </Button>

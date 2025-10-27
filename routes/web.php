@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Ruta para procesar un voto (requiere autenticación)
-Route::middleware(['auth'])->post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
+// Route::middleware(['auth'])->post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
 
 /* -------------------------------------------------------------*/
 
