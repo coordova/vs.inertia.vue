@@ -14,7 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/composables/useToast';
-import AppLayout from '@/layouts/AppLayout.vue'; // Asumiendo AppLayout como layout principal
+import VotingLayout from '@/layouts/VotingLayout.vue'; // Asumiendo AppLayout como layout principal
 
 // Tipos
 import type { CharacterResource, SurveyResource } from '@/types/global'; // Asumiendo que CharacterResource tiene id, fullname, picture, etc.
@@ -230,7 +230,12 @@ onUnmounted(() => {
 <template>
     <Head :title="`Voting: ${surveyData.title}`" />
 
-    <AppLayout>
+    <!-- ✅ Usar layout especializado para votación -->
+    <VotingLayout
+        :survey-title="survey.title"
+        :survey-id="survey.id"
+        :show-progress="true"
+    >
         <!-- Asumiendo que AppLayout maneja breadcrumbs si es necesario -->
         <div class="container mx-auto py-8">
             <div
@@ -532,7 +537,7 @@ onUnmounted(() => {
                 </main>
             </div>
         </div>
-    </AppLayout>
+    </VotingLayout>
 </template>
 
 <style scoped>

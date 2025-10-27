@@ -9,6 +9,8 @@
 
 return [
     'only' => [
+        'dashboard',
+        
         'admin.users.index',
         'admin.users.show',
         // 'admin.users.create',
