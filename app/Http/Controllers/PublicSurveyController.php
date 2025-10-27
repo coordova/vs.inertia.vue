@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Http\Resources\CharacterResource;
+use App\Http\Resources\SurveyResource; // Asegúrate de importar SurveyResource
 
 class PublicSurveyController extends Controller
 {
@@ -22,20 +23,24 @@ class PublicSurveyController extends Controller
 
     public function index(Request $request): Response
     {
+        // TODO: Implementar paginación, búsqueda, filtros si es necesario
         // Obtener encuestas públicas activas
         $surveys = Survey::where('status', true)
                          ->where('date_start', '<=', now())
                          ->where('date_end', '>=', now())
-                         ->get();
+                         ->with(['category']) // Cargar categoría para mostrarla
+                         ->orderBy('created_at', 'desc') // O el orden que prefieras
+                         ->paginate($request->get('per_page', 15))->withQueryString();
 
         // Pasar datos a la vista Inertia
         return Inertia::render('Surveys/PublicIndex', [
-            'surveys' => $surveys,
+            'surveys' => SurveyResource::collection($surveys), // Usar Resource para coherencia
         ]);
     }
 
     /**
-     * Muestra la página de una encuesta específica para votar.
+     * Verifica y muestra la información de resumen de una encuesta específica.
+     * NO inicia automáticamente la sesión de votación.
      *
      * @param Survey $survey El modelo de encuesta, inyectado por Laravel gracias al route model binding.
      * @return Response
@@ -43,7 +48,7 @@ class PublicSurveyController extends Controller
     public function show(Survey $survey): Response
     {
         // Verificar si la encuesta está activa
-        if (!$survey->status || $survey->date_start > now() || $survey->date_end < now()) {
+        if (!$this->isSurveyActive($survey)) {
             abort(404, 'Survey not found or not active.');
         }
 
@@ -54,25 +59,96 @@ class PublicSurveyController extends Controller
             abort(401, 'Authentication required to view this survey.');
         }
 
-        // Cargar datos necesarios: detalles de la encuesta, personajes participantes, estado del usuario
-        // Cargamos la categoría de la encuesta
-        $survey->load('category');
+        // Cargar datos necesarios para el resumen
+        $survey->loadMissing(['category']); // Cargar categoría si no está cargada
 
-        // Cargamos los personajes activos en esta encuesta (usando la relación pivote character_survey)
+        // Cargar personajes activos en esta encuesta
         $activeCharacters = $survey->characters()->wherePivot('is_active', true)->get();
 
         // Verificar el estado del progreso del usuario en esta encuesta
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
 
-        // Pasar datos a la vista Inertia
-        return Inertia::render('Surveys/PublicShow', [
-            'survey' => $survey, // Se asume que SurveyResource se usa aquí o se formatea directamente
-            'characters' => CharacterResource::collection($activeCharacters), // Se asume que CharacterResource se usa aquí o se formatea directamente
-            'userProgress' => $progressStatus, // Información del progreso del usuario
+        // Pasar datos a la vista Inertia de resumen
+        return Inertia::render('Surveys/PublicShow', [ // O 'Surveys/Summary'
+            'survey' => new SurveyResource($survey), // Usar Resource
+            'characters' => CharacterResource::collection($activeCharacters),
+            'userProgress' => $progressStatus,
+            // Puedes pasar otros datos necesarios aquí (estadísticas generales, etc.)
+        ]);
+    }
+
+    /**
+     * Prepara la encuesta para que el usuario pueda votar.
+     * Verifica la encuesta, inicia la sesión del usuario si no existe,
+     * y obtiene la próxima combinación para mostrar.
+     *
+     * @param Survey $survey El modelo de encuesta, inyectado por Laravel.
+     * @return Response
+     */
+    public function vote(Survey $survey): Response
+    {
+         // Verificar si la encuesta está activa
+        if (!$this->isSurveyActive($survey)) {
+            abort(404, 'Survey not found or not active.');
+        }
+
+        // Obtener el usuario autenticado
+        $user = Auth::user();
+        if (!$user) {
+            abort(401, 'Authentication required to participate in this survey.');
+        }
+
+        // Cargar datos necesarios
+        $survey->loadMissing(['category']); // Cargar categoría
+
+        // --- Verificar/Iniciar sesión de votación del usuario ---
+        // Obtener o iniciar el progreso del usuario en esta encuesta
+        $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
+
+        if (!$progressStatus['exists']) {
+            // Si no existe una entrada en survey_user, la creamos/iniciamos
+            // Esto también calcula y almacena total_combinations_expected
+            $this->surveyProgressService->startSurveySession($survey, $user);
+            // Refrescar el estado después de iniciar la sesión
+            $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
+        }
+
+        if ($progressStatus['is_completed']) {
+            // Si el usuario ya completó la encuesta, redirigir o mostrar mensaje
+            return redirect()->route('surveys.public.show', $survey)->with('info', 'You have already completed this survey.');
+        }
+
+        // Cargar personajes activos en esta encuesta (para mostrar en la UI si es necesario)
+        $activeCharacters = $survey->characters()->wherePivot('is_active', true)->get();
+
+        // --- Obtener la próxima combinación ---
+        // Aquí es donde se conectaría la lógica para obtener la combinación
+        // Por ejemplo, usando CombinatoricService (que aún no se muestra, pero se asume existe)
+        // $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+        // Si no hay más combinaciones, $nextCombination será null
+
+        // Pasar datos a la vista Inertia de votación
+        return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
+            'survey' => new SurveyResource($survey), // Usar Resource
+            'characters' => CharacterResource::collection($activeCharacters),
+            'userProgress' => $progressStatus,
+            // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
             // Puedes pasar otros datos necesarios aquí
         ]);
     }
 
-    // Opcional: Método index para listar encuestas públicas
-    // public function index(Request $request): Response { ... }
+
+    /**
+     * Verifica si una encuesta está activa.
+     *
+     * @param Survey $survey
+     * @return bool
+     */
+    private function isSurveyActive(Survey $survey): bool
+    {
+        return $survey->status && $survey->date_start <= now() && $survey->date_end >= now();
+    }
+
+    // Opcional: Otros métodos como store (para recibir votos) irían aquí o en un SurveyVoteController dedicado
+    // public function store(...) { ... }
 }

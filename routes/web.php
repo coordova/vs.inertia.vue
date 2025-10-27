@@ -46,15 +46,19 @@ Route::get('/landing', [PublicController::class, 'index'])->name('landing.index'
 Route::get('/categories', [PublicCategoryController::class, 'index'])->name('categories.public.index');
 Route::get('/categories/{category}', [PublicCategoryController::class, 'show'])->name('categories.public.show');
 Route::get('/surveys', [PublicSurveyController::class, 'index'])->name('surveys.public.index'); // Opcional: Ruta para listar encuestas públicas (si no se ha hecho)
-// Ruta para mostrar una encuesta específica
+// Ruta para mostrar una encuesta específica - resumen
 Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
 /* -------------------------------------------------------------*/
 // Ruta para votar - dentro del grupo auth
 Route::middleware('auth')->group(function () {
+    // Ruta para votar - iniciar votación
+    Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.public.vote');
+
+    // Ruta para votar - procesar voto
     Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
 
     // Ruta para ver una encuesta específica (pública o privada, según necesidad) - se requiere autenticación para ver los detalles de la encuesta:
-    Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
+    // Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.public.show');
     // Ruta para procesar un voto (requiere autenticación)
     // Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
 });
