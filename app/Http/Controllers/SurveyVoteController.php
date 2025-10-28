@@ -341,7 +341,6 @@ class SurveyVoteController extends Controller
                 ->where('character_id', $character2Id)
                 ->where('survey_id', $surveyData->id)
                 ->update($updateDataChar2); 
-
         }); // --- Fin de la transacción DB::transaction ---
 
         // --- Si llegamos aquí, la transacción fue exitosa ---

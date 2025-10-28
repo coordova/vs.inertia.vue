@@ -87,10 +87,13 @@ class EloRatingService
                 // Esto podría suceder si uno de los personajes no está registrado en la categoría
                 throw new \Exception("Ratings not found for one or both characters ({$character1Id}, {$character2Id}) in category {$categoryId}.");
             }
+// dump($categoryId, $character1Id, $character2Id, $newRating1, $newRating2, $result);
 
             // Obtener los objetos pivote usando la colección
             $pivot1 = $pivotsCollection[$character1Id];
             $pivot2 = $pivotsCollection[$character2Id];
+
+// dump($pivot1, $pivot2);
 
             // --- Actualizar en memoria ---
             // Actualizar personaje 1
@@ -100,6 +103,8 @@ class EloRatingService
                 $pivot1->wins += 1;
             } elseif ($result === 'loss') {
                 $pivot1->losses += 1;
+            } elseif ($result === 'draw') {
+                $pivot1->ties += 1;
             }
             $pivot1->win_rate = $pivot1->matches_played > 0 ? ($pivot1->wins / $pivot1->matches_played) * 100 : 0.00;
             $pivot1->highest_rating = max($pivot1->highest_rating, $newRating1);
@@ -113,11 +118,15 @@ class EloRatingService
                 $pivot2->wins += 1;
             } elseif ($result === 'win') { // Si 1 perdió, 2 ganó
                 $pivot2->losses += 1;
+            } elseif ($result === 'draw') {
+                $pivot2->ties += 1;
             }
             $pivot2->win_rate = $pivot2->matches_played > 0 ? ($pivot2->wins / $pivot2->matches_played) * 100 : 0.00;
             $pivot2->highest_rating = max($pivot2->highest_rating, $newRating2);
             $pivot2->lowest_rating = min($pivot2->lowest_rating, $newRating2);
             $pivot2->last_match_at = now();
+
+// dd($pivot1, $pivot2);
 
             // --- Guardar ambos cambios ---
             $pivot1->save();

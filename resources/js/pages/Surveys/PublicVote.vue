@@ -17,7 +17,7 @@ import { useToast } from '@/composables/useToast';
 import VotingLayout from '@/layouts/VotingLayout.vue'; // Asumiendo AppLayout como layout principal
 
 // Tipos
-import type { CharacterResource, SurveyResource } from '@/types/global'; // Asumiendo que CharacterResource tiene id, fullname, picture, etc.
+import type { CharacterResource } from '@/types/global'; // Asumiendo que CharacterResource tiene id, fullname, picture, etc.
 
 // Interfaces específicas para este componente
 interface Combination {
@@ -26,13 +26,31 @@ interface Combination {
     character2: CharacterResource;
 }
 
+interface SurveyData {
+    id: number;
+    title: string;
+    character_count: number;
+    combinations_count: number;
+    user_votes_count: number;
+    progress_percentage: number;
+    recent_votes: Array<{
+        id: number;
+        winner: string;
+        loser: string;
+        created_at: string;
+        created_at_raw: string;
+    }>;
+    is_completed: boolean;
+    remaining_combinations: number;
+}
+
 interface Props {
-    survey: SurveyResource; // El objeto survey con datos de progreso incluidos
+    survey: SurveyData; // El objeto survey con datos de progreso incluidos
     // initialCombination?: Combination | null; // Opcional: Pasar la primera combinación desde el controlador
 }
 
 const props = defineProps<Props>();
-
+console.log(props);
 // --- Composables ---
 const { success, error } = useToast();
 const page = usePage(); // Para acceder a props globales si es necesario
@@ -42,7 +60,7 @@ const currentCombination = ref<Combination | null>(null);
 const loading = ref(false);
 const voting = ref(false);
 // Ref para mantener una copia reactiva de survey que pueda actualizarse
-const surveyData = ref<SurveyResource>({ ...props.survey });
+const surveyData = ref<SurveyData>({ ...props.survey });
 
 // --- Computed Properties ---
 // Progreso calculado (por si no viene directamente del backend o para reactividad)
