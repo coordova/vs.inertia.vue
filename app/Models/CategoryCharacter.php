@@ -26,9 +26,21 @@ class CategoryCharacter extends Model
      */
     public $timestamps = true; // Asumiendo que tiene timestamps
 
-   /*  protected $fillable = [
+    protected $fillable = [
+        'elo_rating',
+        'matches_played',
+        'wins',
+        'losses',
         'ties',
-    ]; */
+        'win_rate',
+        'highest_rating',
+        'lowest_rating',
+        'rating_deviation',
+        'last_match_at',
+        'is_featured',
+        'sort_order',
+        'status',
+    ];
 
     /**
      * The attributes that should be cast.
