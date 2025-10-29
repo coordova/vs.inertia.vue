@@ -26,6 +26,8 @@ class CategoryCharacter extends Model
      */
     public $timestamps = true; // Asumiendo que tiene timestamps
 
+    protected $primaryKey = ['category_id', 'character_id'];
+
     protected $fillable = [
         'elo_rating',
         'matches_played',

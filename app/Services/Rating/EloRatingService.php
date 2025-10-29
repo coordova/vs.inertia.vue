@@ -5,6 +5,7 @@ namespace App\Services\Rating;
 use App\Models\CategoryCharacter; // Modelo pivote
 use Illuminate\Support\Collection; // Importar Collection
 use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
+use Illuminate\Support\Facades\Log; // Para registro de errores
 
 class EloRatingService
 {
@@ -129,8 +130,11 @@ class EloRatingService
 // dd($pivot1, $pivot2);
 
             // --- Guardar ambos cambios ---
-            $pivot1->save();
-            $pivot2->save();
+            $ok1 = $pivot1->save();
+            $ok2 = $pivot2->save();
+
+Log::info('CategoryCharacter updated', ['ok1' => $ok1, 'ok2' => $ok2, 'pivot1' => $pivot1, 'pivot2' => $pivot2]);
+
         });
     }
 
