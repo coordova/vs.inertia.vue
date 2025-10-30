@@ -14,7 +14,41 @@ class EloRatingService
     private float $K_FACTOR_NEW_PLAYER = 40.0; // K factor inicial para nuevos jugadores, opcional
     private int $MATCHES_FOR_K_FACTOR_REDUCTION = 30; // Número de partidas para reducir K
 
-    // ... (método calculateNewRatings permanece igual) ...
+    /**
+     * Calcula los nuevos ratings ELO para dos personajes basado en el resultado de un enfrentamiento.
+     *
+     * @param float $rating1 Rating ELO actual del personaje 1.
+     * @param float $rating2 Rating ELO actual del personaje 2.
+     * @param string $result Resultado: 'win' (personaje 1 gana), 'loss' (personaje 1 pierde), 'draw' (empate).
+     * @param float $tieWeight Peso del empate (0.5 para empate estándar, configurable).
+     * @return array [newRating1, newRating2]
+     */
+    public function calculateNewRatings(float $rating1, float $rating2, string $result, float $tieWeight = 0.5): array
+    {
+        $expected1 = $this->calculateExpectedScore($rating2, $rating1);
+        $expected2 = $this->calculateExpectedScore($rating1, $rating2);
+
+        $score1 = match ($result) {
+            'win' => 1.0,
+            'loss' => 0.0,
+            'draw' => $tieWeight, // Permitir peso configurable para empates
+            default => 0.5, // Valor por defecto, aunque debería validarse antes
+        };
+        $score2 = 1 - $score1; // Si 1 gana (score1=1), 2 pierde (score2=0). Si empate (score1=0.5), score2=0.5.
+
+        // Obtener K factor (podría depender del número de partidas o ser fijo)
+        $k1 = $this->getKFactorForCharacter($rating1); // TODO: Implementar lógica de K factor dinámico si es necesario
+        $k2 = $this->getKFactorForCharacter($rating2);
+
+        $newRating1 = $rating1 + $k1 * ($score1 - $expected1);
+        $newRating2 = $rating2 + $k2 * ($score2 - $expected2);
+
+        // Asegurar que los ratings no sean negativos
+        $newRating1 = max(0, $newRating1);
+        $newRating2 = max(0, $newRating2);
+
+        return [$newRating1, $newRating2];
+    }
 
     /**
      * Aplica los nuevos ratings calculados a los registros CategoryCharacter.
@@ -151,5 +185,29 @@ class EloRatingService
         }); // --- Fin de la transacción DB::transaction ---
     }
 
-    // ... (resto del servicio: calculateExpectedScore, getKFactorForCharacter) ...
+    /**
+     * Calcula la puntuación esperada para un jugador basado en la diferencia de rating.
+     *
+     * @param float $opponentRating Rating del oponente.
+     * @param float $playerRating Rating del jugador.
+     * @return float Puntuación esperada (0.0 a 1.0).
+     */
+    private function calculateExpectedScore(float $opponentRating, float $playerRating): float
+    {
+        return 1.0 / (1.0 + pow(10, ($opponentRating - $playerRating) / 400.0));
+    }
+
+    /**
+     * Determina el K factor para un personaje (podría ser dinámico basado en partidas jugadas).
+     * Por ahora, devuelve un valor fijo.
+     *
+     * @param float $currentRating El rating actual del personaje (podría usarse para lógica futura).
+     * @return float El K factor a usar.
+     */
+    private function getKFactorForCharacter(float $currentRating): float
+    {
+        // TODO: Implementar lógica de K factor dinámico (ej: K=40 para primeras X partidas, K=32 después)
+        // Por ahora, usar K factor estándar
+        return $this->K_FACTOR_DEFAULT;
+    }
 }

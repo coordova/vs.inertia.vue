@@ -7,22 +7,17 @@ use App\Models\Survey;
 use App\Models\Combinatoric;
 use App\Models\Vote;
 use App\Models\User;
-// Modelos pivote (no se usarán directamente para escritura, solo para lectura/creación inicial)
-use App\Models\CategoryCharacter; // Modelo pivote (solo lectura aquí)
-use App\Models\CharacterSurvey; // Modelo pivote (solo lectura/creación aquí)
-use App\Models\SurveyUser; // Modelo pivote (solo lectura/creación aquí)
-// Servicios
+use App\Models\CategoryCharacter; // Modelo pivote
+use App\Models\CharacterSurvey; // Modelo pivote
+use App\Models\SurveyUser; // Modelo pivote
 use App\Services\Survey\CombinatoricService;
 use App\Services\Survey\SurveyProgressService;
 use App\Services\Rating\EloRatingService;
-// Request y Response
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-// Facades
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log; // Para registro de errores
-// Form Request
 use App\Http\Requests\StoreVoteRequest; // Asumiendo que existe y valida correctamente
 
 class SurveyVoteController extends Controller
@@ -40,7 +35,6 @@ class SurveyVoteController extends Controller
     /**
      * Recibe un voto para una combinación específica dentro de una encuesta.
      * Optimizado para minimizar consultas a la base de datos y manejar transacciones.
-     * Utiliza Query Builder para tablas pivote con clave primaria compuesta.
      *
      * @param StoreVoteRequest $request // Request validado
      * @param int $surveyId ID de la encuesta
@@ -62,6 +56,7 @@ class SurveyVoteController extends Controller
         $tie = $validatedData['tie'] ?? false;
 
         // --- Validación de Lógica de Negocio DESPUÉS de la validación básica ---
+        // Aunque StoreVoteRequest valida exists, revalidamos la lógica aquí por claridad.
         if ($tie) {
             // Si es empate, winner_id y loser_id DEBEN estar ausentes o null en la validación
             // y por lo tanto también serán null aquí. No necesitamos verificarlos.
@@ -74,7 +69,7 @@ class SurveyVoteController extends Controller
             }
         }
 
-        // 3. Cargar datos críticos en una sola transacción con JOINs para evitar N+1
+        // 3. Cargar datos críticos en una sola consulta con JOINs para evitar N+1
         // Cargamos la encuesta, la combinación, los personajes de la combinación y sus ratings ELO en la categoría de la encuesta
         // También cargamos survey.total_combinations (nueva columna)
         $surveyData = Survey::with([
@@ -115,7 +110,6 @@ class SurveyVoteController extends Controller
             if (!in_array($winnerId, $validCharacterIds) || !in_array($loserId, $validCharacterIds)) {
                 return back()->withErrors(['winner_id' => 'Selected characters do not match the combination.'])->withInput();
             }
-            // La verificación $winnerId !== $loserId ya se hizo arriba.
         }
 
         // 6. Verificar estado del progreso del usuario (fuera de la transacción principal para lectura)
@@ -152,6 +146,7 @@ class SurveyVoteController extends Controller
 
         if ($eloRatings->count() !== 2) {
              // Uno o ambos personajes no tienen entrada en category_character para esta categoría
+            // Esto es un error interno o inconsistencia de datos
             Log::error("Ratings not found for one or both characters ({$character1Id}, {$character2Id}) in category {$categoryId} for survey {$surveyId}.");
             return redirect()->route('surveys.public.index')->with('error', 'Ratings not found for one or both characters in this category.'); // Error interno o inconsistencia de datos
         }
@@ -222,26 +217,15 @@ class SurveyVoteController extends Controller
                 $newProgressPercentage = min(100.0, ($newTotalVotes / $totalExpected) * 100);
             }
 
-            // --- CORRECCIÓN FINAL: Actualizar progreso usando Query Builder ---
-            // Usar DB::table()->where()->update() para evitar problemas con claves compuestas
-            $updatedRows = DB::table('survey_user')
-                ->where('user_id', $user->id)
-                ->where('survey_id', $surveyData->id)
-                ->update([
-                    'total_votes' => DB::raw('total_votes + 1'), // Incrementar total_votes en 1 de forma atómica
-                    'progress_percentage' => $newProgressPercentage,
-                    'last_activity_at' => now(),
-                    'updated_at' => now(), // Actualizar updated_at
-                    // 'is_completed' y 'completed_at' se pueden actualizar aquí si se completa, o en otro proceso.
-                ]);
-
-            // Verificar que se actualizó exactamente una fila
-            if ($updatedRows !== 1) {
-                 Log::warning("SurveyVoteController@store: Expected to update 1 row in survey_user for user {$user->id} and survey {$surveyData->id}, but updated {$updatedRows} rows.");
-                // O lanzar una excepción si se considera un error crítico
-                // throw new \Exception("Failed to update survey_user progress for user {$user->id} and survey {$surveyData->id}.");
-            }
-            // --- FIN CORRECCIÓN FINAL ---
+            // --- CORRECCIÓN: Actualizar progreso SIN usar DB::raw en update() ---
+            // Usar increment() y update() por separado para evitar errores con DB::raw
+            $surveyUserPivot->increment('total_votes'); // Incrementa total_votes en 1 de forma atómica
+            $surveyUserPivot->update([ // Actualiza otros campos con valores escalares
+                'progress_percentage' => $newProgressPercentage,
+                'last_activity_at' => now(),
+                // 'is_completed' y 'completed_at' se pueden actualizar aquí si se completa, o en otro proceso.
+            ]);
+            // --- FIN CORRECCIÓN ---
 
 
             // --- PASO 4: Calcular y aplicar nuevos ratings ELO ---
@@ -267,9 +251,9 @@ class SurveyVoteController extends Controller
 
             // Pasar los nuevos ratings y el resultado al servicio ELO para aplicarlos
             // El servicio debe encargarse de cargar los modelos CategoryCharacter y actualizarlos
-            // --- CORRECCIÓN FINAL: Pasar $character1Id, $character2Id en lugar de $winnerId, $loserId ---
+            // --- CORRECCIÓN: Pasar $character1Id, $character2Id en lugar de $winnerId, $loserId ---
             $this->eloRatingService->applyRatings($categoryId, $character1Id, $character2Id, $newRating1, $newRating2, $result);
-            // --- FIN CORRECCIÓN FINAL ---
+            // --- FIN CORRECCIÓN ---
 
 
             // --- PASO 5: Actualizar estadísticas específicas de encuesta en `character_survey` ---
@@ -293,32 +277,18 @@ class SurveyVoteController extends Controller
                 ]
             );
 
-            // --- CORRECCIÓN FINAL: Actualizar estadísticas de character1 usando Query Builder ---
-            // Usar DB::table()->where()->update() para evitar problemas con claves compuestas
-            // y DB::raw para incrementos atómicos
-            $updateDataChar1 = [
-                'survey_matches' => DB::raw('survey_matches + 1'),
-                'updated_at' => now(),
-            ];
+            // --- CORRECCIÓN: Actualizar estadísticas de character1 SIN usar DB::raw en update() ---
+            // Usar increment() para campos numéricos y update() para otros
+            $characterSurvey1Pivot->increment('survey_matches'); // survey_matches + 1
             if ($result === 'win') {
-                $updateDataChar1['survey_wins'] = DB::raw('survey_wins + 1');
+                $characterSurvey1Pivot->increment('survey_wins'); // survey_wins + 1
             } elseif ($result === 'loss') {
-                $updateDataChar1['survey_losses'] = DB::raw('survey_losses + 1');
+                $characterSurvey1Pivot->increment('survey_losses'); // survey_losses + 1
             } elseif ($result === 'draw') {
-                $updateDataChar1['survey_ties'] = DB::raw('survey_ties + 1');
+                $characterSurvey1Pivot->increment('survey_ties'); // survey_ties + 1
             }
-            $updatedRowsChar1 = DB::table('character_survey')
-                ->where('character_id', $character1Id)
-                ->where('survey_id', $surveyData->id)
-                ->update($updateDataChar1);
-
-            // Verificar que se actualizó exactamente una fila
-            if ($updatedRowsChar1 !== 1) {
-                 Log::warning("SurveyVoteController@store: Expected to update 1 row in character_survey for character {$character1Id} and survey {$surveyData->id}, but updated {$updatedRowsChar1} rows.");
-                // O lanzar una excepción si se considera un error crítico
-                // throw new \Exception("Failed to update character_survey stats for character {$character1Id} and survey {$surveyData->id}.");
-            }
-            // --- FIN CORRECCIÓN FINAL ---
+            $characterSurvey1Pivot->update(['updated_at' => now()]); // Actualiza updated_at
+            // --- FIN CORRECCIÓN ---
 
             // Para character2
             /** @var CharacterSurvey $characterSurvey2Pivot */
@@ -340,33 +310,19 @@ class SurveyVoteController extends Controller
                 ]
             );
 
-            // --- CORRECCIÓN FINAL: Actualizar estadísticas de character2 usando Query Builder ---
-            // Usar DB::table()->where()->update() para evitar problemas con claves compuestas
-            // y DB::raw para incrementos atómicos
-            $updateDataChar2 = [
-                'survey_matches' => DB::raw('survey_matches + 1'),
-                'updated_at' => now(),
-            ];
+            // --- CORRECCIÓN: Actualizar estadísticas de character2 SIN usar DB::raw en update() ---
+            // Usar increment() para campos numéricos y update() para otros
+            $characterSurvey2Pivot->increment('survey_matches'); // survey_matches + 1
             // Invertir lógica para character2
             if ($result === 'loss') { // Si char1 ganó, char2 perdió
-                $updateDataChar2['survey_wins'] = DB::raw('survey_wins + 1');
+                $characterSurvey2Pivot->increment('survey_wins'); // survey_wins + 1
             } elseif ($result === 'win') { // Si char1 perdió, char2 ganó
-                $updateDataChar2['survey_losses'] = DB::raw('survey_losses + 1');
+                $characterSurvey2Pivot->increment('survey_losses'); // survey_losses + 1
             } elseif ($result === 'draw') {
-                $updateDataChar2['survey_ties'] = DB::raw('survey_ties + 1');
+                $characterSurvey2Pivot->increment('survey_ties'); // survey_ties + 1
             }
-            $updatedRowsChar2 = DB::table('character_survey')
-                ->where('character_id', $character2Id)
-                ->where('survey_id', $surveyData->id)
-                ->update($updateDataChar2);
-
-            // Verificar que se actualizó exactamente una fila
-            if ($updatedRowsChar2 !== 1) {
-                 Log::warning("SurveyVoteController@store: Expected to update 1 row in character_survey for character {$character2Id} and survey {$surveyData->id}, but updated {$updatedRowsChar2} rows.");
-                // O lanzar una excepción si se considera un error crítico
-                // throw new \Exception("Failed to update character_survey stats for character {$character2Id} and survey {$surveyData->id}.");
-            }
-            // --- FIN CORRECCIÓN FINAL ---
+            $characterSurvey2Pivot->update(['updated_at' => now()]); // Actualiza updated_at
+            // --- FIN CORRECCIÓN ---
 
         }); // --- Fin de la transacción DB::transaction ---
 
