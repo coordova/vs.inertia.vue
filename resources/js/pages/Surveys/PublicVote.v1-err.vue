@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import axios from 'axios';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 // Layouts & Components
 import { Button } from '@/components/ui/button';
@@ -14,39 +13,37 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/composables/useToast';
-import VotingLayout from '@/layouts/VotingLayout.vue'; // <-- Usar VotingLayout
-// import { motion } from 'framer-motion'; // Importar motion de framer-motion
+import AppLayout from '@/layouts/AppLayout.vue'; // Asumiendo AppLayout como layout principal, o uno específico para votación
 
 // Tipos: Definidos localmente para este componente
+// Esto evita dependencias de global.d.ts y mantiene el componente autónomo
+
 interface CharacterResource {
     id: number;
     fullname: string;
     nickname: string | null;
     slug: string;
     bio: string | null;
-    dob: string | null;
-    gender: number | null;
+    dob: string | null; // Formato ISO
+    gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
     nationality: string | null;
     occupation: string | null;
-    picture: string | null;
-    picture_url: string | null;
-    thumbnail_url: string | null;
+    picture: string; // Path relativo o URL
+    picture_url: string; // URL completa generada por Storage::url
     status: boolean;
     meta_title: string | null;
     meta_description: string | null;
-    created_at: string;
-    updated_at: string;
-    created_at_formatted: string;
-    updated_at_formatted: string;
-    category_ids: number[];
-    // Añadir otros campos si son necesarios
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // Añadir otros campos si son necesarios para la UI
 }
 
 interface CombinatoricResource {
-    combinatoric_id: number;
+    combinatoric_id: number; // ID del registro en la tabla combinatorics
     character1: CharacterResource;
     character2: CharacterResource;
-    // Añadir otros campos si son necesarios
+    // Puedes incluir otros campos de combinatorics si son necesarios
+    // total_comparisons, last_used_at, etc.
 }
 
 interface SurveyResource {
@@ -56,52 +53,76 @@ interface SurveyResource {
     slug: string;
     description: string | null;
     image: string | null;
-    type: number;
-    status: boolean;
+    type: number; // 0=pública, 1=privada
+    status: boolean; // 1=activa, 0=inactiva
     reverse: boolean;
-    date_start: string;
-    date_end: string;
-    selection_strategy: string;
-    max_votes_per_user: number | null;
-    allow_ties: boolean;
-    tie_weight: number;
-    is_featured: boolean;
+    date_start: string; // Formato ISO
+    date_end: string; // Formato ISO
+    selection_strategy: string; // Ej: 'cooldown', 'random', 'elo_based'
+    max_votes_per_user: number | null; // 0=ilimitado
+    allow_ties: boolean; // 1=sí, 0=no
+    tie_weight: number; // Peso de empate (0.0-1.0)
+    is_featured: boolean; // 1=sí, 0=no
     sort_order: number;
     counter: number;
     meta_title: string | null;
     meta_description: string | null;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    date_start_formatted: string;
-    date_end_formatted: string;
-    created_at_formatted: string;
-    updated_at_formatted: string;
-    total_combinations: number | null; // <-- Nueva columna en la BD
-    progress_percentage: number; // <-- Del SurveyProgressService
-    total_votes: number; // <-- Del SurveyProgressService
-    total_combinations_expected: number | null; // <-- Del SurveyProgressService
-    is_completed: boolean; // <-- Del SurveyProgressService
-    // Añadir otros campos si son necesarios
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    deleted_at: string | null; // Formato ISO
+
+    // Campos específicos de SurveyShowResource o calculados
+    category: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string | null;
+        image: string | null;
+        color: string; // Hex
+        icon: string;
+        sort_order: number;
+        status: boolean; // 1=activo, 0=inactivo
+        is_featured: boolean; // 1=sí, 0=no
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        deleted_at: string | null; // Formato ISO
+    } | null;
+
+    // Campos de progreso (calculados por el backend y pasados por SurveyProgressService)
+    progress_percentage: number; // 0.00 a 100.00
+    total_votes: number;
+    total_combinations_expected: number | null;
+    is_completed: boolean;
+    started_at: string | null; // Formato ISO
+    completed_at: string | null; // Formato ISO
+    last_activity_at: string | null; // Formato ISO
+    completion_time: number | null; // Segundos
+
+    // Fecha formateada (opcional, si se usa)
+    date_start_formatted: string; // 'd-m-Y'
+    date_end_formatted: string; // 'd-m-Y'
+    created_at_formatted: string; // 'd-m-Y H:i:s'
+    updated_at_formatted: string; // 'd-m-Y H:i:s'
 }
 
 interface UserProgress {
     exists: boolean;
     is_completed: boolean;
-    progress: number;
+    progress: number; // 0.00 a 100.00
     total_votes: number;
     total_expected: number | null;
-    pivot_id: number | null;
-    // Añadir otros campos si son necesarios
+    pivot_id: number | null; // ID del registro en survey_user
+    // Añadir otros campos del progreso si son necesarios
 }
 
 // Props del componente
 interface Props {
     survey: SurveyResource;
-    characters: CharacterResource[]; // Puede no ser necesario si solo usamos los de la combinación
+    characters: CharacterResource[]; // Lista de personajes activos en la encuesta
     userProgress: UserProgress;
-    // La combinación inicial se pasa como prop
-    nextCombination: CombinatoricResource | null;
+    nextCombination: CombinatoricResource | null; // La próxima combinación a votar, o null si no hay más/completada
 }
 
 const props = defineProps<Props>();
@@ -110,33 +131,27 @@ const props = defineProps<Props>();
 const { success, error } = useToast();
 
 // --- Estados reactivos ---
-const currentCombination = ref<CombinatoricResource | null>(
-    props.nextCombination,
-); // <-- Estado reactivo para la combinación actual
 const voting = ref(false); // Estado para deshabilitar botones durante el voto
-const loadingNext = ref(false); // Estado para mostrar indicador de carga de la siguiente combinación
 
 // --- Computed Properties ---
+// Progreso calculado (usando datos del backend)
 const progressPercentage = computed(
     () => props.survey.progress_percentage ?? 0,
 );
 const totalExpected = computed(
-    () =>
-        props.survey.total_combinations_expected ??
-        props.survey.total_combinations ??
-        0,
+    () => props.survey.total_combinations_expected ?? 0,
 );
 const totalVotes = computed(() => props.survey.total_votes ?? 0);
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
 );
 const isCompleted = computed(() => props.survey.is_completed ?? false);
-const hasCombination = computed(() => !!currentCombination.value); // <-- Usar currentCombination
+const hasCombination = computed(() => !!props.nextCombination);
 
 // --- Funciones ---
 
 /**
- * Enviar el voto al backend y cargar la siguiente combinación.
+ * Enviar el voto al backend.
  * @param winnerId ID del personaje ganador (puede ser null para empate)
  * @param loserId ID del personaje perdedor (puede ser null para empate)
  * @param isTie Booleano indicando si es empate
@@ -147,15 +162,16 @@ const submitVote = (
     isTie: boolean = false,
 ) => {
     // Prevenir votos múltiples mientras se procesa uno
-    if (!currentCombination.value || voting.value) {
+    if (!props.nextCombination || voting.value) {
         return;
     }
 
     voting.value = true;
 
     // Preparar datos para el voto
+    // Asegurarse de enviar `null` explícitamente para winner/loser en caso de empate
     const voteData = {
-        combinatoric_id: currentCombination.value.combinatoric_id,
+        combinatoric_id: props.nextCombination.combinatoric_id,
         winner_id: isTie ? null : winnerId,
         loser_id: isTie ? null : loserId,
         tie: isTie,
@@ -163,18 +179,16 @@ const submitVote = (
 
     // Usar router.post de Inertia para enviar el voto
     router.post(route('surveys.vote.store', props.survey.id), voteData, {
-        preserveScroll: true,
+        preserveScroll: true, // Mantener posición de scroll
         onSuccess: (page) => {
-            // El voto se registró correctamente
+            // El backend maneja la lógica y redirige de vuelta a esta misma página
+            // con datos actualizados (survey, nextCombination) en page.props
+            // Inertia recargará el componente con las nuevas props
             success('Vote recorded successfully!');
-
-            // --- CORRECCIÓN: Cargar la siguiente combinación dinámicamente ---
-            // Llamar a la función para obtener la próxima combinación
-            loadNextCombination();
-            // --- FIN CORRECCIÓN ---
         },
         onError: (errors) => {
             console.error('Errors submitting vote:', errors);
+            // Mostrar mensaje de error específico si existe, o uno genérico
             const errorMessage =
                 errors.combinatoric_id ||
                 errors.winner_id ||
@@ -191,144 +205,36 @@ const submitVote = (
 };
 
 /**
- * Cargar la próxima combinación para votar mediante una llamada AJAX/Inertia.
- * Esta función se llama después de un voto exitoso o al montar el componente si no hay combinación inicial.
- */
-const loadNextCombination = async () => {
-    // Si la encuesta ya está completada, no intentar cargar más combinaciones
-    if (isCompleted.value) {
-        currentCombination.value = null;
-        return;
-    }
-
-    loadingNext.value = true;
-    try {
-        // Hacer una solicitud GET al endpoint del backend para obtener la próxima combinación
-        // Asumiendo que existe una ruta API: GET /api/public/surveys/{survey}/next-combination
-        // Esta ruta debe devolver JSON { combination: { ... } } o { combination: null }
-        /* const response = await router.get(
-            route('api.public.surveys.next_combination', props.survey.id),
-            {},
-            {
-                preserveState: false, // No preservar estado viejo
-                preserveScroll: true, // Mantener scroll
-                only: ['nextCombination'], // Solo pedir la nueva combinación (si el backend la devuelve así)
-                // Si el backend devuelve toda la página, se recargará todo el componente.
-                // Para más control, se podría usar axios directamente.
-            },
-        ); */
-
-        // --- Manejo de la respuesta ---
-        // Opción 1: Si el backend devuelve solo `nextCombination` en `page.props` gracias a `only: [...]`
-        // currentCombination.value = response.props.nextCombination; // Asumiendo que el backend lo devuelve así
-
-        // Opción 2: Si el backend devuelve toda la página, `Inertia` recargará el componente automáticamente
-        // con las nuevas props. No necesitamos hacer nada aquí.
-
-        // Opción 3 (Más robusta con axios): Hacer la llamada directamente con axios
-        // y manejar la respuesta manualmente.
-
-        const axiosResponse = await axios.get(
-            route('api.public.surveys.next_combination', props.survey.id),
-        );
-        const data = axiosResponse.data;
-        if (data.combination) {
-            currentCombination.value = data.combination;
-        } else {
-            // No hay más combinaciones o encuesta completada
-            currentCombination.value = null;
-            // Opcional: Actualizar el estado de completado si el backend lo indica
-            // props.survey.is_completed = true; // Esto no funcionará directamente porque props es inmutable
-            // La mejor forma es que el backend devuelva el survey actualizado también
-            // y que Inertia lo recargue.
-        }
-    } catch (err: any) {
-        console.error('Error loading next combination:', err);
-        error('Failed to load next combination. Please try again.');
-        currentCombination.value = null; // Detener el flujo de votación en caso de error crítico
-    } finally {
-        loadingNext.value = false;
-    }
-};
-
-/**
  * Manejar el voto por el personaje 1.
  */
 const handleVoteCharacter1 = () => {
-    if (currentCombination.value) {
-        submitVote(
-            currentCombination.value.character1.id,
-            currentCombination.value.character2.id,
-            false,
-        );
-    }
+    if (!props.nextCombination) return;
+    submitVote(
+        props.nextCombination.character1.id,
+        props.nextCombination.character2.id,
+        false,
+    );
 };
 
 /**
  * Manejar el voto por el personaje 2.
  */
 const handleVoteCharacter2 = () => {
-    if (currentCombination.value) {
-        submitVote(
-            currentCombination.value.character2.id,
-            currentCombination.value.character1.id,
-            false,
-        );
-    }
+    if (!props.nextCombination) return;
+    submitVote(
+        props.nextCombination.character2.id,
+        props.nextCombination.character1.id,
+        false,
+    );
 };
 
 /**
  * Manejar el voto de empate.
  */
 const handleTie = () => {
-    if (currentCombination.value) {
-        submitVote(null, null, true);
-    }
+    if (!props.nextCombination) return;
+    submitVote(null, null, true);
 };
-
-/**
- * Manejar eventos de teclado para votación rápida.
- * @param e Evento de teclado
- */
-const handleKeyPress = (e: KeyboardEvent) => {
-    if (
-        e.key === '1' &&
-        currentCombination.value &&
-        !voting.value &&
-        !loadingNext.value
-    ) {
-        handleVoteCharacter1();
-    } else if (
-        e.key === '2' &&
-        currentCombination.value &&
-        !voting.value &&
-        !loadingNext.value
-    ) {
-        handleVoteCharacter2();
-    } else if (
-        e.key === '3' &&
-        currentCombination.value &&
-        !voting.value &&
-        !loadingNext.value
-    ) {
-        handleTie();
-    }
-};
-
-// --- Lifecycle Hooks ---
-onMounted(() => {
-    // Si no se pasó una combinación inicial o si la encuesta ya está completada, intentar cargar una
-    if (!props.nextCombination || isCompleted.value) {
-        loadNextCombination();
-    }
-    // Agregar event listener para teclado
-    window.addEventListener('keydown', handleKeyPress);
-});
-
-onUnmounted(() => {
-    // Limpiar event listener
-    window.removeEventListener('keydown', handleKeyPress);
-});
 
 // --- Breadcrumbs ---
 const breadcrumbs = [
@@ -338,11 +244,11 @@ const breadcrumbs = [
     },
     {
         title: props.survey.title,
-        // href: route('surveys.public.show', props.survey.id),
+        href: route('surveys.public.show', props.survey.slug), // O props.survey.id
     },
     {
         title: 'Vote',
-        // href: route('surveys.public.vote', props.survey.id),
+        href: route('surveys.public.vote', props.survey.slug), // O props.survey.id
     },
 ];
 </script>
@@ -350,8 +256,7 @@ const breadcrumbs = [
 <template>
     <Head :title="`Voting: ${survey.title}`" />
 
-    <!-- Usar VotingLayout -->
-    <VotingLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div
             class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
         >
@@ -366,17 +271,10 @@ const breadcrumbs = [
                         <!-- Barra de progreso -->
                         <div class="flex items-center gap-2">
                             <div class="h-2 w-32 rounded-full bg-muted">
-                                <motion.div
-                                    class="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
-                                    :animate="{
-                                        width: progressPercentage + '%',
-                                    }"
-                                    :initial="{ width: 0 }"
-                                    :transition="{
-                                        type: 'spring',
-                                        stiffness: 100,
-                                    }"
-                                ></motion.div>
+                                <div
+                                    class="h-2 rounded-full bg-primary transition-all duration-300"
+                                    :style="{ width: progressPercentage + '%' }"
+                                ></div>
                             </div>
                             <span class="text-sm text-muted-foreground">
                                 {{ progressPercentage.toFixed(2) }}%
@@ -389,7 +287,9 @@ const breadcrumbs = [
 
                         <Button asChild variant="outline">
                             <router-link
-                                :href="route('surveys.public.show', survey.id)"
+                                :href="
+                                    route('surveys.public.show', survey.slug)
+                                "
                             >
                                 Back to Survey
                             </router-link>
@@ -400,19 +300,7 @@ const breadcrumbs = [
 
             <!-- Main content -->
             <main class="container py-8">
-                <div
-                    v-if="loadingNext"
-                    class="flex h-96 items-center justify-center"
-                >
-                    <div class="text-muted-foreground">
-                        Loading next match...
-                    </div>
-                </div>
-
-                <div
-                    v-else-if="!hasCombination || isCompleted"
-                    class="text-center"
-                >
+                <div v-if="!hasCombination || isCompleted" class="text-center">
                     <Card>
                         <CardHeader>
                             <CardTitle>
@@ -434,7 +322,10 @@ const breadcrumbs = [
                             <Button asChild>
                                 <router-link
                                     :href="
-                                        route('surveys.public.show', survey.id)
+                                        route(
+                                            'surveys.public.show',
+                                            survey.slug,
+                                        )
                                     "
                                 >
                                     {{
@@ -455,14 +346,12 @@ const breadcrumbs = [
                         <Card>
                             <CardHeader class="text-center">
                                 <CardTitle>{{
-                                    currentCombination.character1.fullname
+                                    nextCombination.character1.fullname
                                 }}</CardTitle>
                                 <CardDescription
-                                    v-if="
-                                        currentCombination.character1.nickname
-                                    "
+                                    v-if="nextCombination.character1.nickname"
                                 >
-                                    {{ currentCombination.character1.nickname }}
+                                    {{ nextCombination.character1.nickname }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -471,16 +360,15 @@ const breadcrumbs = [
                                 >
                                     <img
                                         v-if="
-                                            currentCombination.character1
+                                            nextCombination.character1
                                                 .picture_url
                                         "
                                         :src="
-                                            currentCombination.character1
+                                            nextCombination.character1
                                                 .picture_url
                                         "
                                         :alt="
-                                            currentCombination.character1
-                                                .fullname
+                                            nextCombination.character1.fullname
                                         "
                                         class="h-full w-full object-cover"
                                     />
@@ -497,15 +385,14 @@ const breadcrumbs = [
                             <CardFooter>
                                 <Button
                                     class="w-full"
-                                    :disabled="voting || loadingNext"
+                                    :disabled="voting"
                                     @click="handleVoteCharacter1"
                                 >
                                     <span v-if="voting">Voting...</span>
                                     <span v-else
                                         >Vote for
                                         {{
-                                            currentCombination.character1
-                                                .fullname
+                                            nextCombination.character1.fullname
                                         }}
                                         (1)</span
                                     >
@@ -517,14 +404,12 @@ const breadcrumbs = [
                         <Card>
                             <CardHeader class="text-center">
                                 <CardTitle>{{
-                                    currentCombination.character2.fullname
+                                    nextCombination.character2.fullname
                                 }}</CardTitle>
                                 <CardDescription
-                                    v-if="
-                                        currentCombination.character2.nickname
-                                    "
+                                    v-if="nextCombination.character2.nickname"
                                 >
-                                    {{ currentCombination.character2.nickname }}
+                                    {{ nextCombination.character2.nickname }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -533,16 +418,15 @@ const breadcrumbs = [
                                 >
                                     <img
                                         v-if="
-                                            currentCombination.character2
+                                            nextCombination.character2
                                                 .picture_url
                                         "
                                         :src="
-                                            currentCombination.character2
+                                            nextCombination.character2
                                                 .picture_url
                                         "
                                         :alt="
-                                            currentCombination.character2
-                                                .fullname
+                                            nextCombination.character2.fullname
                                         "
                                         class="h-full w-full object-cover"
                                     />
@@ -559,15 +443,14 @@ const breadcrumbs = [
                             <CardFooter>
                                 <Button
                                     class="w-full"
-                                    :disabled="voting || loadingNext"
+                                    :disabled="voting"
                                     @click="handleVoteCharacter2"
                                 >
                                     <span v-if="voting">Voting...</span>
                                     <span v-else
                                         >Vote for
                                         {{
-                                            currentCombination.character2
-                                                .fullname
+                                            nextCombination.character2.fullname
                                         }}
                                         (2)</span
                                     >
@@ -580,7 +463,7 @@ const breadcrumbs = [
                     <div class="mt-8 flex justify-center">
                         <Button
                             variant="outline"
-                            :disabled="voting || loadingNext"
+                            :disabled="voting"
                             @click="handleTie"
                         >
                             {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
@@ -634,7 +517,7 @@ const breadcrumbs = [
                 </div>
             </main>
         </div>
-    </VotingLayout>
+    </AppLayout>
 </template>
 
 <style scoped>
