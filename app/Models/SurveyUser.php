@@ -13,7 +13,7 @@ class SurveyUser extends Model
 
     public $timestamps = true; // Asumiendo que tiene timestamps
 
-    protected $primaryKey = ['user_id', 'survey_id'];
+    // protected $primaryKey = ['user_id', 'survey_id'];    // esta produce error, 
 
     protected $fillable = [
         'user_id',

@@ -35,7 +35,7 @@ class SurveyProgressService
                 'pivot_id' => null, // Devolvemos el ID, no el objeto
             ];
         }
-
+// dd($surveyUserPivot);
         // Calcular progreso basado en votos actuales vs esperados
         $totalExpected = $surveyUserPivot->total_combinations_expected;
         $progress = 0.0;

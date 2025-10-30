@@ -13,7 +13,7 @@ class CharacterSurvey extends Model
 
     public $timestamps = true; // Asumiendo que tiene timestamps
 
-    protected $primaryKey = ['character_id', 'survey_id'];
+    // protected $primaryKey = ['character_id', 'survey_id'];
 
     protected $fillable = [
         'character_id',
