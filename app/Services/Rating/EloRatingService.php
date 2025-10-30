@@ -133,7 +133,7 @@ class EloRatingService
             $ok1 = $pivot1->save();
             $ok2 = $pivot2->save();
 
-Log::info('CategoryCharacter updated', ['ok1' => $ok1, 'ok2' => $ok2, 'pivot1' => $pivot1, 'pivot2' => $pivot2]);
+// Log::info('CategoryCharacter updated', ['ok1' => $ok1, 'ok2' => $ok2, 'pivot1' => $pivot1, 'pivot2' => $pivot2]);
 
         });
     }
