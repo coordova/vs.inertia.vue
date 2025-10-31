@@ -130,7 +130,7 @@ class PublicSurveyController extends Controller
 
         // Pasar datos a la vista Inertia de votación
         return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
-            'survey' => new SurveyShowResource($survey), // Usar Resource
+            'survey' => /* new SurveyShowResource */($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
             'userProgress' => $progressStatus,
             // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService

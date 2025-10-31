@@ -98,14 +98,16 @@ interface UserProgress {
 // Props del componente
 interface Props {
     survey: SurveyResource;
-    characters: CharacterResource[]; // Puede no ser necesario si solo usamos los de la combinación
-    userProgress: UserProgress;
+    // characters: CharacterResource[]; // Puede no ser necesario si solo usamos los de la combinación
+    // userProgress: UserProgress;
     // La combinación inicial se pasa como prop
     nextCombination: CombinatoricResource | null;
 }
 
 const props = defineProps<Props>();
-
+console.log(props);
+// fusionar props.survey + props.userProgress
+// const survey = computed(() => ({ ...props.survey, ...props.userProgress }));
 // --- Composables ---
 const { success, error } = useToast();
 
@@ -338,11 +340,11 @@ const breadcrumbs = [
     },
     {
         title: props.survey.title,
-        // href: route('surveys.public.show', props.survey.id),
+        href: route('surveys.public.show', props.survey.id),
     },
     {
         title: 'Vote',
-        // href: route('surveys.public.vote', props.survey.id),
+        href: route('surveys.public.vote', props.survey.id),
     },
 ];
 </script>
