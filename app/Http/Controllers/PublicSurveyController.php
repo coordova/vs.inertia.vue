@@ -10,13 +10,16 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Http\Resources\CharacterResource;
-use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
-use App\Http\Resources\SurveyShowResource; // Asegúrate de importar SurveyResource
+use App\Http\Resources\SurveyIndexResource; // 
+use App\Http\Resources\SurveyShowResource; // 
+use App\Http\Resources\CombinatoricResource;
+use App\Services\Survey\CombinatoricService;
 
 class PublicSurveyController extends Controller
 {
     public function __construct(
         protected SurveyProgressService $surveyProgressService,
+        protected CombinatoricService $combinatoricService,
     ) {
         // Aplicar middleware de autenticación si es necesario para todas las acciones de este controlador
         // $this->middleware('auth');
@@ -125,15 +128,15 @@ class PublicSurveyController extends Controller
         // --- Obtener la próxima combinación ---
         // Aquí es donde se conectaría la lógica para obtener la combinación
         // Por ejemplo, usando CombinatoricService (que aún no se muestra, pero se asume existe)
-        // $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+        $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
         // Si no hay más combinaciones, $nextCombination será null
 
         // Pasar datos a la vista Inertia de votación
         return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
-            'survey' => /* new SurveyShowResource */($survey), // Usar Resource
+            'survey' => new SurveyShowResource($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
             'userProgress' => $progressStatus,
-            // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
+            'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
             // Puedes pasar otros datos necesarios aquí
         ]);
     }

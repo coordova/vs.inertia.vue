@@ -24,18 +24,18 @@ interface CharacterResource {
     nickname: string | null;
     slug: string;
     bio: string | null;
-    dob: string | null;
-    gender: number | null;
+    dob: string | null; // Formato ISO
+    gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
     nationality: string | null;
     occupation: string | null;
-    picture: string | null;
-    picture_url: string | null;
-    thumbnail_url: string | null;
+    picture: string | null; // Path relativo
+    picture_url: string | null; // URL completa
+    thumbnail_url: string | null; // URL miniatura
     status: boolean;
     meta_title: string | null;
     meta_description: string | null;
-    created_at: string;
-    updated_at: string;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
     created_at_formatted: string;
     updated_at_formatted: string;
     category_ids: number[];
@@ -56,33 +56,62 @@ interface SurveyResource {
     slug: string;
     description: string | null;
     image: string | null;
-    type: number;
-    status: boolean;
+    type: number; // 0=pública, 1=privada
+    status: boolean; // 1=activa, 0=inactiva
     reverse: boolean;
-    date_start: string;
-    date_end: string;
-    selection_strategy: string;
-    max_votes_per_user: number | null;
-    allow_ties: boolean;
-    tie_weight: number;
-    is_featured: boolean;
+    date_start: string; // Formato ISO
+    date_end: string; // Formato ISO
+    selection_strategy: string; // Ej: 'cooldown', 'random', 'elo_based'
+    max_votes_per_user: number | null; // 0=ilimitado
+    allow_ties: boolean; // 1=sí, 0=no
+    tie_weight: number; // Peso de empate (0.0-1.0)
+    is_featured: boolean; // 1=sí, 0=no
     sort_order: number;
     counter: number;
     meta_title: string | null;
     meta_description: string | null;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-    date_start_formatted: string;
-    date_end_formatted: string;
-    created_at_formatted: string;
-    updated_at_formatted: string;
-    total_combinations: number | null; // <-- Nueva columna en la BD
-    progress_percentage: number; // <-- Del SurveyProgressService
-    total_votes: number; // <-- Del SurveyProgressService
-    total_combinations_expected: number | null; // <-- Del SurveyProgressService
-    is_completed: boolean; // <-- Del SurveyProgressService
-    // Añadir otros campos si son necesarios
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    deleted_at: string | null; // Formato ISO
+
+    // Datos de fechas formateadas
+    date_start_formatted: string; // 'd-m-Y'
+    date_end_formatted: string; // 'd-m-Y'
+    created_at_formatted: string; // 'd-m-Y H:i:s'
+    updated_at_formatted: string; // 'd-m-Y H:i:s'
+
+    // Relación con la categoría
+    category: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string | null;
+        image: string | null;
+        color: string; // Hex
+        icon: string;
+        sort_order: number;
+        status: boolean; // 1=activo, 0=inactivo
+        is_featured: boolean; // 1=sí, 0=no
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        deleted_at: string | null; // Formato ISO
+    } | null;
+
+    // --- Datos Calculados de Progreso (usando columnas nuevas en BD) ---
+    total_combinations: number | null; // De la tabla surveys
+    progress_percentage: number; // Del SurveyProgressService
+    total_votes: number; // Del SurveyProgressService
+    total_combinations_expected: number | null; // Del SurveyProgressService o fallback
+    is_completed: boolean; // Del SurveyProgressService
+    started_at: string | null; // Del SurveyProgressService
+    completed_at: string | null; // Del SurveyProgressService
+    last_activity_at: string | null; // Del SurveyProgressService
+    completion_time: number | null; // Del SurveyProgressService
+
+    // --- Datos de la Próxima Combinación ---
+    // next_combination: CombinatoricResource | null; // <-- No lo pasamos como parte de survey, sino como prop separada
 }
 
 interface UserProgress {
@@ -97,17 +126,15 @@ interface UserProgress {
 
 // Props del componente
 interface Props {
-    survey: SurveyResource;
-    // characters: CharacterResource[]; // Puede no ser necesario si solo usamos los de la combinación
-    // userProgress: UserProgress;
-    // La combinación inicial se pasa como prop
-    nextCombination: CombinatoricResource | null;
+    survey: SurveyResource; // El objeto survey con datos de progreso incluidos
+    characters: CharacterResource[]; // Personajes activos en la encuesta
+    // userProgress: UserProgress; // Ya está incluido en survey, pero lo dejamos por si se necesita aparte
+    nextCombination: CombinatoricResource | null; // La próxima combinación a votar
 }
 
 const props = defineProps<Props>();
-console.log(props);
-// fusionar props.survey + props.userProgress
-// const survey = computed(() => ({ ...props.survey, ...props.userProgress }));
+console.log('Props received by PublicVote.vue:', props); // Para depuración
+
 // --- Composables ---
 const { success, error } = useToast();
 
@@ -119,6 +146,7 @@ const voting = ref(false); // Estado para deshabilitar botones durante el voto
 const loadingNext = ref(false); // Estado para mostrar indicador de carga de la siguiente combinación
 
 // --- Computed Properties ---
+// Progreso calculado (usando datos del backend)
 const progressPercentage = computed(
     () => props.survey.progress_percentage ?? 0,
 );
@@ -133,7 +161,24 @@ const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
 );
 const isCompleted = computed(() => props.survey.is_completed ?? false);
-const hasCombination = computed(() => !!currentCombination.value); // <-- Usar currentCombination
+const hasCombination = computed(() => !!props.nextCombination); // <-- Usar props.nextCombination
+
+// --- Computed Properties ---
+// const progressPercentage = computed(
+//     () => props.survey.progress_percentage ?? 0,
+// );
+// const totalExpected = computed(
+//     () =>
+//         props.survey.total_combinations_expected ??
+//         props.survey.total_combinations ??
+//         0,
+// );
+// const totalVotes = computed(() => props.survey.total_votes ?? 0);
+// const votesRemaining = computed(() =>
+//     Math.max(0, totalExpected.value - totalVotes.value),
+// );
+// const isCompleted = computed(() => props.survey.is_completed ?? false);
+// const hasCombination = computed(() => !!currentCombination.value); // <-- Usar currentCombination
 
 // --- Funciones ---
 
@@ -149,7 +194,7 @@ const submitVote = (
     isTie: boolean = false,
 ) => {
     // Prevenir votos múltiples mientras se procesa uno
-    if (!currentCombination.value || voting.value) {
+    if (!props.nextCombination || voting.value) {
         return;
     }
 
@@ -157,7 +202,7 @@ const submitVote = (
 
     // Preparar datos para el voto
     const voteData = {
-        combinatoric_id: currentCombination.value.combinatoric_id,
+        combinatoric_id: props.nextCombination.combinatoric_id,
         winner_id: isTie ? null : winnerId,
         loser_id: isTie ? null : loserId,
         tie: isTie,
