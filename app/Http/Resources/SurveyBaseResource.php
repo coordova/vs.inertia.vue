@@ -47,18 +47,18 @@ class SurveyBaseResource extends JsonResource
     /**
      * Calcular número de combinaciones usando datos precargados
      */
-    protected function getCombinationsCount(): int
+    /* protected function getCombinationsCount(): int
     {
         $characterCount = $this->characters_count ?? $this->characters->count();
         return $characterCount >= 2 
             ? CombinatoricsService::combinations($characterCount, 2)
             : 0;
-    }
+    } */
 
     /**
      * Calcular porcentaje de progreso usando datos precargados
      */
-    protected function getProgressPercentage(): float
+    /* protected function getProgressPercentage(): float
     {
         $combinationsCount = $this->getCombinationsCount();
         $userVotesCount = $this->user_votes_count ?? 0;
@@ -66,5 +66,5 @@ class SurveyBaseResource extends JsonResource
         return $combinationsCount > 0 
             ? round(($userVotesCount / $combinationsCount) * 100, 1)
             : 0;
-    }
+    } */
 }
