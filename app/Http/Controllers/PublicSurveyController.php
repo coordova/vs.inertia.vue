@@ -11,7 +11,7 @@ use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
-use App\Http\Resources\SurveyShowResource; // Asegúrate de importar SurveyResource
+use App\Http\Resources\SurveyProgressResource;
 
 class PublicSurveyController extends Controller
 {
@@ -127,12 +127,12 @@ class PublicSurveyController extends Controller
         // Por ejemplo, usando CombinatoricService (que aún no se muestra, pero se asume existe)
         // $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
         // Si no hay más combinaciones, $nextCombination será null
-
+        
         // Pasar datos a la vista Inertia de votación
         return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
-            'survey' => /* new SurveyShowResource */($survey), // Usar Resource
+            'survey' => /* new SurveyVoteResource */($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
-            'userProgress' => $progressStatus,
+            'userProgress' => new SurveyProgressResource($progressStatus),
             // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
             // Puedes pasar otros datos necesarios aquí
         ]);

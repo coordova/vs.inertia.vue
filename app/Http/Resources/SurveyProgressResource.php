@@ -3,16 +3,10 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\SurveyBaseResource;
 
-/**
- * Resource para interfaz de votación
- * 
- * Contiene solo los datos necesarios para la interfaz de votación.
- * Mínimo de datos para mejor performance durante la votación.
- * 
- * @package App\Http\Resources
- */
-class SurveyVoteResource extends BaseSurveyResource
+class SurveyProgressResource extends SurveyBaseResource
 {
     /**
      * Transform the resource into an array.
@@ -21,6 +15,7 @@ class SurveyVoteResource extends BaseSurveyResource
      */
     public function toArray(Request $request): array
     {
+        // return parent::toArray($request);
         return array_merge($this->baseData($request), [
             // ✅ Solo datos esenciales para votación
             'character_count' => $this->characters_count ?? $this->characters->count(),
