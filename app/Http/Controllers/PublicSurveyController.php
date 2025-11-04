@@ -127,10 +127,6 @@ class PublicSurveyController extends Controller
         // Cargar personajes activos en esta encuesta (para mostrar en la UI si es necesario)
         $activeCharacters = $survey->characters()->wherePivot('is_active', true)->get();
 
-        // Unir datos de encuesta y progreso como objeto
-        // $surveyData = (object) array_merge($survey->toArray(), $progressStatus);
-        // dd($surveyData);
-
         // --- Obtener la próxima combinación ---
         // Aquí es donde se conectaría la lógica para obtener la combinación
         // Por ejemplo, usando CombinatoricService (que aún no se muestra, pero se asume existe)
@@ -141,7 +137,7 @@ class PublicSurveyController extends Controller
         return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
             // 'survey' => new SurveyVoteResource($survey), // Usar Resource
             'survey' => SurveyVoteResource::make($survey)->resolve(), // Usar Resource
-            'characters' => CharacterResource::collection($activeCharacters),
+            // 'characters' => CharacterResource::collection($activeCharacters),
             // 'userProgress' => /* new SurveyProgressResource */($progressStatus),
             // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
             'currentCombination' => $nextCombination ?  CombinatoricResource::make($nextCombination)->resolve() : null, // Si se usa CombinatoricService
