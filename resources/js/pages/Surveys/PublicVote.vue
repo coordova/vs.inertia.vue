@@ -360,14 +360,18 @@ const breadcrumbs = [
                         <Card>
                             <CardHeader class="text-center">
                                 <CardTitle>{{
-                                    currentCombination.character1.fullname
+                                    currentCombination.character1.data.fullname
                                 }}</CardTitle>
                                 <CardDescription
                                     v-if="
-                                        currentCombination.character1.nickname
+                                        currentCombination.character1.data
+                                            .nickname
                                     "
                                 >
-                                    {{ currentCombination.character1.nickname }}
+                                    {{
+                                        currentCombination.character1.data
+                                            .nickname
+                                    }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -376,15 +380,15 @@ const breadcrumbs = [
                                 >
                                     <img
                                         v-if="
-                                            currentCombination.character1
+                                            currentCombination.character1.data
                                                 .picture_url
                                         "
                                         :src="
-                                            currentCombination.character1
+                                            currentCombination.character1.data
                                                 .picture_url
                                         "
                                         :alt="
-                                            currentCombination.character1
+                                            currentCombination.character1.data
                                                 .fullname
                                         "
                                         class="h-full w-full object-cover"
@@ -409,7 +413,7 @@ const breadcrumbs = [
                                     <span v-else
                                         >Vote for
                                         {{
-                                            currentCombination.character1
+                                            currentCombination.character1.data
                                                 .fullname
                                         }}
                                         (1)</span
@@ -422,14 +426,18 @@ const breadcrumbs = [
                         <Card>
                             <CardHeader class="text-center">
                                 <CardTitle>{{
-                                    currentCombination.character2.fullname
+                                    currentCombination.character2.data.fullname
                                 }}</CardTitle>
                                 <CardDescription
                                     v-if="
-                                        currentCombination.character2.nickname
+                                        currentCombination.character2.data
+                                            .nickname
                                     "
                                 >
-                                    {{ currentCombination.character2.nickname }}
+                                    {{
+                                        currentCombination.character2.data
+                                            .nickname
+                                    }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -438,15 +446,15 @@ const breadcrumbs = [
                                 >
                                     <img
                                         v-if="
-                                            currentCombination.character2
+                                            currentCombination.character2.data
                                                 .picture_url
                                         "
                                         :src="
-                                            currentCombination.character2
+                                            currentCombination.character2.data
                                                 .picture_url
                                         "
                                         :alt="
-                                            currentCombination.character2
+                                            currentCombination.character2.data
                                                 .fullname
                                         "
                                         class="h-full w-full object-cover"
@@ -471,7 +479,7 @@ const breadcrumbs = [
                                     <span v-else
                                         >Vote for
                                         {{
-                                            currentCombination.character2
+                                            currentCombination.character2.data
                                                 .fullname
                                         }}
                                         (2)</span
