@@ -256,11 +256,11 @@ const breadcrumbs = [
     },
     {
         title: props.survey.title,
-        href: route('surveys.public.show', props.survey.slug), // O props.survey.id
+        // href: route('surveys.public.show', props.survey.id), // O props.survey.id
     },
     {
         title: 'Vote',
-        href: route('surveys.public.vote', props.survey.slug), // O props.survey.id
+        // href: route('surveys.public.vote', props.survey.id), // O props.survey.id
     },
 ];
 </script>
@@ -305,13 +305,11 @@ const breadcrumbs = [
                         </div>
 
                         <Button asChild variant="outline">
-                            <router-link
-                                :href="
-                                    route('surveys.public.show', survey.slug)
-                                "
+                            <!-- <router-link
+                                :href="route('surveys.public.show', survey.id)"
                             >
                                 Back to Survey
-                            </router-link>
+                            </router-link> -->
                         </Button>
                     </div>
                 </div>
@@ -341,10 +339,7 @@ const breadcrumbs = [
                             <Button asChild>
                                 <router-link
                                     :href="
-                                        route(
-                                            'surveys.public.show',
-                                            survey.slug,
-                                        )
+                                        route('surveys.public.show', survey.id)
                                     "
                                 >
                                     {{

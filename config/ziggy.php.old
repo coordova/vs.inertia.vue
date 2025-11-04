@@ -8,7 +8,7 @@
  */
 
 return [
-    'only' => [
+    /* 'only' => [
         'dashboard',
         
         'admin.users.index',
@@ -59,5 +59,5 @@ return [
         // 'surveys.public.next_combination',
 
         'api.public.surveys.next_combination',
-    ]
+    ] */
 ];
