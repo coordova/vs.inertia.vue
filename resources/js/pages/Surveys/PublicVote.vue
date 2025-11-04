@@ -128,7 +128,7 @@ interface Props {
     survey: SurveyResource; // El objeto survey con datos de progreso incluidos
     characters: CharacterResource[]; // Personajes activos en la encuesta
     // userProgress: UserProgress; // Ya está incluido en survey, pero lo dejamos por si se necesita aparte
-    nextCombination: CombinatoricResource | null; // La próxima combinación a votar
+    currentCombination: CombinatoricResource | null; // La próxima combinación a votar
 }
 
 const props = defineProps<Props>();
@@ -156,7 +156,7 @@ const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
 );
 const isCompleted = computed(() => props.survey.is_completed ?? false);
-const hasCombination = computed(() => !!props.nextCombination); // <-- Usar props.nextCombination
+const hasCombination = computed(() => !!props.currentCombination); // <-- Usar props.currentCombination
 
 // --- Funciones ---
 
@@ -172,7 +172,7 @@ const submitVote = (
     isTie: boolean = false,
 ) => {
     // Prevenir votos múltiples mientras se procesa uno
-    if (!props.nextCombination || voting.value) {
+    if (!props.currentCombination || voting.value) {
         return;
     }
 
@@ -180,7 +180,7 @@ const submitVote = (
 
     // Preparar datos para el voto
     const voteData = {
-        combinatoric_id: props.nextCombination.combinatoric_id,
+        combinatoric_id: props.currentCombination.combinatoric_id,
         winner_id: isTie ? null : winnerId,
         loser_id: isTie ? null : loserId,
         tie: isTie,
@@ -191,7 +191,7 @@ const submitVote = (
         preserveScroll: true, // Mantener posición de scroll
         onSuccess: (page) => {
             // El backend maneja la lógica y redirige de vuelta a esta misma página
-            // con datos actualizados (survey, nextCombination) en page.props
+            // con datos actualizados (survey, currentCombination) en page.props
             // Inertia recargará el componente con las nuevas props
             success('Vote recorded successfully!');
         },
@@ -217,10 +217,10 @@ const submitVote = (
  * Manejar el voto por el personaje 1.
  */
 const handleVoteCharacter1 = () => {
-    if (props.nextCombination) {
+    if (props.currentCombination) {
         submitVote(
-            props.nextCombination.character1.id,
-            props.nextCombination.character2.id,
+            props.currentCombination.character1.id,
+            props.currentCombination.character2.id,
             false,
         );
     }
@@ -230,10 +230,10 @@ const handleVoteCharacter1 = () => {
  * Manejar el voto por el personaje 2.
  */
 const handleVoteCharacter2 = () => {
-    if (props.nextCombination) {
+    if (props.currentCombination) {
         submitVote(
-            props.nextCombination.character2.id,
-            props.nextCombination.character1.id,
+            props.currentCombination.character2.id,
+            props.currentCombination.character1.id,
             false,
         );
     }
@@ -243,7 +243,7 @@ const handleVoteCharacter2 = () => {
  * Manejar el voto de empate.
  */
 const handleTie = () => {
-    if (props.nextCombination) {
+    if (props.currentCombination) {
         submitVote(null, null, true);
     }
 };
@@ -360,12 +360,14 @@ const breadcrumbs = [
                         <Card>
                             <CardHeader class="text-center">
                                 <CardTitle>{{
-                                    nextCombination.character1.fullname
+                                    currentCombination.character1.fullname
                                 }}</CardTitle>
                                 <CardDescription
-                                    v-if="nextCombination.character1.nickname"
+                                    v-if="
+                                        currentCombination.character1.nickname
+                                    "
                                 >
-                                    {{ nextCombination.character1.nickname }}
+                                    {{ currentCombination.character1.nickname }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -374,15 +376,16 @@ const breadcrumbs = [
                                 >
                                     <img
                                         v-if="
-                                            nextCombination.character1
+                                            currentCombination.character1
                                                 .picture_url
                                         "
                                         :src="
-                                            nextCombination.character1
+                                            currentCombination.character1
                                                 .picture_url
                                         "
                                         :alt="
-                                            nextCombination.character1.fullname
+                                            currentCombination.character1
+                                                .fullname
                                         "
                                         class="h-full w-full object-cover"
                                     />
@@ -406,7 +409,8 @@ const breadcrumbs = [
                                     <span v-else
                                         >Vote for
                                         {{
-                                            nextCombination.character1.fullname
+                                            currentCombination.character1
+                                                .fullname
                                         }}
                                         (1)</span
                                     >
@@ -418,12 +422,14 @@ const breadcrumbs = [
                         <Card>
                             <CardHeader class="text-center">
                                 <CardTitle>{{
-                                    nextCombination.character2.fullname
+                                    currentCombination.character2.fullname
                                 }}</CardTitle>
                                 <CardDescription
-                                    v-if="nextCombination.character2.nickname"
+                                    v-if="
+                                        currentCombination.character2.nickname
+                                    "
                                 >
-                                    {{ nextCombination.character2.nickname }}
+                                    {{ currentCombination.character2.nickname }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -432,15 +438,16 @@ const breadcrumbs = [
                                 >
                                     <img
                                         v-if="
-                                            nextCombination.character2
+                                            currentCombination.character2
                                                 .picture_url
                                         "
                                         :src="
-                                            nextCombination.character2
+                                            currentCombination.character2
                                                 .picture_url
                                         "
                                         :alt="
-                                            nextCombination.character2.fullname
+                                            currentCombination.character2
+                                                .fullname
                                         "
                                         class="h-full w-full object-cover"
                                     />
@@ -464,7 +471,8 @@ const breadcrumbs = [
                                     <span v-else
                                         >Vote for
                                         {{
-                                            nextCombination.character2.fullname
+                                            currentCombination.character2
+                                                .fullname
                                         }}
                                         (2)</span
                                     >

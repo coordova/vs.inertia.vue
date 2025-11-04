@@ -144,7 +144,7 @@ class PublicSurveyController extends Controller
             'characters' => CharacterResource::collection($activeCharacters),
             // 'userProgress' => /* new SurveyProgressResource */($progressStatus),
             // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
-            'nextCombination' => $nextCombination ?  CombinatoricResource::make($nextCombination)->resolve() : null, // Si se usa CombinatoricService
+            'currentCombination' => $nextCombination ?  CombinatoricResource::make($nextCombination)->resolve() : null, // Si se usa CombinatoricService
             // Puedes pasar otros datos necesarios aquí
         ]);
     }
