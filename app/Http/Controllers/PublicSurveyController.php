@@ -5,18 +5,23 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Survey;
 use App\Services\Survey\SurveyProgressService; // Inyectamos el servicio
+use App\Services\Survey\CombinatoricService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
-use App\Http\Resources\SurveyProgressResource;
+use App\Http\Resources\SurveyVoteResource;
+use App\Http\Resources\CombinatoricResource;
+
+use App\Http\Resources\SurveyBaseResource;
 
 class PublicSurveyController extends Controller
 {
     public function __construct(
         protected SurveyProgressService $surveyProgressService,
+        protected CombinatoricService $combinatoricService,
     ) {
         // Aplicar middleware de autenticación si es necesario para todas las acciones de este controlador
         // $this->middleware('auth');
@@ -73,7 +78,7 @@ class PublicSurveyController extends Controller
         return Inertia::render('Surveys/PublicShow', [ // O 'Surveys/Summary'
             'survey' => /* new SurveyShowResource */($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
-            'userProgress' => $progressStatus,
+            // 'userProgress' => $progressStatus,
             // Puedes pasar otros datos necesarios aquí (estadísticas generales, etc.)
         ]);
     }
@@ -105,7 +110,7 @@ class PublicSurveyController extends Controller
         // --- Verificar/Iniciar sesión de votación del usuario ---
         // Obtener o iniciar el progreso del usuario en esta encuesta
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
-
+        
         if (!$progressStatus['exists']) {
             // Si no existe una entrada en survey_user, la creamos/iniciamos
             // Esto también calcula y almacena total_combinations_expected
@@ -122,18 +127,22 @@ class PublicSurveyController extends Controller
         // Cargar personajes activos en esta encuesta (para mostrar en la UI si es necesario)
         $activeCharacters = $survey->characters()->wherePivot('is_active', true)->get();
 
+        // Unir datos de encuesta y progreso como objeto
+        // $surveyData = (object) array_merge($survey->toArray(), $progressStatus);
+        // dd($surveyData);
+
         // --- Obtener la próxima combinación ---
         // Aquí es donde se conectaría la lógica para obtener la combinación
         // Por ejemplo, usando CombinatoricService (que aún no se muestra, pero se asume existe)
-        // $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+        $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
         // Si no hay más combinaciones, $nextCombination será null
         
         // Pasar datos a la vista Inertia de votación
         return Inertia::render('Surveys/PublicVote', [ // O 'Surveys/VoteInterface' (nombre del componente Vue)
-            'survey' => /* new SurveyVoteResource */($survey), // Usar Resource
+            'survey' => new SurveyVoteResource($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
-            'userProgress' => new SurveyProgressResource($progressStatus),
-            // 'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
+            // 'userProgress' => /* new SurveyProgressResource */($progressStatus),
+            'nextCombination' => $nextCombination ? new CombinatoricResource($nextCombination) : null, // Si se usa CombinatoricService
             // Puedes pasar otros datos necesarios aquí
         ]);
     }

@@ -23,8 +23,8 @@ class SurveyVoteResource extends SurveyBaseResource
         $userProgress = null;
         if ($user) {
             // Asumiendo que tienes un servicio para obtener el progreso del usuario
-            // $surveyProgressService = app(\App\Services\Survey\SurveyProgressService::class);
-            // $userProgress = $surveyProgressService->getUserSurveyStatus($this->resource, $user);
+            $surveyProgressService = app(\App\Services\Survey\SurveyProgressService::class);
+            $userProgress = $surveyProgressService->getUserSurveyStatus($this->resource, $user);
             
             // O, si prefieres calcularlo aquí directamente (menos recomendado si el servicio ya existe):
             // $userProgress = $this->calculateUserProgress($user);
