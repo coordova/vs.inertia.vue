@@ -8,9 +8,18 @@ use App\Models\Character;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
 use Illuminate\Database\Eloquent\Builder; // Para construir consultas
+use App\Services\Survey\CombinationSelection\CombinationSelector; // Importar el selector
+use App\Models\User; // Importar el modelo User
 
 class CombinatoricService
 {
+    // Inyectar el CombinationSelector en el constructor
+    public function __construct(
+        protected CombinationSelector $combinationSelector,
+    ) {
+        // ...
+    }
+
     /**
      * Genera todas las combinaciones posibles de personajes para una encuesta.
      * Este método se podría llamar desde un Observer de Survey o un servicio dedicado.
@@ -76,6 +85,29 @@ class CombinatoricService
 
     /**
      * Selecciona la próxima pareja de personajes para mostrar al usuario en una encuesta.
+     * Utiliza el servicio CombinationSelector para aplicar la estrategia definida.
+     *
+     * @param Survey $survey La encuesta activa.
+     * @param int $userId El ID del usuario que vota.
+     * @return Combinatoric|null El registro de combinación seleccionado, o null si no hay más.
+     */
+    public function getNextCombination(Survey $survey, int $userId): ?Combinatoric
+    {
+        // Obtener el modelo User por ID
+        $user = User::find($userId);
+        if (!$user) {
+            // Manejar el caso donde el usuario no exista
+            \Log::error("User with ID {$userId} not found for combination selection in survey {$survey->id}.");
+            return null; // O lanzar una excepción
+        }
+
+        // Delegar la selección al CombinationSelector
+        // Este servicio se encargará de usar la estrategia correcta basada en $survey->selection_strategy
+        return $this->combinationSelector->selectCombination($survey, $user);
+    }
+
+    /**
+     * Selecciona la próxima pareja de personajes para mostrar al usuario en una encuesta.
      * Filtra combinaciones basadas en el estado activo de la combinación, los votos del usuario
      * y el estado activo de ambos personajes involucrados.
      *
@@ -83,7 +115,7 @@ class CombinatoricService
      * @param int $userId El ID del usuario que vota.
      * @return Combinatoric|null El registro de combinación seleccionado, o null si no hay más.
      */
-    public function getNextCombination(Survey $survey, int $userId): ?Combinatoric
+    public function getNextCombination_old3(Survey $survey, int $userId): ?Combinatoric
     {
         // Obtener la estrategia de selección
         $strategy = $survey->selection_strategy; // Ej: 'cooldown', 'random', 'elo_based'
