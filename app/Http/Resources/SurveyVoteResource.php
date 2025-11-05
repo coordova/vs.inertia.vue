@@ -4,121 +4,87 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Survey; // Asegúrate de importar el modelo Survey
 
-class SurveyVoteResource extends SurveyBaseResource
+/**
+ * Resource para la vista de votación pública de una encuesta.
+ * Contiene solo los datos necesarios para mostrar la encuesta, el progreso del usuario y la próxima combinación.
+ * No incluye listas grandes de personajes o votos.
+ */
+class SurveyVoteResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
-     * Optimizado para la página de votación pública.
      *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        // Obtener el usuario autenticado (asumiendo que está disponible en el contexto)
-        $user = $request->user();
-        
-        // Calcular progreso del usuario si el usuario está autenticado
-        $userProgress = null;
-        if ($user) {
-            // Asumiendo que tienes un servicio para obtener el progreso del usuario
-            $surveyProgressService = app(\App\Services\Survey\SurveyProgressService::class);
-            $userProgress = $surveyProgressService->getUserSurveyStatus($this->resource, $user);
-            
-            // O, si prefieres calcularlo aquí directamente (menos recomendado si el servicio ya existe):
-            // $userProgress = $this->calculateUserProgress($user);
-        }
+        // Asumiendo que 'category' se carga en el controlador si es necesario para mostrarla o para cálculos internos del recurso
+        // Asumiendo que 'characters' (activos para la encuesta) se carga en el controlador si es necesario para generar combinaciones futuras (aunque no se serialice aquí)
+        // Asumiendo que 'userProgress' (relación pivote survey_user) se carga o se calcula en el controlador y se pasa como prop adicional o se calcula aquí si se carga el modelo
 
-        return array_merge(parent::toArray($request), [
-            // Datos base de la encuesta (heredados de SurveyBaseResource::baseData)
-            // 'id', 'title', 'status', 'type', 'category_id', 'date_start', 'date_end',
-            // 'selection_strategy', 'slug', 'is_active',
-            // 'date_start_formatted', 'date_end_formatted'
-            
-            // Datos adicionales específicos de la encuesta para votación
-            'description' => $this->description,
-            'image' => $this->image,
-            'reverse' => (bool) $this->reverse,
-            'max_votes_per_user' => $this->max_votes_per_user,
-            'allow_ties' => (bool) $this->allow_ties,
-            'tie_weight' => $this->tie_weight,
-            'is_featured' => (bool) $this->is_featured,
-            'sort_order' => $this->sort_order,
-            'counter' => $this->counter,
-            'meta_title' => $this->meta_title,
-            'meta_description' => $this->meta_description,
-            'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i:s'),
-            'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i:s'),
-            
-            // Relación con la categoría (ya incluida en baseData si se carga)
-            'category' => $this->whenLoaded('category', fn() => new CategoryResource($this->category)),
-            
-            // --- Datos de Progreso del Usuario ---
-            // Estos datos deben venir del SurveyProgressService o calcularse aquí
-            // Se asume que el controlador los pasa explícitamente si es necesario
-            // 'user_progress' => $userProgress ? new UserProgressResource($userProgress) : null,
-            
-            // --- Datos Calculados de Progreso (usando columnas nuevas en BD) ---
-            // Asumiendo que estas columnas existen y se llenan correctamente
-            'total_combinations' => $this->total_combinations ?? 0, // De la tabla surveys
-            'progress_percentage' => $userProgress['progress'] ?? 0.00, // Del SurveyProgressService
-            'total_votes' => $userProgress['total_votes'] ?? 0, // Del SurveyProgressService
-            'total_combinations_expected' => $userProgress['total_expected'] ?? ($this->total_combinations ?? 0), // Del SurveyProgressService o fallback
-            'is_completed' => $userProgress['is_completed'] ?? false, // Del SurveyProgressService
-            'started_at' => $userProgress['started_at'] ?? null, // Del SurveyProgressService
-            'completed_at' => $userProgress['completed_at'] ?? null, // Del SurveyProgressService
-            'last_activity_at' => $userProgress['last_activity_at'] ?? null, // Del SurveyProgressService
-            'completion_time' => $userProgress['completion_time'] ?? null, // Del SurveyProgressService
-            
-            // --- Datos de la Próxima Combinación ---
-            // Se asume que el controlador la pasa explícitamente
-            // 'next_combination' => $nextCombination ? new CombinatoricResource($nextCombination) : null,
-        ]);
-    }
-    
-    /**
-     * Calcular el progreso del usuario en esta encuesta.
-     * (Opcional si no se usa el servicio)
-     * @param \App\Models\User $user
-     * @return array
-     */
-    /* protected function calculateUserProgress($user): array
-    {
-        $surveyUserPivot = $this->users()->where('user_id', $user->id)->first(); // Cargar relación pivote
-        
-        if (!$surveyUserPivot) {
-            return [
-                'exists' => false,
-                'is_completed' => false,
-                'progress' => 0.0,
-                'total_votes' => 0,
-                'total_expected' => $this->total_combinations ?? 0,
-                'started_at' => null,
-                'completed_at' => null,
-                'last_activity_at' => null,
-                'completion_time' => null,
-                'pivot_id' => null,
-            ];
-        }
-        
-        $totalExpected = $surveyUserPivot->pivot->total_combinations_expected ?? ($this->total_combinations ?? 0);
-        $progress = 0.0;
-        if ($totalExpected && $totalExpected > 0) {
-            $progress = min(100.0, ($surveyUserPivot->pivot->total_votes / $totalExpected) * 100);
-        }
-        
         return [
-            'exists' => true,
-            'is_completed' => $surveyUserPivot->pivot->is_completed,
-            'progress' => $progress,
-            'total_votes' => $surveyUserPivot->pivot->total_votes,
-            'total_expected' => $totalExpected,
-            'started_at' => $surveyUserPivot->pivot->started_at,
-            'completed_at' => $surveyUserPivot->pivot->completed_at,
-            'last_activity_at' => $surveyUserPivot->pivot->last_activity_at,
-            'completion_time' => $surveyUserPivot->pivot->completion_time,
-            'pivot_id' => $surveyUserPivot->pivot->id,
+            // Datos base de la encuesta (heredados de SurveyBaseResource si extiende de él)
+            // 'id', 'title', 'slug', 'status', 'date_start', 'date_end', 'selection_strategy', etc.
+            ...parent::toArray($request),
+
+            // Datos específicos de la vista de votación
+            'description' => $this->description,
+            'image_url' => $this->image ? \Storage::url($this->image) : null, // Generar URL si es necesario
+            'allow_ties' => $this->allow_ties,
+            'tie_weight' => $this->tie_weight,
+
+            // Relación con la categoría (solo datos necesarios, asumiendo que se carga en el controlador)
+            'category' => $this->whenLoaded('category', fn() => [
+                'id' => $this->category->id,
+                'name' => $this->category->name,
+                'slug' => $this->category->slug,
+                'color' => $this->category->color,
+                'icon' => $this->category->icon,
+            ]),
+
+            // --- Datos de Progreso del Usuario (deben venir del SurveyProgressService o calcularse aquí si se carga el pivote) ---
+            // Asumiendo que el controlador llama a SurveyProgressService->getUserSurveyStatus y pasa los datos aquí
+            // o que se carga la relación 'users' con pivote y se calcula aquí.
+            // Por simplicidad y claridad, se asume que el controlador pasa estos datos.
+            // Si se carga la relación pivote, se podría hacer:
+            // $userProgressPivot = $this->users->firstWhere('pivot.user_id', $request->user()->id)?->pivot;
+            // $userProgress = $userProgressPivot ? [
+            //     'progress_percentage' => $userProgressPivot->progress_percentage,
+            //     'total_votes' => $userProgressPivot->total_votes,
+            //     'total_combinations_expected' => $userProgressPivot->total_combinations_expected,
+            //     'is_completed' => $userProgressPivot->is_completed,
+            //     'started_at' => $userProgressPivot->started_at,
+            //     'completed_at' => $userProgressPivot->completed_at,
+            //     'last_activity_at' => $userProgressPivot->last_activity_at,
+            // ] : null;
+
+            // Por ahora, asumiremos que el controlador calcula estos valores y los adjunta al modelo o los pasa como una prop separada.
+            // Si se adjuntan al modelo (por ejemplo, con un accessor o un scope que lo haga), se accedería así:
+            // 'user_progress' => [
+            //     'progress_percentage' => $this->user_progress_percentage, // Accesor calculado
+            //     'total_votes' => $this->user_total_votes, // Accesor calculado
+            //     'total_combinations_expected' => $this->user_total_combinations_expected, // Accesor calculado o columna en survey_user
+            //     'is_completed' => $this->user_is_completed, // Accesor calculado o columna en survey_user
+            // ]
+
+            // O mejor, si el controlador los pasa como atributos adicionales al recurso:
+            // 'user_progress' => $this->user_progress_data ?? null, // Datos inyectados por el controlador
+
+            // Para evitar confusiones, el controlador debería inyectar directamente los campos necesarios:
+            'progress_percentage' => $this->user_progress_percentage ?? 0.00, // Inyectado o calculado aquí si se carga el pivote
+            'total_votes' => $this->user_total_votes ?? 0, // Inyectado o calculado aquí
+            'total_combinations_expected' => $this->user_total_combinations_expected ?? ($this->total_combinations ?? 0), // Inyectado o calculado aquí o fallback a la encuesta
+            'is_completed' => $this->user_is_completed ?? false, // Inyectado o calculado aquí
+            'started_at' => $this->user_started_at ?? null, // Inyectado o calculado aquí
+            'completed_at' => $this->user_completed_at ?? null, // Inyectado o calculado aquí
+            'last_activity_at' => $this->user_last_activity_at ?? null, // Inyectado o calculado aquí
+
+            // --- Datos de la Próxima Combinación ---
+            // Asumiendo que la próxima combinación se pasa como una relación 'nextCombination' o se calcula aquí si se carga la relación
+            // NO se incluye aquí. Se pasa como una prop separada al componente Inertia o se obtiene en otro recurso.
+            // 'next_combination' => new CombinatoricResource($this->whenLoaded('nextCombination')),
+            // La próxima combinación se manejará en el controlador y se pasará como prop aparte a Inertia.
         ];
-    } */
+    }
 }
