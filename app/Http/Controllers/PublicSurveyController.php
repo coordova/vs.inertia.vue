@@ -10,10 +10,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
-use App\Http\Resources\CharacterResource;
-use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
-use App\Http\Resources\SurveyVoteResource;
-use App\Http\Resources\CombinatoricResource;
+use App\Http\Resources\SurveyVoteResource; // <-- Importar el recurso específico para la vista de votación
+use App\Http\Resources\CombinatoricResource; // <-- Importar el recurso de combinación
+// use App\Http\Resources\CharacterResource;
+// use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
+// use App\Http\Resources\SurveyVoteResource;
+// use App\Http\Resources\CombinatoricResource;
 
 use App\Http\Resources\SurveyBaseResource;
 
@@ -85,13 +87,57 @@ class PublicSurveyController extends Controller
 
     /**
      * Prepara la encuesta para que el usuario pueda votar.
+     * Carga los datos necesarios para la vista de votación.
+     *
+     * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
+     * @return Response
+     */
+    public function vote(Survey $survey): Response
+    {
+        // 1. Verificar autenticación
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Authentication required.');
+        }
+
+        // 2. Verificar si la encuesta está activa
+        if (!$this->isSurveyActive($survey)) {
+            abort(404, 'Survey not found or not active.');
+        }
+
+        // 3. Cargar solo los datos necesarios para la vista de votación
+        // Cargamos la categoría con campos específicos
+        $survey->loadMissing([
+            'category:id,name,slug,color,icon', // Cargar solo campos básicos de la categoría
+            // 'characters' -> No es necesario cargar todos los caracteres aquí para mostrar la encuesta o la próxima combinación
+        ]);
+
+        // 4. Cargar datos de progreso del usuario actual
+        $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
+
+        // 5. Obtener la próxima combinación para mostrar al usuario
+        $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+
+        // 6. Renderizar la vista Inertia con los recursos específicos
+        return Inertia::render('Surveys/PublicVote', [
+            // Usar SurveyVoteResource para serializar solo los datos necesarios de la encuesta
+            'survey' => SurveyVoteResource::make($survey)->resolve(), // <-- Usar .resolve() para pasar el array directamente
+            // Pasar la próxima combinación como un recurso separado
+            'nextCombination' => $nextCombination ? CombinatoricResource::make($nextCombination)->resolve() : null, // <-- Usar .resolve() aquí también
+            // 'userProgress' => $progressStatus, // <-- NO ES NECESARIO SI LOS DATOS YA ESTÁN EN 'survey' RESUELTO
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, la lista de estrategias si se puede cambiar dinámicamente)
+        ]);
+    }
+
+    /**
+     * Prepara la encuesta para que el usuario pueda votar.
      * Verifica la encuesta, inicia la sesión del usuario si no existe,
      * y obtiene la próxima combinación para mostrar.
      *
      * @param Survey $survey El modelo de encuesta, inyectado por Laravel.
      * @return Response
      */
-    public function vote(Survey $survey): Response
+    public function vote_old(Survey $survey): Response
     {
          // Verificar si la encuesta está activa
         if (!$this->isSurveyActive($survey)) {
