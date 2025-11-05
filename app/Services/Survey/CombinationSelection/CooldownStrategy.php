@@ -42,6 +42,6 @@ class CooldownStrategy implements CombinationSelectionStrategy
             ->orderByRaw('COALESCE(last_used_at, "1970-01-01 00:00:00") ASC') // Ordenar por uso menos reciente
             ->first(); // Obtener la combinación menos usada recientemente
 
-        return $availableCombination;
+        return $availableCombination; // Devuelve el modelo Combinatoric con character1 y character2 cargados
     }
 }

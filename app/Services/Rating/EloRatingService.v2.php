@@ -2,15 +2,17 @@
 
 namespace App\Services\Rating;
 
-use App\Models\CategoryCharacter; // Modelo pivote (aunque no se use directamente para escritura ahora)
-use Illuminate\Support\Facades\DB; // Importar Query Builder
-use Illuminate\Support\Facades\Log; // Para logging
+use App\Models\CategoryCharacter; // Modelo pivote
+use Illuminate\Support\Collection; // Importar Collection
+use Illuminate\Support\Facades\DB; // Para transacciones y consultas directas
+use Illuminate\Support\Facades\Log; // Para registro de errores
+use Illuminate\Database\QueryException; // Para manejar errores de consulta específicos
 
 class EloRatingService
 {
-    private float $K_FACTOR_DEFAULT = 32.0;
-    private float $K_FACTOR_NEW_PLAYER = 40.0;
-    private int $MATCHES_FOR_K_FACTOR_REDUCTION = 30;
+    private float $K_FACTOR_DEFAULT = 32.0; // Constante K estándar, se podría hacer configurable
+    private float $K_FACTOR_NEW_PLAYER = 40.0; // K factor inicial para nuevos jugadores, opcional
+    private int $MATCHES_FOR_K_FACTOR_REDUCTION = 30; // Número de partidas para reducir K
 
     /**
      * Calcula los nuevos ratings ELO para dos personajes basado en el resultado de un enfrentamiento.
@@ -51,7 +53,7 @@ class EloRatingService
     /**
      * Aplica los nuevos ratings calculados a los registros CategoryCharacter.
      * Actualiza también estadísticas como partidas jugadas, victorias, derrotas, win rate, etc.
-     * Utiliza Query Builder para operaciones atómicas y evitar problemas con claves compuestas.
+     * Optimizado para tablas pivote con clave primaria compuesta usando DB::table.
      *
      * @param int $categoryId ID de la categoría.
      * @param int $character1Id ID del personaje 1.
@@ -67,28 +69,30 @@ class EloRatingService
             // --- Cargar ratings ELO actuales de los personajes en la categoría de la encuesta ---
             // Usamos una sola consulta para obtener ambos ratings
             $characterIds = [$character1Id, $character2Id];
-            $currentRatings = DB::table('category_character')
-                               ->where('category_id', $categoryId)
-                               ->whereIn('character_id', $characterIds)
-                               ->get(); // Retorna colección de stdClass
+            // Cargar los datos actuales de ambos registros pivote
+            $currentRatingsCollection = CategoryCharacter::where('category_id', $categoryId)
+                                                        ->whereIn('character_id', $characterIds)
+                                                        ->get()
+                                                        ->keyBy('character_id'); // Clave: character_id, Valor: instancia de CategoryCharacter
 
             // Verificar que se encontraron ambos registros
-            if ($currentRatings->count() !== 2) {
+            if ($currentRatingsCollection->count() !== 2) {
+                // Esto podría suceder si uno de los personajes no está registrado en la categoría
+                // Registrar error interno crítico
                 Log::critical("EloRatingService: Ratings not found for one or both characters ({$character1Id}, {$character2Id}) in category {$categoryId} during applyRatings.");
+                // Lanzar una excepción específica para que el controlador la capture
                 throw new \Exception("Ratings not found for one or both characters ({$character1Id}, {$character2Id}) in category {$categoryId}.");
             }
 
-            // Convertir la colección en un array asociativo para acceso rápido
-            $ratingsMap = $currentRatings->keyBy('character_id')->toArray(); // ['char_id' => stdClass]
-
-            $rating1Data = $ratingsMap[$character1Id];
-            $rating2Data = $ratingsMap[$character2Id];
+            // Obtener los objetos pivote usando la colección
+            $pivot1 = $currentRatingsCollection[$character1Id];
+            $pivot2 = $currentRatingsCollection[$character2Id];
 
             // --- Calcular nuevas estadísticas para character1 ---
-            $newMatchesPlayed1 = $rating1Data->matches_played + 1;
-            $newWins1 = $rating1Data->wins;
-            $newLosses1 = $rating1Data->losses;
-            $newTies1 = $rating1Data->ties ?? 0; // Asumiendo que la columna 'ties' existe
+            $newMatchesPlayed1 = $pivot1->matches_played + 1;
+            $newWins1 = $pivot1->wins;
+            $newLosses1 = $pivot1->losses;
+            $newTies1 = $pivot1->ties; // Usar la nueva columna
 
             if ($result === 'win') {
                 $newWins1 += 1;
@@ -98,15 +102,19 @@ class EloRatingService
                 $newTies1 += 1;
             }
 
-            $newWinRate1 = ($newMatchesPlayed1 > 0) ? ($newWins1 / $newMatchesPlayed1) * 100 : 0.00;
-            $newHighestRating1 = max($rating1Data->highest_rating, $newRating1);
-            $newLowestRating1 = min($rating1Data->lowest_rating, $newRating1);
+            $newWinRate1 = 0.0;
+            if ($newMatchesPlayed1 > 0) {
+                $newWinRate1 = ($newWins1 / $newMatchesPlayed1) * 100;
+            }
+            $newHighestRating1 = max($pivot1->highest_rating, $newRating1);
+            $newLowestRating1 = min($pivot1->lowest_rating, $newRating1);
+            $newLastMatchAt1 = now();
 
             // --- Calcular nuevas estadísticas para character2 ---
-            $newMatchesPlayed2 = $rating2Data->matches_played + 1;
-            $newWins2 = $rating2Data->wins;
-            $newLosses2 = $rating2Data->losses;
-            $newTies2 = $rating2Data->ties ?? 0; // Asumiendo que la columna 'ties' existe
+            $newMatchesPlayed2 = $pivot2->matches_played + 1;
+            $newWins2 = $pivot2->wins;
+            $newLosses2 = $pivot2->losses;
+            $newTies2 = $pivot2->ties; // Usar la nueva columna
 
             // Invertir lógica para character2
             if ($result === 'loss') { // Si char1 ganó, char2 perdió
@@ -117,9 +125,14 @@ class EloRatingService
                 $newTies2 += 1;
             }
 
-            $newWinRate2 = ($newMatchesPlayed2 > 0) ? ($newWins2 / $newMatchesPlayed2) * 100 : 0.00;
-            $newHighestRating2 = max($rating2Data->highest_rating, $newRating2);
-            $newLowestRating2 = min($rating2Data->lowest_rating, $newRating2);
+            $newWinRate2 = 0.0;
+            if ($newMatchesPlayed2 > 0) {
+                $newWinRate2 = ($newWins2 / $newMatchesPlayed2) * 100;
+            }
+            $newHighestRating2 = max($pivot2->highest_rating, $newRating2);
+            $newLowestRating2 = min($pivot2->lowest_rating, $newRating2);
+            $newLastMatchAt2 = now();
+
 
             // --- Aplicar los nuevos ratings y estadísticas a character1 en `category_character` ---
             // Usar DB::table()->where()->update() para evitar problemas con claves compuestas
@@ -135,8 +148,8 @@ class EloRatingService
                     'win_rate' => $newWinRate1,
                     'highest_rating' => $newHighestRating1,
                     'lowest_rating' => $newLowestRating1,
-                    'last_match_at' => now(),
-                    'updated_at' => now(), // Actualizar timestamp
+                    'last_match_at' => $newLastMatchAt1,
+                    'updated_at' => now(), // Actualizar updated_at
                 ]);
 
             // Verificar que se actualizó exactamente una fila
@@ -159,8 +172,8 @@ class EloRatingService
                     'win_rate' => $newWinRate2,
                     'highest_rating' => $newHighestRating2,
                     'lowest_rating' => $newLowestRating2,
-                    'last_match_at' => now(),
-                    'updated_at' => now(), // Actualizar timestamp
+                    'last_match_at' => $newLastMatchAt2,
+                    'updated_at' => now(), // Actualizar updated_at
                 ]);
 
             // Verificar que se actualizó exactamente una fila
@@ -168,6 +181,7 @@ class EloRatingService
                 Log::error("EloRatingService: Expected to update 1 row for character {$character2Id} in category {$categoryId}, but updated {$updatedRows2} rows.");
                 throw new \Exception("Failed to update rating for character {$character2Id} in category {$categoryId}.");
             }
+
         }); // --- Fin de la transacción DB::transaction ---
     }
 
