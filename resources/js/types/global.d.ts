@@ -184,6 +184,10 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     characters: CharacterResource[];
     strategy: string;
     // votes: VoteResource[];
+
+    total_combinations_expected: number;
+    total_combinations: number;
+    total_votes: number;
 }
 
 export interface SurveyResourceForm { // Interfaz para el recurso individual resuelto
@@ -243,6 +247,24 @@ export interface SurveyUser {
     last_activity_at: string;
     is_completed: boolean;
     completion_time: number | null;
+}
+
+export interface CombinatoricResource_ {
+    id: number;
+    survey_id: number;
+    character1_id: number;
+    character2_id: number;
+    character1: CharacterResource;
+    character2: CharacterResource;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CombinatoricResource {
+    id: number;
+    character1: CharacterResource;
+    character2: CharacterResource;
+    // Añadir otros campos si son necesarios
 }
 
 // Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
