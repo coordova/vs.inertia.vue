@@ -39,8 +39,12 @@ class SurveyBaseResource extends JsonResource
             'is_active' => $this->date_start <= now() && $this->date_end >= now(),
             
             // Datos de fechas formateadas
-            'date_start_formatted' => $this->date_start?->utc()->format('d-m-Y'),
-            'date_end_formatted' => $this->date_end?->utc()->format('d-m-Y'),
+            // 'date_start_formatted' => $this->date_start?->utc()->format('d-m-Y'),
+            // 'date_end_formatted' => $this->date_end?->utc()->format('d-m-Y'),
+            'date_start_formatted' => $this->date_start?->translatedFormat('d-m-Y'), // o 'Y-m-d' o 'M j, Y'
+            'date_end_formatted' => $this->date_end?->translatedFormat('d-m-Y'),
+            // 'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i:s'),
+            // 'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i:s'),
         ];
     }
 

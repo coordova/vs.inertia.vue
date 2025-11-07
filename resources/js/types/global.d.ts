@@ -156,6 +156,7 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     allow_ties: boolean;
     tie_weight: number; // Decimal
     is_featured: boolean;
+    is_active: boolean;
     sort_order: number;
     counter: number;
     meta_title: string | null;
@@ -208,6 +209,7 @@ export interface SurveyResourceForm { // Interfaz para el recurso individual res
     // allow_ties: boolean;
     // tie_weight: number; // Decimal
     is_featured: boolean;
+    is_active: boolean;
     // sort_order: number;
     // counter: number;
     // meta_title: string | null;

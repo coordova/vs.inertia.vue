@@ -13,7 +13,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
-import { format } from 'date-fns'; // O dayjs, o formateo nativo
+// import { format } from 'date-fns'; // O dayjs, o formateo nativo
 
 interface Props {
     survey: SurveyResource; // Datos de la encuesta, incluyendo categoría y personajes
@@ -72,7 +72,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </CardDescription>
                             </CardHeader>
                             <CardContent class="space-y-4">
-                                <div
+                                <!-- <div
                                     v-if="survey.image_url"
                                     class="relative aspect-video w-full overflow-hidden rounded-lg border"
                                 >
@@ -89,7 +89,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <span class="text-muted-foreground"
                                         >No Image</span
                                     >
-                                </div>
+                                </div> -->
 
                                 <div>
                                     <h3
@@ -136,12 +136,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             Start Date
                                         </h3>
                                         <p class="mt-1 text-sm">
-                                            {{
-                                                format(
-                                                    new Date(survey.date_start),
-                                                    'PPP',
-                                                )
-                                            }}
+                                            {{ survey.date_start_formatted }}
                                         </p>
                                         <!-- Ej: Oct 22, 2025 -->
                                     </div>
@@ -152,12 +147,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             End Date
                                         </h3>
                                         <p class="mt-1 text-sm">
-                                            {{
-                                                format(
-                                                    new Date(survey.date_end),
-                                                    'PPP',
-                                                )
-                                            }}
+                                            {{ survey.date_end_formatted }}
                                         </p>
                                     </div>
                                 </div>

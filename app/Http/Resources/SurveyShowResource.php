@@ -16,9 +16,9 @@ class SurveyShowResource extends SurveyBaseResource
     {
         // return parent::toArray($request);
 
-        $combinationsCount = $this->getCombinationsCount();
+        // $combinationsCount = $this->getCombinationsCount();
         $userVotesCount = $this->user_votes_count ?? 0;
-        $progressPercentage = $this->getProgressPercentage();
+        // $progressPercentage = $this->getProgressPercentage();
 
         // ✅ Solo cargar votos recientes si se necesitan
         $recentVotes = collect();
@@ -53,12 +53,12 @@ class SurveyShowResource extends SurveyBaseResource
             
             // ✅ Datos optimizados para detalles
             'character_count' => $this->characters_count ?? $this->characters->count(),
-            'combinations_count' => $combinationsCount,
+            'combinations_count' => $this->total_combinations,
             'user_votes_count' => $userVotesCount,
-            'progress_percentage' => $progressPercentage,
+            'progress_percentage' => $this->total_combinations / $userVotesCount * 100,
             'recent_votes' => $recentVotes,
-            'is_completed' => $progressPercentage >= 100,
-            'remaining_combinations' => max(0, $combinationsCount - $userVotesCount),
+            'is_completed' => $this->total_combinations / $userVotesCount * 100 >= 100,
+            'remaining_combinations' => max(0, $this->total_combinations - $userVotesCount),
         ]);
     }
 }
