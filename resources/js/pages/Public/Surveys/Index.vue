@@ -41,7 +41,8 @@ const props = defineProps<Props>();
 const breadcrumbs = [
     {
         title: 'Surveys',
-        href: route('surveys.public.index'), // Asumiendo que esta ruta apunta a este componente
+        // href: '/surveys',
+        href: route('public.surveys.index'), // Asumiendo que esta ruta apunta a este componente
     },
 ];
 </script>
@@ -194,7 +195,7 @@ const breadcrumbs = [
                                         <Link
                                             :href="
                                                 route(
-                                                    'surveys.public.show',
+                                                    'public.surveys.show',
                                                     survey.slug,
                                                 )
                                             "
@@ -215,7 +216,7 @@ const breadcrumbs = [
                                         <Link
                                             :href="
                                                 route(
-                                                    'surveys.public.vote',
+                                                    'public.surveys.vote',
                                                     survey.slug,
                                                 )
                                             "

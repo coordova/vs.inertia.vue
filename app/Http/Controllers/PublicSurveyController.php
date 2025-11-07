@@ -73,9 +73,9 @@ class PublicSurveyController extends Controller
         // Cargar personajes activos en esta encuesta
         $activeCharacters = $survey->characters()
                                    ->wherePivot('is_active', true)
-                                   ->with(['category_stats' => function($q) use ($survey) { // Cargar stats del personaje en la categoría de la encuesta
+                                   /* ->with(['category_stats' => function($q) use ($survey) { // Cargar stats del personaje en la categoría de la encuesta
                                        $q->where('category_id', $survey->category_id);
-                                   }])
+                                   }]) */
                                    ->get();
 
         // Verificar el estado del progreso del usuario en esta encuesta (opcional, para mostrar en la vista de show)

@@ -28,11 +28,11 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Surveys',
-        href: route('surveys.public.index'),
+        href: route('public.surveys.index'),
     },
     {
         title: props.survey.title,
-        href: route('surveys.public.show', props.survey.slug), // O props.survey.id
+        href: route('public.surveys.show', props.survey.slug), // O props.survey.id
     },
 ];
 </script>
@@ -217,7 +217,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <Link
                                             :href="
                                                 route(
-                                                    'surveys.public.vote',
+                                                    'public.surveys.vote',
                                                     survey.slug,
                                                 )
                                             "
@@ -235,7 +235,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <Link
                                             :href="
                                                 route(
-                                                    'surveys.public.ranking',
+                                                    'public.surveys.ranking',
                                                     survey.slug,
                                                 )
                                             "
