@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { useToast } from '@/composables/useToast'; // Importar el composable de toast
 import { Head, router } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 // Layouts & Components
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Componente de alerta de shadcn
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -14,132 +12,188 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress'; // Componente de progreso de shadcn
+import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { AlertCircle } from 'lucide-vue-next'; // Iconos
+// import { motion } from 'framer-motion'; // Importar motion de framer-motion
 
-// Tipos (asumiendo que están definidos en global.d.ts o en otro lugar)
-import type { CombinatoricResource, SurveyResource } from '@/types/global';
+// Tipos: Definidos localmente para este componente
+interface CharacterResource {
+    id: number;
+    fullname: string;
+    nickname: string | null;
+    slug: string;
+    bio: string | null;
+    dob: string | null; // Formato ISO
+    gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+    nationality: string | null;
+    occupation: string | null;
+    picture: string | null; // Path relativo
+    picture_url: string | null; // URL completa
+    thumbnail_url: string | null; // URL miniatura
+    status: boolean;
+    meta_title: string | null;
+    meta_description: string | null;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    created_at_formatted: string;
+    updated_at_formatted: string;
+    category_ids: number[];
+    // Añadir otros campos si son necesarios
+}
 
-// --- Props del componente ---
+interface CombinatoricResource {
+    combinatoric_id: number;
+    character1: CharacterResource;
+    character2: CharacterResource;
+    // Añadir otros campos si son necesarios
+}
+
+interface SurveyResource {
+    id: number;
+    category_id: number;
+    title: string;
+    slug: string;
+    description: string | null;
+    image: string | null;
+    type: number; // 0=pública, 1=privada
+    status: boolean; // 1=activa, 0=inactiva
+    reverse: boolean;
+    date_start: string; // Formato ISO
+    date_end: string; // Formato ISO
+    selection_strategy: string; // Ej: 'cooldown', 'random', 'elo_based'
+    max_votes_per_user: number | null; // 0=ilimitado
+    allow_ties: boolean; // 1=sí, 0=no
+    tie_weight: number; // Peso de empate (0.0-1.0)
+    is_featured: boolean; // 1=sí, 0=no
+    sort_order: number;
+    counter: number;
+    meta_title: string | null;
+    meta_description: string | null;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    deleted_at: string | null; // Formato ISO
+
+    // Datos de fechas formateadas
+    date_start_formatted: string; // 'd-m-Y'
+    date_end_formatted: string; // 'd-m-Y'
+    created_at_formatted: string; // 'd-m-Y H:i:s'
+    updated_at_formatted: string; // 'd-m-Y H:i:s'
+
+    // Relación con la categoría
+    category: {
+        id: number;
+        name: string;
+        slug: string;
+        description: string | null;
+        image: string | null;
+        color: string; // Hex
+        icon: string;
+        sort_order: number;
+        status: boolean; // 1=activo, 0=inactivo
+        is_featured: boolean; // 1=sí, 0=no
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        deleted_at: string | null; // Formato ISO
+    } | null;
+
+    // --- Datos Calculados de Progreso (usando columnas nuevas en BD) ---
+    total_combinations: number | null; // De la tabla surveys
+    progress_percentage: number; // Del SurveyProgressService
+    total_votes: number; // Del SurveyProgressService
+    total_combinations_expected: number | null; // Del SurveyProgressService o fallback
+    is_completed: boolean; // Del SurveyProgressService
+    started_at: string | null; // Del SurveyProgressService
+    completed_at: string | null; // Del SurveyProgressService
+    last_activity_at: string | null; // Del SurveyProgressService
+    completion_time: number | null; // Del SurveyProgressService
+
+    // --- Datos de la Próxima Combinación ---
+    // next_combination: CombinatoricResource | null; // <-- No lo pasamos como parte de survey, sino como prop separada
+}
+
+interface UserProgress {
+    exists: boolean;
+    is_completed: boolean;
+    progress: number;
+    total_votes: number;
+    total_expected: number | null;
+    pivot_id: number | null;
+    // Añadir otros campos si son necesarios
+}
+
+// Props del componente
 interface Props {
-    survey: SurveyResource; // Datos de la encuesta actual, incluyendo progreso
-    nextCombination: CombinatoricResource | null; // La próxima combinación a votar
+    survey: SurveyResource; // El objeto survey con datos de progreso incluidos
+    characters: CharacterResource[]; // Personajes activos en la encuesta
+    // userProgress: UserProgress; // Ya está incluido en survey, pero lo dejamos por si se necesita aparte
+    currentCombination: CombinatoricResource | null; // La próxima combinación a votar
 }
 
 const props = defineProps<Props>();
+console.log('Props received by PublicVote.vue:', props); // Para depuración
 
 // --- Composables ---
 const { success, error } = useToast();
 
 // --- Estados reactivos ---
-const currentCombination = ref<CombinatoricResource | null>(
-    props.nextCombination,
-); // Estado local para la combinación actual
-const surveyData = ref<SurveyResource>({ ...props.survey }); // Estado local para los datos de la encuesta (progreso, etc.)
 const voting = ref(false); // Estado para deshabilitar botones durante el voto
-const loadingNext = ref(false); // Estado para mostrar indicador de carga de la siguiente combinación
-const noMoreCombinations = ref(!props.nextCombination); // Estado para indicar si no hay más combinaciones
-const isCompleted = computed(() => surveyData.value.is_completed); // Calcular si la encuesta está completada localmente
 
-// --- Computed Properties para UI ---
+// --- Computed Properties ---
+// Progreso calculado (usando datos del backend)
 const progressPercentage = computed(
-    () => surveyData.value.progress_percentage ?? 0,
+    () => props.survey.progress_percentage ?? 0,
 );
 const totalExpected = computed(
     () =>
-        surveyData.value.total_combinations_expected ??
-        surveyData.value.total_combinations ??
+        props.survey.total_combinations_expected ??
+        props.survey.total_combinations ??
         0,
 );
-const totalVotes = computed(() => surveyData.value.total_votes ?? 0);
+const totalVotes = computed(() => props.survey.total_votes ?? 0);
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
 );
+const isCompleted = computed(() => props.survey.is_completed ?? false);
+const hasCombination = computed(() => !!props.currentCombination); // <-- Usar props.currentCombination
 
 // --- Funciones ---
 
 /**
- * Enviar el voto al backend y actualizar el estado local con la respuesta.
- * @param selectedCharacterId ID del personaje seleccionado (puede ser null para empate)
+ * Enviar el voto al backend.
+ * @param winnerId ID del personaje ganador (puede ser null para empate)
+ * @param loserId ID del personaje perdedor (puede ser null para empate)
  * @param isTie Booleano indicando si es empate
  */
 const submitVote = (
-    selectedCharacterId: number | null,
+    winnerId: number | null,
+    loserId: number | null,
     isTie: boolean = false,
 ) => {
-    if (!currentCombination.value || voting.value) return;
+    // Prevenir votos múltiples mientras se procesa uno
+    if (!props.currentCombination || voting.value) {
+        return;
+    }
 
     voting.value = true;
 
-    let winnerId: number | null = null;
-    let loserId: number | null = null;
-
-    if (isTie) {
-        // Para empate, ambos IDs son null
-        winnerId = null;
-        loserId = null;
-    } else {
-        // Verificar que el ID seleccionado sea uno de los dos personajes de la combinación
-        const validCharacterIds = [
-            currentCombination.value.character1.id,
-            currentCombination.value.character2.id,
-        ];
-        if (!validCharacterIds.includes(selectedCharacterId)) {
-            error('Invalid character selection.');
-            voting.value = false;
-            return;
-        }
-
-        // Determinar ganador y perdedor
-        winnerId = selectedCharacterId;
-        loserId =
-            selectedCharacterId === currentCombination.value.character1.id
-                ? currentCombination.value.character2.id
-                : currentCombination.value.character1.id;
-    }
-
     // Preparar datos para el voto
     const voteData = {
-        combinatoric_id: currentCombination.value.id, // Usar el ID de la combinación actual
-        winner_id: winnerId,
-        loser_id: loserId,
+        combinatoric_id: props.currentCombination.combinatoric_id,
+        winner_id: isTie ? null : winnerId,
+        loser_id: isTie ? null : loserId,
         tie: isTie,
     };
 
-    // Usar router.post de Inertia para enviar el voto y recibir JSON
-    router.post(route('surveys.vote.store', surveyData.value.id), voteData, {
-        // preserveState: true, // No es necesario si se actualiza el estado local
-        preserveScroll: true, // Mantener la posición de desplazamiento
+    // Usar router.post de Inertia para enviar el voto
+    router.post(route('surveys.vote.store', props.survey.id), voteData, {
+        preserveScroll: true, // Mantener posición de scroll
         onSuccess: (page) => {
-            // page.props contiene la respuesta JSON del backend
-            // Asumiendo que el backend devuelve un objeto como:
-            // { message: '...', survey_data: { progress_percentage, total_votes, is_completed, ... }, next_combination: { ... } }
-            const responseData = page.props;
-
-            // Actualizar estado local con los datos recibidos del backend
-            if (responseData.survey_data) {
-                surveyData.value = {
-                    ...surveyData.value,
-                    ...responseData.survey_data,
-                };
-            }
-
-            if (responseData.next_combination) {
-                // Si hay una próxima combinación, actualizarla
-                currentCombination.value = responseData.next_combination;
-                noMoreCombinations.value = false; // Asegurar que el flag esté en false si hay combinación
-            } else {
-                // Si no hay próxima combinación, la encuesta ha terminado para este usuario (o se han completado las disponibles)
-                currentCombination.value = null;
-                noMoreCombinations.value = true;
-            }
-
-            // Mostrar mensaje de éxito
-            success(responseData.message || 'Vote recorded successfully!');
-
-            // Opcional: Recargar datos del progreso del usuario si el backend no los devuelve explícitamente
-            // router.reload({ only: ['userProgress'] }); // Si se pasa como prop separada
+            // El backend maneja la lógica y redirige de vuelta a esta misma página
+            // con datos actualizados (survey, currentCombination) en page.props
+            // Inertia recargará el componente con las nuevas props
+            success('Vote recorded successfully!');
         },
         onError: (errors) => {
             console.error('Errors submitting vote:', errors);
@@ -163,8 +217,12 @@ const submitVote = (
  * Manejar el voto por el personaje 1.
  */
 const handleVoteCharacter1 = () => {
-    if (currentCombination.value) {
-        submitVote(currentCombination.value.character1.id, false);
+    if (props.currentCombination) {
+        submitVote(
+            props.currentCombination.character1.id,
+            props.currentCombination.character2.id,
+            false,
+        );
     }
 };
 
@@ -172,8 +230,12 @@ const handleVoteCharacter1 = () => {
  * Manejar el voto por el personaje 2.
  */
 const handleVoteCharacter2 = () => {
-    if (currentCombination.value) {
-        submitVote(currentCombination.value.character2.id, false);
+    if (props.currentCombination) {
+        submitVote(
+            props.currentCombination.character2.id,
+            props.currentCombination.character1.id,
+            false,
+        );
     }
 };
 
@@ -181,389 +243,313 @@ const handleVoteCharacter2 = () => {
  * Manejar el voto de empate.
  */
 const handleTie = () => {
-    if (currentCombination.value) {
-        submitVote(null, true); // Enviar null para ambos IDs
+    if (props.currentCombination) {
+        submitVote(null, null, true);
     }
 };
 
-/**
- * Manejar eventos de teclado para votación rápida.
- * @param e Evento de teclado
- */
-const handleKeyPress = (e: KeyboardEvent) => {
-    if (
-        e.key === '1' &&
-        currentCombination.value &&
-        !voting.value &&
-        !loadingNext.value
-    ) {
-        handleVoteCharacter1();
-    } else if (
-        e.key === '2' &&
-        currentCombination.value &&
-        !voting.value &&
-        !loadingNext.value
-    ) {
-        handleVoteCharacter2();
-    } else if (
-        e.key === '3' &&
-        currentCombination.value &&
-        !voting.value &&
-        !loadingNext.value
-    ) {
-        // Opcional: '3' para empate
-        handleTie();
-    }
-};
-
-// --- Lifecycle Hooks ---
-onMounted(() => {
-    // Agregar event listener para teclado
-    window.addEventListener('keydown', handleKeyPress);
-});
-
-onUnmounted(() => {
-    // Limpiar event listener
-    window.removeEventListener('keydown', handleKeyPress);
-});
-
-// --- Breadcrumbs (ejemplo) ---
+// --- Breadcrumbs ---
 const breadcrumbs = [
     {
         title: 'Surveys',
         href: route('surveys.public.index'),
     },
     {
-        title: surveyData.value.title, // Nombre dinámico de la encuesta
-        href: route('surveys.public.show', surveyData.value.id),
+        title: props.survey.title,
+        // href: route('surveys.public.show', props.survey.id), // O props.survey.id
     },
     {
         title: 'Vote',
-        href: route('surveys.public.vote', surveyData.value.id),
+        // href: route('surveys.public.vote', props.survey.id), // O props.survey.id
     },
 ];
 </script>
 
 <template>
-    <Head :title="`Voting: ${surveyData.title}`" />
+    <Head :title="`Voting: ${survey.title}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="container mx-auto py-8">
-            <div
-                class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-            >
-                <!-- Header con información de la encuesta y progreso -->
-                <header class="border-b pb-4">
-                    <div
-                        class="container flex h-16 items-center justify-between px-4"
-                    >
-                        <h1 class="text-xl font-semibold">
-                            {{ surveyData.title }}
-                        </h1>
+        <div
+            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+        >
+            <!-- Header con progreso -->
+            <header class="border-b pb-4">
+                <div
+                    class="container flex h-16 items-center justify-between px-4"
+                >
+                    <h1 class="text-xl font-semibold">{{ survey.title }}</h1>
 
-                        <div class="flex items-center gap-6">
-                            <!-- Barra de progreso -->
-                            <div class="flex items-center gap-2">
-                                <div class="w-32">
-                                    <Progress
-                                        :value="progressPercentage"
-                                        :max="100"
-                                    />
-                                </div>
-                                <span class="text-sm text-muted-foreground">
-                                    {{ progressPercentage.toFixed(2) }}%
-                                </span>
+                    <div class="flex items-center gap-6">
+                        <!-- Barra de progreso -->
+                        <div class="flex items-center gap-2">
+                            <div class="h-2 w-32 rounded-full bg-muted">
+                                <motion.div
+                                    class="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                                    :animate="{
+                                        width: progressPercentage + '%',
+                                    }"
+                                    :initial="{ width: 0 }"
+                                    :transition="{
+                                        type: 'spring',
+                                        stiffness: 100,
+                                    }"
+                                ></motion.div>
                             </div>
+                            <span class="text-sm text-muted-foreground">
+                                {{ progressPercentage.toFixed(2) }}%
+                            </span>
+                        </div>
 
-                            <div class="text-sm text-muted-foreground">
-                                {{ totalVotes }} / {{ totalExpected }}
-                            </div>
+                        <div class="text-sm text-muted-foreground">
+                            {{ totalVotes }} / {{ totalExpected }}
+                        </div>
 
-                            <Button
-                                variant="outline"
-                                @click="
-                                    router.visit(
-                                        route(
-                                            'surveys.public.show',
-                                            surveyData.id,
-                                        ),
-                                    )
-                                "
+                        <Button asChild variant="outline">
+                            <!-- <router-link
+                                :href="route('surveys.public.show', survey.id)"
                             >
                                 Back to Survey
-                            </Button>
-                        </div>
+                            </router-link> -->
+                        </Button>
                     </div>
-                </header>
+                </div>
+            </header>
 
-                <!-- Main content -->
-                <main class="container py-8">
-                    <!-- Alerta de encuesta completada -->
-                    <Alert v-if="isCompleted" class="mb-6">
-                        <AlertCircle class="h-4 w-4" />
-                        <AlertTitle>Congratulations!</AlertTitle>
-                        <AlertDescription>
-                            You have completed this survey. Thank you for
-                            participating!
-                        </AlertDescription>
-                    </Alert>
-
-                    <!-- Indicador de Carga (para la primera carga si aplica) -->
-                    <div
-                        v-if="loadingNext && !currentCombination"
-                        class="flex h-96 items-center justify-center"
-                    >
-                        <div class="text-muted-foreground">
-                            Loading first match...
-                        </div>
-                    </div>
-
-                    <!-- Mensaje de Fin de Encuesta o Sin Combinaciones -->
-                    <div
-                        v-else-if="noMoreCombinations || !currentCombination"
-                        class="text-center"
-                    >
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>
+            <!-- Main content -->
+            <main class="container py-8">
+                <div v-if="!hasCombination || isCompleted" class="text-center">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>
+                                {{
+                                    isCompleted
+                                        ? 'Survey Completed!'
+                                        : 'No More Combinations!'
+                                }}
+                            </CardTitle>
+                            <CardDescription>
+                                {{
+                                    isCompleted
+                                        ? 'Congratulations! You have completed this survey.'
+                                        : "You've voted on all available combinations for now."
+                                }}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardFooter class="flex justify-center">
+                            <Button asChild>
+                                <router-link
+                                    :href="
+                                        route('surveys.public.show', survey.id)
+                                    "
+                                >
                                     {{
                                         isCompleted
-                                            ? 'Survey Completed!'
-                                            : 'No More Combinations!'
+                                            ? 'View Results'
+                                            : 'View Survey'
                                     }}
-                                </CardTitle>
-                                <CardDescription>
+                                </router-link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+
+                <div v-else class="mx-auto max-w-4xl">
+                    <!-- Characters comparison -->
+                    <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                        <!-- Character 1 -->
+                        <Card>
+                            <CardHeader class="text-center">
+                                <CardTitle>{{
+                                    currentCombination.character1.data.fullname
+                                }}</CardTitle>
+                                <CardDescription
+                                    v-if="
+                                        currentCombination.character1.data
+                                            .nickname
+                                    "
+                                >
                                     {{
-                                        isCompleted
-                                            ? 'You have finished all available matches for this survey.'
-                                            : 'There are no more available matches to vote on right now.'
+                                        currentCombination.character1.data
+                                            .nickname
                                     }}
                                 </CardDescription>
                             </CardHeader>
-                            <CardFooter class="flex justify-center">
-                                <Button asChild>
-                                    <router-link
-                                        :href="
-                                            route(
-                                                'surveys.public.show',
-                                                surveyData.id,
-                                            )
+                            <CardContent>
+                                <div
+                                    class="relative aspect-square w-full overflow-hidden rounded-lg border"
+                                >
+                                    <img
+                                        v-if="
+                                            currentCombination.character1.data
+                                                .picture_url
                                         "
+                                        :src="
+                                            currentCombination.character1.data
+                                                .picture_url
+                                        "
+                                        :alt="
+                                            currentCombination.character1.data
+                                                .fullname
+                                        "
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <div
+                                        v-else
+                                        class="flex h-full w-full items-center justify-center bg-muted"
                                     >
+                                        <span class="text-muted-foreground"
+                                            >No image</span
+                                        >
+                                    </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button
+                                    class="w-full"
+                                    :disabled="voting"
+                                    @click="handleVoteCharacter1"
+                                >
+                                    <span v-if="voting">Voting...</span>
+                                    <span v-else
+                                        >Vote for
                                         {{
-                                            isCompleted
-                                                ? 'View Results'
-                                                : 'View Survey'
+                                            currentCombination.character1.data
+                                                .fullname
                                         }}
-                                    </router-link>
+                                        (1)</span
+                                    >
+                                </Button>
+                            </CardFooter>
+                        </Card>
+
+                        <!-- Character 2 -->
+                        <Card>
+                            <CardHeader class="text-center">
+                                <CardTitle>{{
+                                    currentCombination.character2.data.fullname
+                                }}</CardTitle>
+                                <CardDescription
+                                    v-if="
+                                        currentCombination.character2.data
+                                            .nickname
+                                    "
+                                >
+                                    {{
+                                        currentCombination.character2.data
+                                            .nickname
+                                    }}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div
+                                    class="relative aspect-square w-full overflow-hidden rounded-lg border"
+                                >
+                                    <img
+                                        v-if="
+                                            currentCombination.character2.data
+                                                .picture_url
+                                        "
+                                        :src="
+                                            currentCombination.character2.data
+                                                .picture_url
+                                        "
+                                        :alt="
+                                            currentCombination.character2.data
+                                                .fullname
+                                        "
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <div
+                                        v-else
+                                        class="flex h-full w-full items-center justify-center bg-muted"
+                                    >
+                                        <span class="text-muted-foreground"
+                                            >No image</span
+                                        >
+                                    </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button
+                                    class="w-full"
+                                    :disabled="voting"
+                                    @click="handleVoteCharacter2"
+                                >
+                                    <span v-if="voting">Voting...</span>
+                                    <span v-else
+                                        >Vote for
+                                        {{
+                                            currentCombination.character2.data
+                                                .fullname
+                                        }}
+                                        (2)</span
+                                    >
                                 </Button>
                             </CardFooter>
                         </Card>
                     </div>
 
-                    <!-- Interfaz de Votación -->
-                    <div v-else class="mx-auto max-w-4xl">
-                        <!-- Characters comparison -->
-                        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-                            <!-- Character 1 -->
-                            <Card>
-                                <CardHeader class="text-center">
-                                    <CardTitle>{{
-                                        currentCombination.character1.fullname
-                                    }}</CardTitle>
-                                    <CardDescription
-                                        v-if="
-                                            currentCombination.character1
-                                                .nickname
-                                        "
-                                    >
-                                        {{
-                                            currentCombination.character1
-                                                .nickname
-                                        }}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div
-                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                    >
-                                        <img
-                                            v-if="
-                                                currentCombination.character1
-                                                    .picture_url
-                                            "
-                                            :src="
-                                                currentCombination.character1
-                                                    .picture_url
-                                            "
-                                            :alt="
-                                                currentCombination.character1
-                                                    .fullname
-                                            "
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            v-else
-                                            class="flex h-full w-full items-center justify-center bg-muted"
-                                        >
-                                            <span class="text-muted-foreground"
-                                                >No image</span
-                                            >
-                                        </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Button
-                                        class="w-full"
-                                        :disabled="voting"
-                                        @click="handleVoteCharacter1"
-                                    >
-                                        <span v-if="voting">Voting...</span>
-                                        <span v-else
-                                            >Vote for
-                                            {{
-                                                currentCombination.character1
-                                                    .fullname
-                                            }}
-                                            (1)</span
-                                        >
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-
-                            <!-- Character 2 -->
-                            <Card>
-                                <CardHeader class="text-center">
-                                    <CardTitle>{{
-                                        currentCombination.character2.fullname
-                                    }}</CardTitle>
-                                    <CardDescription
-                                        v-if="
-                                            currentCombination.character2
-                                                .nickname
-                                        "
-                                    >
-                                        {{
-                                            currentCombination.character2
-                                                .nickname
-                                        }}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div
-                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                    >
-                                        <img
-                                            v-if="
-                                                currentCombination.character2
-                                                    .picture_url
-                                            "
-                                            :src="
-                                                currentCombination.character2
-                                                    .picture_url
-                                            "
-                                            :alt="
-                                                currentCombination.character2
-                                                    .fullname
-                                            "
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            v-else
-                                            class="flex h-full w-full items-center justify-center bg-muted"
-                                        >
-                                            <span class="text-muted-foreground"
-                                                >No image</span
-                                            >
-                                        </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Button
-                                        class="w-full"
-                                        :disabled="voting"
-                                        @click="handleVoteCharacter2"
-                                    >
-                                        <span v-if="voting">Voting...</span>
-                                        <span v-else
-                                            >Vote for
-                                            {{
-                                                currentCombination.character2
-                                                    .fullname
-                                            }}
-                                            (2)</span
-                                        >
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        </div>
-
-                        <!-- Botón de Empate -->
-                        <div class="mt-8 flex justify-center">
-                            <Button
-                                variant="outline"
-                                :disabled="voting"
-                                @click="handleTie"
-                            >
-                                {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
-                            </Button>
-                        </div>
-
-                        <!-- Información adicional - Estadisticas -->
-                        <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <Card>
-                                <CardContent class="pt-4 text-center">
-                                    <div class="text-2xl font-bold">
-                                        {{ votesRemaining }}
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">
-                                        Remaining
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent class="pt-4 text-center">
-                                    <div class="text-2xl font-bold">
-                                        {{ progressPercentage.toFixed(2) }}%
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">
-                                        Completed
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent class="pt-4 text-center">
-                                    <div class="text-2xl font-bold">
-                                        {{ totalVotes }}
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">
-                                        Voted
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <!-- Instrucciones -->
-                        <div
-                            class="mt-8 text-center text-sm text-muted-foreground"
+                    <!-- Botón de Empate -->
+                    <div class="mt-8 flex justify-center">
+                        <Button
+                            variant="outline"
+                            :disabled="voting"
+                            @click="handleTie"
                         >
-                            <p>
-                                Press
-                                <kbd class="rounded bg-muted px-2 py-1">1</kbd>
-                                to vote for the first character,
-                                <kbd class="rounded bg-muted px-2 py-1">2</kbd>
-                                for the second character, or
-                                <kbd class="rounded bg-muted px-2 py-1">3</kbd>
-                                for a tie.
-                            </p>
-                        </div>
+                            {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
+                        </Button>
                     </div>
-                </main>
-            </div>
+
+                    <!-- Información adicional - Estadisticas -->
+                    <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <Card>
+                            <CardContent class="pt-4 text-center">
+                                <div class="text-2xl font-bold">
+                                    {{ votesRemaining }}
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    Remaining
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent class="pt-4 text-center">
+                                <div class="text-2xl font-bold">
+                                    {{ progressPercentage.toFixed(2) }}%
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    Completed
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent class="pt-4 text-center">
+                                <div class="text-2xl font-bold">
+                                    {{ totalVotes }}
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    Voted
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="mt-8 text-center text-sm text-muted-foreground">
+                        <p>
+                            Press
+                            <kbd class="rounded bg-muted px-2 py-1">1</kbd>,
+                            <kbd class="rounded bg-muted px-2 py-1">2</kbd>, or
+                            <kbd class="rounded bg-muted px-2 py-1">3</kbd>
+                            to vote quickly.
+                        </p>
+                    </div>
+                </div>
+            </main>
         </div>
     </AppLayout>
 </template>
 
 <style scoped>
-/* Estilos específicos si es necesario */
+/* Estilos específicos para este componente si es necesario */
 </style>

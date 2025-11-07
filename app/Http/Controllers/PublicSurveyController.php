@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Http\Resources\SurveyVoteResource; // <-- Importar el recurso específico para la vista de votación
 use App\Http\Resources\CombinatoricResource; // <-- Importar el recurso de combinación
 use App\Http\Resources\CharacterResource;
-// use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
+use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyResource
 // use App\Http\Resources\SurveyVoteResource;
 // use App\Http\Resources\CombinatoricResource;
 
@@ -80,7 +80,7 @@ class PublicSurveyController extends Controller
         return Inertia::render('Surveys/PublicShow', [ // O 'Surveys/Summary'
             'survey' => /* new SurveyShowResource */($survey), // Usar Resource
             'characters' => CharacterResource::collection($activeCharacters),
-            // 'userProgress' => $progressStatus,
+            'userProgress' => $progressStatus,
             // Puedes pasar otros datos necesarios aquí (estadísticas generales, etc.)
         ]);
     }
