@@ -23,7 +23,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
+console.log(props);
 // --- Breadcrumbs ---
 const breadcrumbs: BreadcrumbItem[] = [
     {

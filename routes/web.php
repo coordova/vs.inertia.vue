@@ -49,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
         // Vista de detalle de una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.show');
 
+        // Vista de ranking de una encuesta (requiere autenticación)
+        Route::get('/surveys/{survey}/ranking', [PublicSurveyController::class, 'ranking'])->name('surveys.ranking');   // <-- Asegúrate de que RankingController existe
+
         // Vista para iniciar la votación en una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
 

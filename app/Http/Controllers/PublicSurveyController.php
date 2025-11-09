@@ -14,7 +14,7 @@ use App\Http\Resources\SurveyVoteResource; // <-- Importar el recurso específic
 use App\Http\Resources\CombinatoricResource; // <-- Importar el recurso de combinación
 use App\Http\Resources\CharacterResource;
 use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyIndexResource
-use App\Http\Resources\SurveyShowResource; // <-- Importar el recurso específico para la vista de detalle (si existe)
+use App\Http\Resources\PublicSurveyShowResource; // <-- Importar el recurso específico para la vista de detalle (si existe)
 
 class PublicSurveyController extends Controller
 {
@@ -68,7 +68,7 @@ class PublicSurveyController extends Controller
         }
 
         // Cargar datos necesarios para el resumen
-        $survey->loadMissing(['category:id,name,slug,color,icon']); // Cargar categoría con campos específicos
+        $survey->loadMissing(['category:id,name']); // Cargar categoría con campos específicos: id,name,slug,color,icon
 
         // Cargar personajes activos en esta encuesta
         $activeCharacters = $survey->characters()
@@ -83,8 +83,8 @@ class PublicSurveyController extends Controller
 
         // Pasar datos a la vista Inertia de resumen
         return Inertia::render('Public/Surveys/Show', [ // <-- CORREGIDO: Ruta correcta
-            'survey' => new SurveyShowResource($survey), // <-- CORREGIDO: Usar SurveyShowResource
-            'characters' => CharacterResource::collection($activeCharacters),
+            'survey' => PublicSurveyShowResource::make($survey)->resolve(), // <-- CORREGIDO: Usar SurveyShowResource
+            'characters' => CharacterResource::collection($activeCharacters)->resolve(),
             'userProgress' => $progressStatus, // <-- Puede ser opcional si SurveyShowResource lo incluye
             // Puedes pasar otros datos necesarios aquí (estadísticas generales, etc.)
         ]);
