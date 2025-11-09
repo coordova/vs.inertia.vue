@@ -218,7 +218,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             :href="
                                                 route(
                                                     'public.surveys.vote',
-                                                    survey.slug,
+                                                    survey.id,
                                                 )
                                             "
                                         >
@@ -236,7 +236,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             :href="
                                                 route(
                                                     'public.surveys.ranking',
-                                                    survey.slug,
+                                                    survey.id,
                                                 )
                                             "
                                         >
