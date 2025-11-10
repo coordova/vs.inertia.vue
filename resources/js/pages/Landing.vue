@@ -39,10 +39,10 @@ const props = defineProps<Props>();
                         diversas categorías.
                     </p>
                     <div class="flex flex-col justify-center gap-4 sm:flex-row">
-                        <Link :href="route('categories.public.index')">
+                        <Link :href="route('public.categories.index')">
                             <Button size="lg">Explorar Categorías</Button>
                         </Link>
-                        <Link :href="route('surveys.public.index')">
+                        <Link :href="route('public.surveys.index')">
                             <Button variant="outline" size="lg"
                                 >Ver Encuestas</Button
                             >
@@ -87,10 +87,7 @@ const props = defineProps<Props>();
                         <CardFooter>
                             <Link
                                 :href="
-                                    route(
-                                        'categories.public.show',
-                                        category.slug,
-                                    )
+                                    route('public.categories.show', category.id)
                                 "
                                 class="w-full"
                             >
@@ -102,7 +99,7 @@ const props = defineProps<Props>();
                     </Card>
                 </div>
                 <div class="mt-10 text-center">
-                    <Link :href="route('categories.public.index')">
+                    <Link :href="route('public.categories.index')">
                         <Button variant="link">Ver todas las categorías</Button>
                     </Link>
                 </div>
@@ -149,7 +146,7 @@ const props = defineProps<Props>();
                         </CardHeader>
                         <CardFooter>
                             <Link
-                                :href="route('surveys.public.show', survey.id)"
+                                :href="route('public.surveys.show', survey.id)"
                                 class="w-full"
                             >
                                 <Button class="w-full">Participar</Button>
@@ -158,7 +155,7 @@ const props = defineProps<Props>();
                     </Card>
                 </div>
                 <div class="mt-10 text-center">
-                    <Link :href="route('surveys.public.index')">
+                    <Link :href="route('public.surveys.index')">
                         <Button variant="link">Ver todas las encuestas</Button>
                     </Link>
                 </div>

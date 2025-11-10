@@ -231,15 +231,15 @@ onUnmounted(() => {
 const breadcrumbs = [
     {
         title: 'Surveys',
-        href: route('surveys.public.index'),
+        href: route('public.surveys.index'),
     },
     {
         title: surveyData.value.title, // Nombre dinámico de la encuesta
-        href: route('surveys.public.show', surveyData.value.id),
+        href: route('public.surveys.show', surveyData.value.id),
     },
     {
         title: 'Vote',
-        href: route('surveys.public.vote', surveyData.value.id),
+        href: route('public.surveys.vote', surveyData.value.id),
     },
 ];
 </script>
@@ -284,7 +284,7 @@ const breadcrumbs = [
                                 @click="
                                     router.visit(
                                         route(
-                                            'surveys.public.show',
+                                            'public.surveys.show',
                                             surveyData.id,
                                         ),
                                     )
@@ -345,7 +345,7 @@ const breadcrumbs = [
                                     <router-link
                                         :href="
                                             route(
-                                                'surveys.public.show',
+                                                'public.surveys.show',
                                                 surveyData.id,
                                             )
                                         "
