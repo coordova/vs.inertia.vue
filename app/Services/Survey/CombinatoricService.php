@@ -8,6 +8,7 @@ use App\Models\Character;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB; // Para transacciones si es necesario
 use Illuminate\Database\Eloquent\Builder; // Para construir consultas
+use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
 use App\Services\Survey\CombinationSelection\CombinationSelector; // Importar el selector
 use App\Models\User; // Importar el modelo User
 
@@ -94,11 +95,18 @@ class CombinatoricService
     public function getNextCombination(Survey $survey, int $userId): ?Combinatoric
     {
         // Obtener el modelo User por ID
-        $user = User::find($userId);
+        /* $user = User::find($userId);
         if (!$user) {
             // Manejar el caso donde el usuario no exista
             \Log::error("User with ID {$userId} not found for combination selection in survey {$survey->id}.");
             return null; // O lanzar una excepción
+        } */
+
+        // Obtener el usuario autenticado
+        $user = Auth::user();
+        if (!$user) {
+            // Opcional: Redirigir a login o mostrar mensaje si es necesario
+            abort(401, 'Authentication required to view this survey.');
         }
 
         // Delegar la selección al CombinationSelector
