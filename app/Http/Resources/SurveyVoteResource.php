@@ -12,11 +12,11 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class SurveyVoteResource extends JsonResource
 {
-    public function __construct($resource, $extras = [])
+    /* public function __construct($resource, $extras = [])
     {
         parent::__construct($resource);
         $this->extras = $extras;
-    }
+    } */
 
     /**
      * Transform the resource into an array.
@@ -87,7 +87,7 @@ class SurveyVoteResource extends JsonResource
             // 'completed_at' => $this->user_completed_at ?? null, // Inyectado o calculado aquí
             // 'last_activity_at' => $this->user_last_activity_at ?? null, // Inyectado o calculado aquí
 
-            'userProgress' => $this->extras['userProgress'],
+            // 'userProgress' => $this->extras['userProgress'],
 
             // 'progress' => $this->extras['userProgress']['progress'],
             // 'total_votes' => $this->extras['userProgress']['total_votes'],
@@ -110,10 +110,10 @@ class SurveyVoteResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function with(Request $request): array
+    /* public function with(Request $request): array
     {
         return [
             'userProgress' => $this->extras['userProgress'],
         ];
-    }
+    } */
 }

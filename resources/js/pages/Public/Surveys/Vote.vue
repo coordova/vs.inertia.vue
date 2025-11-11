@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress'; // Componente de progreso de shadcn
 import AppLayout from '@/layouts/AppLayout.vue';
-import { AlertCircle } from 'lucide-vue-next'; // Iconos
+import { AlertCircle, Link } from 'lucide-vue-next'; // Iconos
 
 // Tipos (asumiendo que están definidos en global.d.ts o en otro lugar)
 import type { CombinatoricResource, SurveyResource } from '@/types/global';
@@ -25,7 +25,7 @@ import type { CombinatoricResource, SurveyResource } from '@/types/global';
 interface Props {
     survey: SurveyResource; // Datos de la encuesta actual, incluyendo progreso
     nextCombination: CombinatoricResource | null; // La próxima combinación a votar
-    // userProgress: any; // Progreso del usuario en la encuesta
+    userProgress: any; // Progreso del usuario en la encuesta
 }
 
 const props = defineProps<Props>();
@@ -40,10 +40,10 @@ const voting = ref(false); // Estado para deshabilitar botones durante el voto
 const loadingNext = ref(false); // Estado para mostrar indicador de carga de la siguiente combinación
 const noMoreCombinations = ref(!props.nextCombination); // Estado para indicar si no hay más combinaciones
 const isCompleted = computed(() => surveyData.value.is_completed); // Calcular si la encuesta está completada localmente
-// const userProgress = ref<any>({ ...props.userProgress }); // Estado local para el progreso del usuario
+const userProgress = ref<any>({ ...props.userProgress }); // Estado local para el progreso del usuario
 
 // --- Computed Properties para UI ---
-const progressPercentage = computed(
+/* const progressPercentage = computed(
     () => surveyData.value.userProgress.progress_percentage ?? 0,
 );
 const totalExpected = computed(
@@ -57,18 +57,14 @@ const totalVotes = computed(
 );
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
-);
+); */
 
-/* const progressPercentage = computed(
-    () => userProgress.value.progress_percentage ?? 0,
-);
-const totalExpected = computed(
-    () => userProgress.value.total_combinations_expected ?? 0,
-);
+const progressPercentage = computed(() => userProgress.value.progress ?? 0);
+const totalExpected = computed(() => userProgress.value.total_expected ?? 0);
 const totalVotes = computed(() => userProgress.value.total_votes ?? 0);
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
-); */
+);
 
 // --- Funciones ---
 
@@ -121,55 +117,59 @@ const submitVote = (
     };
 
     // Usar router.post de Inertia para enviar el voto y recibir JSON
-    router.post(route('surveys.vote.store', surveyData.value.id), voteData, {
-        // preserveState: true, // No es necesario si se actualiza el estado local
-        preserveScroll: true, // Mantener la posición de desplazamiento
-        onSuccess: (page) => {
-            // page.props contiene la respuesta JSON del backend
-            // Asumiendo que el backend devuelve un objeto como:
-            // { message: '...', survey_data: { progress_percentage, total_votes, is_completed, ... }, next_combination: { ... } }
-            const responseData = page.props;
+    router.post(
+        route('public.surveys.vote.store', surveyData.value.id),
+        voteData,
+        {
+            // preserveState: true, // No es necesario si se actualiza el estado local
+            preserveScroll: true, // Mantener la posición de desplazamiento
+            onSuccess: (page) => {
+                // page.props contiene la respuesta JSON del backend
+                // Asumiendo que el backend devuelve un objeto como:
+                // { message: '...', survey_data: { progress_percentage, total_votes, is_completed, ... }, next_combination: { ... } }
+                const responseData = page.props;
 
-            // Actualizar estado local con los datos recibidos del backend
-            if (responseData.survey_data) {
-                surveyData.value = {
-                    ...surveyData.value,
-                    ...responseData.survey_data,
-                };
-            }
+                // Actualizar estado local con los datos recibidos del backend
+                if (responseData.survey_data) {
+                    surveyData.value = {
+                        ...surveyData.value,
+                        ...responseData.survey_data,
+                    };
+                }
 
-            if (responseData.next_combination) {
-                // Si hay una próxima combinación, actualizarla
-                nextCombination.value = responseData.next_combination;
-                noMoreCombinations.value = false; // Asegurar que el flag esté en false si hay combinación
-            } else {
-                // Si no hay próxima combinación, la encuesta ha terminado para este usuario (o se han completado las disponibles)
-                nextCombination.value = null;
-                noMoreCombinations.value = true;
-            }
+                if (responseData.next_combination) {
+                    // Si hay una próxima combinación, actualizarla
+                    nextCombination.value = responseData.next_combination;
+                    noMoreCombinations.value = false; // Asegurar que el flag esté en false si hay combinación
+                } else {
+                    // Si no hay próxima combinación, la encuesta ha terminado para este usuario (o se han completado las disponibles)
+                    nextCombination.value = null;
+                    noMoreCombinations.value = true;
+                }
 
-            // Mostrar mensaje de éxito
-            success(responseData.message || 'Vote recorded successfully!');
+                // Mostrar mensaje de éxito
+                success(responseData.message || 'Vote recorded successfully!');
 
-            // Opcional: Recargar datos del progreso del usuario si el backend no los devuelve explícitamente
-            // router.reload({ only: ['userProgress'] }); // Si se pasa como prop separada
+                // Opcional: Recargar datos del progreso del usuario si el backend no los devuelve explícitamente
+                // router.reload({ only: ['userProgress'] }); // Si se pasa como prop separada
+            },
+            onError: (errors) => {
+                console.error('Errors submitting vote:', errors);
+                // Mostrar mensaje de error específico si existe, o uno genérico
+                const errorMessage =
+                    errors.combinatoric_id ||
+                    errors.winner_id ||
+                    errors.loser_id ||
+                    errors.tie ||
+                    'Failed to submit vote. Please check the errors.';
+                error(errorMessage);
+            },
+            onFinish: () => {
+                // Siempre se ejecuta, útil para limpiar estados
+                voting.value = false;
+            },
         },
-        onError: (errors) => {
-            console.error('Errors submitting vote:', errors);
-            // Mostrar mensaje de error específico si existe, o uno genérico
-            const errorMessage =
-                errors.combinatoric_id ||
-                errors.winner_id ||
-                errors.loser_id ||
-                errors.tie ||
-                'Failed to submit vote. Please check the errors.';
-            error(errorMessage);
-        },
-        onFinish: () => {
-            // Siempre se ejecuta, útil para limpiar estados
-            voting.value = false;
-        },
-    });
+    );
 };
 
 /**
@@ -177,7 +177,7 @@ const submitVote = (
  */
 const handleVoteCharacter1 = () => {
     if (nextCombination.value) {
-        submitVote(nextCombination.value.character1.id, false);
+        submitVote(nextCombination.value.character1.data.id, false);
     }
 };
 
@@ -186,7 +186,7 @@ const handleVoteCharacter1 = () => {
  */
 const handleVoteCharacter2 = () => {
     if (nextCombination.value) {
-        submitVote(nextCombination.value.character2.id, false);
+        submitVote(nextCombination.value.character2.data.id, false);
     }
 };
 
@@ -279,7 +279,7 @@ const breadcrumbs = [
                             <div class="flex items-center gap-2">
                                 <div class="w-32">
                                     <Progress
-                                        :value="progressPercentage"
+                                        :model-value="progressPercentage"
                                         :max="100"
                                     />
                                 </div>
@@ -355,7 +355,7 @@ const breadcrumbs = [
                             </CardHeader>
                             <CardFooter class="flex justify-center">
                                 <Button asChild>
-                                    <router-link
+                                    <Link
                                         :href="
                                             route(
                                                 'public.surveys.show',
@@ -368,7 +368,7 @@ const breadcrumbs = [
                                                 ? 'View Results'
                                                 : 'View Survey'
                                         }}
-                                    </router-link>
+                                    </Link>
                                 </Button>
                             </CardFooter>
                         </Card>
