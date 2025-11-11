@@ -126,7 +126,7 @@ class PublicSurveyController extends Controller
         // 6. Renderizar la vista Inertia con los recursos específicos
         return Inertia::render('Public/Surveys/Vote', [ // <-- CORREGIDO: Ruta correcta
             // Usar SurveyVoteResource para serializar solo los datos necesarios de la encuesta
-            'survey' => SurveyVoteResource::make($survey)->additional([$progressStatus])->resolve(), // <-- Usar .resolve() para pasar el array directamente
+            'survey' => SurveyVoteResource::make($survey, ['userProgress' => $progressStatus])->resolve(), // <-- Usar .resolve() para pasar el array directamente
             // Pasar la próxima combinación como un recurso separado
             'nextCombination' => $nextCombination ? CombinatoricResource::make($nextCombination)->resolve() : null, // <-- CORREGIDO: Nombrar la prop como 'nextCombination'
             'userProgress' => $progressStatus, // <-- NO ES NECESARIO SI LOS DATOS YA ESTÁN EN 'survey' RESUELTO

@@ -25,11 +25,11 @@ import type { CombinatoricResource, SurveyResource } from '@/types/global';
 interface Props {
     survey: SurveyResource; // Datos de la encuesta actual, incluyendo progreso
     nextCombination: CombinatoricResource | null; // La próxima combinación a votar
-    userProgress: any; // Progreso del usuario en la encuesta
+    // userProgress: any; // Progreso del usuario en la encuesta
 }
 
 const props = defineProps<Props>();
-
+console.log(props);
 // --- Composables ---
 const { success, error } = useToast();
 
@@ -40,24 +40,26 @@ const voting = ref(false); // Estado para deshabilitar botones durante el voto
 const loadingNext = ref(false); // Estado para mostrar indicador de carga de la siguiente combinación
 const noMoreCombinations = ref(!props.nextCombination); // Estado para indicar si no hay más combinaciones
 const isCompleted = computed(() => surveyData.value.is_completed); // Calcular si la encuesta está completada localmente
-const userProgress = ref<any>({ ...props.userProgress }); // Estado local para el progreso del usuario
+// const userProgress = ref<any>({ ...props.userProgress }); // Estado local para el progreso del usuario
 
 // --- Computed Properties para UI ---
-/* const progressPercentage = computed(
-    () => surveyData.value.progress_percentage ?? 0,
+const progressPercentage = computed(
+    () => surveyData.value.userProgress.progress_percentage ?? 0,
 );
 const totalExpected = computed(
     () =>
-        surveyData.value.total_combinations_expected ??
-        surveyData.value.total_combinations ??
+        surveyData.value.userProgress.total_combinations_expected ??
+        surveyData.value.userProgress.total_combinations ??
         0,
 );
-const totalVotes = computed(() => surveyData.value.total_votes ?? 0);
+const totalVotes = computed(
+    () => surveyData.value.userProgress.total_votes ?? 0,
+);
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
-); */
+);
 
-const progressPercentage = computed(
+/* const progressPercentage = computed(
     () => userProgress.value.progress_percentage ?? 0,
 );
 const totalExpected = computed(
@@ -66,7 +68,7 @@ const totalExpected = computed(
 const totalVotes = computed(() => userProgress.value.total_votes ?? 0);
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
-);
+); */
 
 // --- Funciones ---
 
