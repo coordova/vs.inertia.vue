@@ -91,9 +91,10 @@ const submitVote = (
     } else {
         // Verificar que el ID seleccionado sea uno de los dos personajes de la combinación
         const validCharacterIds = [
-            nextCombination.value.character1.id,
-            nextCombination.value.character2.id,
+            nextCombination.value.character1.data.id,
+            nextCombination.value.character2.data.id,
         ];
+        // console.log(validCharacterIds, selectedCharacterId);
         if (!validCharacterIds.includes(selectedCharacterId)) {
             error('Invalid character selection.');
             voting.value = false;
@@ -103,9 +104,9 @@ const submitVote = (
         // Determinar ganador y perdedor
         winnerId = selectedCharacterId;
         loserId =
-            selectedCharacterId === nextCombination.value.character1.id
-                ? nextCombination.value.character2.id
-                : nextCombination.value.character1.id;
+            selectedCharacterId === nextCombination.value.character1.data.id
+                ? nextCombination.value.character2.data.id
+                : nextCombination.value.character1.data.id;
     }
 
     // Preparar datos para el voto

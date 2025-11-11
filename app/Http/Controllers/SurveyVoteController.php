@@ -38,6 +38,7 @@ class SurveyVoteController extends Controller
      */
     public function store(StoreVoteRequest $request, int $surveyId)
     {
+        // dd($request->all(), $surveyId);
         $user = Auth::user();
         if (!$user) {
             return response()->json(['message' => 'Authentication required.'], 401);
@@ -92,6 +93,8 @@ class SurveyVoteController extends Controller
             return response()->json(['message' => 'User has already voted on this combination.'], 400);
         }
 
+        // dd($surveyData, $combinatoric, $existingVote);
+
         $characterIds = [$combinatoric->character1_id, $combinatoric->character2_id];
         $categoryId = $surveyData->category_id;
         $eloRatings = DB::table('category_character')
@@ -119,7 +122,7 @@ class SurveyVoteController extends Controller
 
         try {
             DB::transaction(function () use (
-                $user, $surveyData, $combinatoric, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating, $request,
+                $user, $surveyData, $combinatoric, $categoryId, $characterIds, $result, $tie, $winnerId, $loserId, $character1Rating, $character2Rating, $request,
                 &$newProgress, &$newTotalVotes, &$newRating1, &$newRating2, &$nextCombination
             ) {
                 // --- PASO 1: Registrar el voto ---
@@ -341,6 +344,6 @@ class SurveyVoteController extends Controller
                     'picture_url' => $nextCombination->character2->picture_url,
                 ],
             ] : null,
-        ], 200);
+        ], 200)->header('X-Inertia', 'true');
     }
 }
