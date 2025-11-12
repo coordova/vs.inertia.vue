@@ -34,7 +34,7 @@ class SurveyProgressService
                 'progress' => 0.0,
                 'total_votes' => 0,
                 'total_expected' => null,
-                'pivot_id' => null,
+                // 'pivot_id' => null,
             ];
         }
 
@@ -51,7 +51,7 @@ class SurveyProgressService
             'progress' => $progress,
             'total_votes' => $surveyUserEntry->total_votes,
             'total_expected' => $totalExpected,
-            'pivot_id' => $surveyUserEntry->id, // Asumiendo que hay una columna 'id' adicional o que la clave compuesta es suficiente para identificar la fila
+            // 'pivot_id' => $surveyUserEntry->id, // Asumiendo que hay una columna 'id' adicional o que la clave compuesta es suficiente para identificar la fila
             // Si la clave compuesta (user_id, survey_id) es la única PK, 'pivot_id' podría no existir o no ser útil aquí.
             // La identificación se hace por user_id y survey_id.
             // 'pivot_id' podría eliminarse de este array o reemplazarse por ['user_id' => ..., 'survey_id' => ...]

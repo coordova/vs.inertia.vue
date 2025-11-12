@@ -23,7 +23,6 @@ class PublicSurveyController extends Controller
     ) {
         // Aplicar middleware de autenticación si es necesario para todas las acciones de este controlador
         // $this->middleware('auth');
-        $this->middleware('auth')->only(['vote', 'voto']);
     }
 
     public function index(Request $request): Response
@@ -137,10 +136,8 @@ class PublicSurveyController extends Controller
 
     public function voto(Survey $survey): Response
     {
-        dump($survey);
-        dd(SurveyVoteResource::make($survey)->resolve());
-
         // 1. Verificar autenticación
+        $user = Auth::user();
 
         // 2. Verificar si la encuesta está activa - ya lo hace el SurveyVoteResource
 
@@ -148,16 +145,30 @@ class PublicSurveyController extends Controller
 
         // 4. Cargar datos de progreso del usuario actual
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
+        // dump($survey);
+        // dump(SurveyVoteResource::make($survey)->resolve());
+        // dump($progressStatus);
+        // dd($user);
 
         // 5. Obtener la próxima combinación para mostrar al usuario
 
         // 6. Renderizar la vista Inertia con los recursos específicos
-        return Inertia::render('Public/Surveys/Voto', [ // <-- CORREGIDO: Ruta correcta
+        return Inertia::render('Public/Surveys/Voto', [
             // Usar SurveyVoteResource para serializar solo los datos necesarios de la encuesta
             'survey' => SurveyVoteResource::make($survey)->resolve(), // <-- Usar .resolve() para pasar el array directamente
-            'userProgress' => $progressStatus, // <-- NO ES NECESARIO SI LOS DATOS YA ESTÁN EN 'survey' RESUELTO
+            'userProgress' => $progressStatus,
             // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, la lista de estrategias si se puede cambiar dinámicamente)
         ]);
+    }
+
+    public function getCombination4VotoVersion(Survey $survey): Response
+    {
+        // 5. Obtener la próxima combinación para mostrar al usuario
+        $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+
+        return (new CombinatoricResource($nextCombination))
+            ->response()
+            ->header('X-Inertia', 'true');
     }
 
     /**

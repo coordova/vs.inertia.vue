@@ -43,14 +43,14 @@ const props = defineProps<{
                 <div class="flex items-center gap-2">
                     <Button variant="ghost" size="sm" as-child>
                         <Link
-                            :href="route('surveys.public.show', surveyId)"
+                            :href="route('public.surveys.show', surveyId)"
                             v-if="surveyId"
                         >
                             Survey Home
                         </Link>
                     </Button>
                     <Button variant="ghost" size="sm" as-child>
-                        <Link :href="route('surveys.public.index')">
+                        <Link :href="route('public.surveys.index')">
                             All Surveys
                         </Link>
                     </Button>
