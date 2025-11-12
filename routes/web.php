@@ -1,18 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request; // Asegúrate de importar Request si se usan closures que lo necesiten
-use Inertia\Inertia; // Asegúrate de importar Inertia si se usan closures que lo necesiten
-use App\Http\Controllers\PublicController; // Controlador para la landing page principal
-use App\Http\Controllers\PublicCategoryController;
-use App\Http\Controllers\PublicSurveyController;
-use App\Http\Controllers\SurveyVoteController; // Controlador para procesar votos
-use App\Http\Controllers\Api\SurveyController as ApiPublicSurveyController; // Controlador para API pública
-// Rutas de administración
 use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\CharacterController;
-use App\Http\Controllers\Admin\SurveyController; // Asumiendo que SurveyController es para admin
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\CharacterController; // Asegúrate de importar Request si se usan closures que lo necesiten
+use App\Http\Controllers\Admin\SurveyController; // Asegúrate de importar Inertia si se usan closures que lo necesiten
+use App\Http\Controllers\Admin\UserController; // Controlador para la landing page principal
+use App\Http\Controllers\Api\SurveyController as ApiPublicSurveyController;
+use App\Http\Controllers\PublicCategoryController;
+use App\Http\Controllers\PublicController; // Controlador para procesar votos
+use App\Http\Controllers\PublicSurveyController; // Controlador para API pública
+// Rutas de administración
+use App\Http\Controllers\SurveyVoteController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route; // Asumiendo que SurveyController es para admin
+use Inertia\Inertia;
 
 // Ruta de inicio (pública)
 Route::get('/', [PublicController::class, 'index'])->name('home'); // O podrías mantener el closure si es muy simple
@@ -54,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Vista para iniciar la votación en una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
+        Route::get('/surveys/{survey}/voto', [PublicSurveyController::class, 'voto'])->name('surveys.voto');
 
         // Procesar un voto (requiere autenticación)
         Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
@@ -66,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('api/public')->name('api.public.')->group(function () {
         // Ruta para obtener la próxima combinación para votar
         Route::get('/surveys/{survey}/next-combination', [ApiPublicSurveyController::class, 'getNextCombination'])
-             ->name('surveys.next_combination');
+            ->name('surveys.next_combination');
     });
 });
 

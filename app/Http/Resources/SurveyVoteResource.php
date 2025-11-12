@@ -3,14 +3,13 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Resource para la vista de votación pública de una encuesta.
  * Contiene solo los datos necesarios para mostrar la encuesta, el progreso del usuario y la próxima combinación.
  * No incluye listas grandes de personajes o votos.
  */
-class SurveyVoteResource extends JsonResource
+class SurveyVoteResource extends SurveyBaseResource
 {
     /* public function __construct($resource, $extras = [])
     {
@@ -24,6 +23,23 @@ class SurveyVoteResource extends JsonResource
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
+    {
+        // return parent::toArray($request);
+
+        return array_merge($this->baseData($request), [
+            'description' => $this->description,
+            // 'image_url' => $this->image ? \Storage::url($this->image) : null, // Generar URL si es necesario
+            'allow_ties' => $this->allow_ties,
+            'tie_weight' => $this->tie_weight,
+        ]);
+    }
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray__(Request $request): array
     {
         // dd($this->extras);
         // Asumiendo que 'category' se carga en el controlador si es necesario para mostrarla o para cálculos internos del recurso
@@ -105,11 +121,11 @@ class SurveyVoteResource extends JsonResource
         ];
     }
 
-     /**
-     * Get additional data that should be returned with the resource array.
-     *
+    /**
+    * Get additional data that should be returned with the resource array.
+    *
      * @return array<string, mixed>
-     */
+    */
     /* public function with(Request $request): array
     {
         return [

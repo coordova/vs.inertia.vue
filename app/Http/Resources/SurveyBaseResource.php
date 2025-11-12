@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Services\Math\CombinatoricsService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Services\Math\CombinatoricsService;
 
 class SurveyBaseResource extends JsonResource
 {
@@ -20,8 +20,7 @@ class SurveyBaseResource extends JsonResource
 
     /**
      * Datos base esenciales para todas las vistas de encuestas
-     * 
-     * @param Request $request
+     *
      * @return array<string, mixed>
      */
     protected function baseData(Request $request): array
@@ -32,12 +31,12 @@ class SurveyBaseResource extends JsonResource
             'status' => (bool) $this->status,
             'type' => (int) $this->type,
             'category_id' => $this->category_id,
-            'date_start' => $this->date_start?->format('Y-m-d'),
-            'date_end' => $this->date_end?->format('Y-m-d'),
+            // 'date_start' => $this->date_start, // $this->date_start?->format('Y-m-d'),
+            // 'date_end' => $this->date_end, // $this->date_end?->format('Y-m-d'),
             'selection_strategy' => $this->selection_strategy,
             'slug' => $this->slug,
             'is_active' => $this->date_start <= now() && $this->date_end >= now(),
-            
+
             // Datos de fechas formateadas
             // 'date_start_formatted' => $this->date_start?->utc()->format('d-m-Y'),
             // 'date_end_formatted' => $this->date_end?->utc()->format('d-m-Y'),
@@ -54,7 +53,7 @@ class SurveyBaseResource extends JsonResource
     /* protected function getCombinationsCount(): int
     {
         $characterCount = $this->characters_count ?? $this->characters->count();
-        return $characterCount >= 2 
+        return $characterCount >= 2
             ? CombinatoricsService::combinations($characterCount, 2)
             : 0;
     } */
@@ -66,8 +65,8 @@ class SurveyBaseResource extends JsonResource
     {
         $combinationsCount = $this->getCombinationsCount();
         $userVotesCount = $this->user_votes_count ?? 0;
-        
-        return $combinationsCount > 0 
+
+        return $combinationsCount > 0
             ? round(($userVotesCount / $combinationsCount) * 100, 1)
             : 0;
     } */

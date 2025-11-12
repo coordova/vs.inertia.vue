@@ -3,8 +3,8 @@
 namespace App\Services\Survey;
 
 use App\Models\Survey;
-use App\Models\User;
-use App\Models\SurveyUser; // Modelo pivote (aunque no se use directamente para escritura ahora)
+use App\Models\SurveyUser;
+use App\Models\User; // Modelo pivote (aunque no se use directamente para escritura ahora)
 use Illuminate\Support\Facades\DB; // Importar Query Builder
 use Illuminate\Support\Facades\Log; // Para logging
 
@@ -14,8 +14,8 @@ class SurveyProgressService
      * Verifica el estado de la encuesta para un usuario específico.
      * Carga la entrada pivote SurveyUser REAL desde la base de datos.
      *
-     * @param Survey $survey La encuesta.
-     * @param User $user El usuario.
+     * @param  Survey  $survey  La encuesta.
+     * @param  User  $user  El usuario.
      * @return array ['exists' => bool, 'is_completed' => bool, 'progress' => float, 'total_votes' => int, 'total_expected' => int|null, 'pivot_id' => int|null]
      */
     public function getUserSurveyStatus(Survey $survey, User $user): array
@@ -23,23 +23,18 @@ class SurveyProgressService
         // Usar Query Builder para cargar la entrada pivote específica
         // Esto es más directo y evita problemas con Eloquent en claves compuestas para lectura
         $surveyUserEntry = DB::table('survey_user')
-                               ->where('survey_id', $survey->id)
-                               ->where('user_id', $user->id)
-                               ->first(); // Retorna un stdClass o null
+            ->where('survey_id', $survey->id)
+            ->where('user_id', $user->id)
+            ->first(); // Retorna un stdClass o null
 
-        if (!$surveyUserEntry) {
+        if (! $surveyUserEntry) {
             return [
                 'exists' => false,
                 'is_completed' => false,
                 'progress' => 0.0,
                 'total_votes' => 0,
                 'total_expected' => null,
-                'started_at' => null,
-                'completed_at' => null,
-                'last_activity_at' => null,
-                // 'pivot_id' => null,
-                'user_id' => null,
-                'survey_id' => null,
+                'pivot_id' => null,
             ];
         }
 
@@ -56,12 +51,7 @@ class SurveyProgressService
             'progress' => $progress,
             'total_votes' => $surveyUserEntry->total_votes,
             'total_expected' => $totalExpected,
-            'started_at' => $surveyUserEntry->started_at,
-            'completed_at' => $surveyUserEntry->completed_at,
-            'last_activity_at' => $surveyUserEntry->last_activity_at,
-            // 'pivot_id' => $surveyUserEntry->id, // Asumiendo que hay una columna 'id' adicional o que la clave compuesta es suficiente para identificar la fila
-            'user_id' => $surveyUserEntry->user_id,
-            'survey_id' => $surveyUserEntry->survey_id,
+            'pivot_id' => $surveyUserEntry->id, // Asumiendo que hay una columna 'id' adicional o que la clave compuesta es suficiente para identificar la fila
             // Si la clave compuesta (user_id, survey_id) es la única PK, 'pivot_id' podría no existir o no ser útil aquí.
             // La identificación se hace por user_id y survey_id.
             // 'pivot_id' podría eliminarse de este array o reemplazarse por ['user_id' => ..., 'survey_id' => ...]
@@ -73,9 +63,8 @@ class SurveyProgressService
      * Calcula y almacena el número total de combinaciones esperadas.
      * Utiliza Query Builder para crear la entrada si no existe.
      *
-     * @param Survey $survey La encuesta.
-     * @param User $user El usuario.
-     * @return void
+     * @param  Survey  $survey  La encuesta.
+     * @param  User  $user  El usuario.
      */
     public function startSurveySession(Survey $survey, User $user): void
     {
@@ -113,21 +102,22 @@ class SurveyProgressService
      * Incrementa el número de votos y recalcula el progreso del usuario en la encuesta.
      * Utiliza Query Builder para operaciones atómicas y evitar problemas con claves compuestas.
      *
-     * @param int $userId ID del usuario.
-     * @param int $surveyId ID de la encuesta.
+     * @param  int  $userId  ID del usuario.
+     * @param  int  $surveyId  ID de la encuesta.
      * @return array|null ['total_votes' => int, 'progress_percentage' => float] Datos actualizados, o null si la entrada no existe.
      */
     public function incrementAndRecalculateProgress(int $userId, int $surveyId): ?array
     {
         // Cargar la entrada actual para obtener el total esperado y el número de votos actual
         $entry = DB::table('survey_user')
-                   ->where('user_id', $userId)
-                   ->where('survey_id', $surveyId)
-                   ->lockForUpdate() // Bloqueo pesimista para evitar race conditions
-                   ->first();
+            ->where('user_id', $userId)
+            ->where('survey_id', $surveyId)
+            ->lockForUpdate() // Bloqueo pesimista para evitar race conditions
+            ->first();
 
-        if (!$entry) {
+        if (! $entry) {
             Log::warning("SurveyProgressService: Entry for user {$userId} and survey {$surveyId} not found for increment.");
+
             return null;
         }
 
@@ -143,18 +133,19 @@ class SurveyProgressService
 
         // Actualizar la entrada con Query Builder
         $updatedRows = DB::table('survey_user')
-                         ->where('user_id', $userId)
-                         ->where('survey_id', $surveyId)
-                         ->update([
-                             'total_votes' => $newTotalVotes,
-                             'progress_percentage' => $newProgressPercentage,
-                             'last_activity_at' => now(),
-                             'updated_at' => now(), // Actualizar timestamp
-                         ]);
+            ->where('user_id', $userId)
+            ->where('survey_id', $surveyId)
+            ->update([
+                'total_votes' => $newTotalVotes,
+                'progress_percentage' => $newProgressPercentage,
+                'last_activity_at' => now(),
+                'updated_at' => now(), // Actualizar timestamp
+            ]);
 
         // Verificar que se actualizó exactamente una fila
         if ($updatedRows !== 1) {
             Log::error("SurveyProgressService: Expected to update 1 row for user {$userId} and survey {$surveyId}, but updated {$updatedRows} rows.");
+
             return null; // Indicar fallo
         }
 
@@ -169,22 +160,22 @@ class SurveyProgressService
      * Marca la sesión de votación del usuario como completada.
      * Utiliza Query Builder.
      *
-     * @param int $userId ID del usuario.
-     * @param int $surveyId ID de la encuesta.
+     * @param  int  $userId  ID del usuario.
+     * @param  int  $surveyId  ID de la encuesta.
      * @return bool True si se actualizó correctamente, false si no se encontró la entrada.
      */
     public function markAsCompleted(int $userId, int $surveyId): bool
     {
         $updatedRows = DB::table('survey_user')
-                         ->where('user_id', $userId)
-                         ->where('survey_id', $surveyId)
-                         ->update([
-                             'is_completed' => true,
-                             'completed_at' => now(),
-                             // completion_time se podría calcular aquí si no se almacena como campo separado
-                             // 'completion_time' => now()->diffInSeconds($entry->started_at), // Requiere cargar started_at primero
-                             'updated_at' => now(),
-                         ]);
+            ->where('user_id', $userId)
+            ->where('survey_id', $surveyId)
+            ->update([
+                'is_completed' => true,
+                'completed_at' => now(),
+                // completion_time se podría calcular aquí si no se almacena como campo separado
+                // 'completion_time' => now()->diffInSeconds($entry->started_at), // Requiere cargar started_at primero
+                'updated_at' => now(),
+            ]);
 
         return $updatedRows === 1;
     }

@@ -2,19 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Survey;
+use App\Http\Requests\StoreVoteRequest;
 use App\Models\Combinatoric;
+use App\Models\Survey;
 use App\Models\Vote;
-use App\Models\User;
-use App\Services\Survey\CombinatoricService;
 use App\Services\Rating\EloRatingService;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
+use App\Services\Survey\CombinatoricService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Requests\StoreVoteRequest;
 
 class SurveyVoteController extends Controller
 {
@@ -32,15 +28,13 @@ class SurveyVoteController extends Controller
      * Optimizado para usar Query Builder en todas las operaciones de escritura en tablas pivote.
      * Devuelve una respuesta JSON.
      *
-     * @param StoreVoteRequest $request
-     * @param int $surveyId
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(StoreVoteRequest $request, int $surveyId)
     {
         // dd($request->all(), $surveyId);
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Authentication required.'], 401);
         }
 
@@ -56,7 +50,7 @@ class SurveyVoteController extends Controller
                 return response()->json(['errors' => ['tie' => 'If tie is selected, winner_id and loser_id must be absent.']], 422);
             }
         } else {
-            if (!$winnerId || !$loserId) {
+            if (! $winnerId || ! $loserId) {
                 return response()->json(['errors' => ['winner_id' => 'Winner and loser are required if not a tie.']], 422);
             }
             if ($winnerId === $loserId) {
@@ -66,29 +60,29 @@ class SurveyVoteController extends Controller
 
         // --- Carga de Datos Iniciales Fuera de la Transacción ---
         $surveyData = Survey::with(['category:id,name,slug'])
-                           ->where('id', $surveyId)
-                           ->where('status', true)
-                           ->where('date_start', '<=', now())
-                           ->where('date_end', '>=', now())
-                           ->first();
+            ->where('id', $surveyId)
+            ->where('status', true)
+            ->where('date_start', '<=', now())
+            ->where('date_end', '>=', now())
+            ->first();
 
-        if (!$surveyData) {
+        if (! $surveyData) {
             return response()->json(['message' => 'Survey not found or not active.'], 404);
         }
 
         $combinatoric = Combinatoric::with(['character1:id,fullname,picture', 'character2:id,fullname,picture'])
-                                   ->where('id', $combinatoricId)
-                                   ->where('survey_id', $surveyId)
-                                   ->where('status', true)
-                                   ->first();
+            ->where('id', $combinatoricId)
+            ->where('survey_id', $surveyId)
+            ->where('status', true)
+            ->first();
 
-        if (!$combinatoric) {
+        if (! $combinatoric) {
             return response()->json(['message' => 'Invalid combination for this survey.'], 400);
         }
 
         $existingVote = Vote::where('user_id', $user->id)
-                            ->where('combinatoric_id', $combinatoric->id)
-                            ->exists();
+            ->where('combinatoric_id', $combinatoric->id)
+            ->exists();
         if ($existingVote) {
             return response()->json(['message' => 'User has already voted on this combination.'], 400);
         }
@@ -98,12 +92,13 @@ class SurveyVoteController extends Controller
         $characterIds = [$combinatoric->character1_id, $combinatoric->character2_id];
         $categoryId = $surveyData->category_id;
         $eloRatings = DB::table('category_character')
-                        ->where('category_id', $categoryId)
-                        ->whereIn('character_id', $characterIds)
-                        ->pluck('elo_rating', 'character_id');
+            ->where('category_id', $categoryId)
+            ->whereIn('character_id', $characterIds)
+            ->pluck('elo_rating', 'character_id');
 
         if ($eloRatings->count() !== 2) {
             Log::error("Ratings not found for one or both characters ({$combinatoric->character1_id}, {$combinatoric->character2_id}) in category {$categoryId} for survey {$surveyId}.");
+
             return response()->json(['message' => 'Ratings not found for one or both characters in this category.'], 500);
         }
 
@@ -111,7 +106,6 @@ class SurveyVoteController extends Controller
         $character2Rating = $eloRatings[$combinatoric->character2_id];
 
         $result = $tie ? 'draw' : ($winnerId === $combinatoric->character1_id ? 'win' : 'loss');
-
 
         // --- Iniciar Transacción ---
         $newProgress = 0;
@@ -150,10 +144,10 @@ class SurveyVoteController extends Controller
                 // --- PASO 3: Actualizar progreso del usuario (survey_user) ---
                 // Cargar el pivote para obtener total_combinations_expected y el progreso actual
                 $surveyUserEntry = DB::table('survey_user')
-                                     ->where('user_id', $user->id)
-                                     ->where('survey_id', $surveyData->id)
-                                     ->lockForUpdate() // Prevenir race conditions
-                                     ->first();
+                    ->where('user_id', $user->id)
+                    ->where('survey_id', $surveyData->id)
+                    ->lockForUpdate() // Prevenir race conditions
+                    ->first();
 
                 if ($surveyUserEntry) {
                     $newTotalVotes = $surveyUserEntry->total_votes + 1;
@@ -179,31 +173,30 @@ class SurveyVoteController extends Controller
                     // return; // O continuar con valores predeterminados
                 }
 
-
                 // --- PASO 4: Calcular y aplicar nuevos ratings ELO ---
                 if ($tie) {
-                     [$newRating1, $newRating2] = $this->eloRatingService->calculateNewRatings($character1Rating, $character2Rating, 'draw', $surveyData->tie_weight);
+                    [$newRating1, $newRating2] = $this->eloRatingService->calculateNewRatings($character1Rating, $character2Rating, 'draw', $surveyData->tie_weight);
                 } else {
-                     $winnerRating = $result === 'win' ? $character1Rating : $character2Rating;
-                     $loserRating = $result === 'win' ? $character2Rating : $character1Rating;
+                    $winnerRating = $result === 'win' ? $character1Rating : $character2Rating;
+                    $loserRating = $result === 'win' ? $character2Rating : $character1Rating;
 
-                     [$newWinnerRating, $newLoserRating] = $this->eloRatingService->calculateNewRatings($winnerRating, $loserRating, 'win');
+                    [$newWinnerRating, $newLoserRating] = $this->eloRatingService->calculateNewRatings($winnerRating, $loserRating, 'win');
 
-                     if ($result === 'win') {
+                    if ($result === 'win') {
                         $newRating1 = $newWinnerRating;
                         $newRating2 = $newLoserRating;
-                     } else {
+                    } else {
                         $newRating1 = $newLoserRating;
                         $newRating2 = $newWinnerRating;
-                     }
+                    }
                 }
 
                 // --- PASO 4.1: Actualizar ratings en category_character ---
                 // Cargar datos actuales para calcular nuevas estadísticas
                 $currentCharacterStats = DB::table('category_character')
-                                          ->where('category_id', $categoryId)
-                                          ->whereIn('character_id', $characterIds)
-                                          ->get(['character_id', 'elo_rating', 'matches_played', 'wins', 'losses', 'ties', 'highest_rating', 'lowest_rating']); // Seleccionar solo campos necesarios
+                    ->where('category_id', $categoryId)
+                    ->whereIn('character_id', $characterIds)
+                    ->get(['character_id', 'elo_rating', 'matches_played', 'wins', 'losses', 'ties', 'highest_rating', 'lowest_rating']); // Seleccionar solo campos necesarios
 
                 $statMap = $currentCharacterStats->keyBy('character_id')->toArray();
 
@@ -215,9 +208,13 @@ class SurveyVoteController extends Controller
                 $newWins1 = $stat1->wins;
                 $newLosses1 = $stat1->losses;
                 $newTies1 = $stat1->ties ?? 0;
-                if ($result === 'win') $newWins1++;
-                elseif ($result === 'loss') $newLosses1++;
-                elseif ($result === 'draw') $newTies1++;
+                if ($result === 'win') {
+                    $newWins1++;
+                } elseif ($result === 'loss') {
+                    $newLosses1++;
+                } elseif ($result === 'draw') {
+                    $newTies1++;
+                }
 
                 $newWinRate1 = $newMatchesPlayed1 > 0 ? ($newWins1 / $newMatchesPlayed1) * 100 : 0.00;
                 $newHighestRating1 = max($stat1->highest_rating, $newRating1);
@@ -228,9 +225,15 @@ class SurveyVoteController extends Controller
                 $newWins2 = $stat2->wins;
                 $newLosses2 = $stat2->losses;
                 $newTies2 = $stat2->ties ?? 0;
-                if ($result === 'loss') $newWins2++; // Si 1 ganó, 2 perdió
-                elseif ($result === 'win') $newLosses2++; // Si 1 perdió, 2 ganó
-                elseif ($result === 'draw') $newTies2++; // Si empate
+                if ($result === 'loss') {
+                    $newWins2++;
+                } // Si 1 ganó, 2 perdió
+                elseif ($result === 'win') {
+                    $newLosses2++;
+                } // Si 1 perdió, 2 ganó
+                elseif ($result === 'draw') {
+                    $newTies2++;
+                } // Si empate
 
                 $newWinRate2 = $newMatchesPlayed2 > 0 ? ($newWins2 / $newMatchesPlayed2) * 100 : 0.00;
                 $newHighestRating2 = max($stat2->highest_rating, $newRating2);
@@ -268,7 +271,6 @@ class SurveyVoteController extends Controller
                         'last_match_at' => now(),
                         'updated_at' => now(),
                     ]);
-
 
                 // --- PASO 5: Actualizar estadísticas en character_survey ---
                 // Calcular nuevas estadísticas para character1 en la encuesta
@@ -313,7 +315,8 @@ class SurveyVoteController extends Controller
             }); // --- Fin de la transacción ---
 
         } catch (\Exception $e) {
-            Log::error("Transaction failed in SurveyVoteController@store: " . $e->getMessage());
+            Log::error('Transaction failed in SurveyVoteController@store: '.$e->getMessage());
+
             return response()->json(['message' => 'Failed to process vote due to a server error.'], 500);
         }
 
@@ -344,6 +347,7 @@ class SurveyVoteController extends Controller
                     'picture_url' => $nextCombination->character2->picture_url,
                 ],
             ] : null,
-        ], 200)->header('X-Inertia', 'true');
+        ], 200);
+        // ], 200)->header('X-Inertia', 'true');
     }
 }

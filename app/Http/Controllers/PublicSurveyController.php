@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Survey;
-use App\Services\Survey\SurveyProgressService; // Inyectamos el servicio
-use App\Services\Survey\CombinatoricService;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Support\Facades\Auth; // Para obtener el usuario autenticado
-use App\Http\Resources\SurveyVoteResource; // <-- Importar el recurso específico para la vista de votación
-use App\Http\Resources\CombinatoricResource; // <-- Importar el recurso de combinación
 use App\Http\Resources\CharacterResource;
-use App\Http\Resources\SurveyIndexResource; // Asegúrate de importar SurveyIndexResource
-use App\Http\Resources\PublicSurveyShowResource; // <-- Importar el recurso específico para la vista de detalle (si existe)
+use App\Http\Resources\CombinatoricResource; // Inyectamos el servicio
+use App\Http\Resources\PublicSurveyShowResource;
+use App\Http\Resources\SurveyIndexResource;
+use App\Http\Resources\SurveyVoteResource;
+use App\Models\Survey;
+use App\Services\Survey\CombinatoricService; // Para obtener el usuario autenticado
+use App\Services\Survey\SurveyProgressService; // <-- Importar el recurso específico para la vista de votación
+use Illuminate\Http\Request; // <-- Importar el recurso de combinación
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia; // Asegúrate de importar SurveyIndexResource
+use Inertia\Response; // <-- Importar el recurso específico para la vista de detalle (si existe)
 
 class PublicSurveyController extends Controller
 {
@@ -24,6 +23,7 @@ class PublicSurveyController extends Controller
     ) {
         // Aplicar middleware de autenticación si es necesario para todas las acciones de este controlador
         // $this->middleware('auth');
+        $this->middleware('auth')->only(['vote', 'voto']);
     }
 
     public function index(Request $request): Response
@@ -31,13 +31,15 @@ class PublicSurveyController extends Controller
         // TODO: Implementar paginación, búsqueda, filtros si es necesario
         // Obtener encuestas públicas activas
         $surveys = Survey::where('status', true)
-                         ->where('date_start', '<=', now())
-                         ->where('date_end', '>=', now())
-                         ->with(['category:id,name,slug']) // Cargar solo campos básicos de la categoría
-                         ->withCount(['characters' => function ($q) { $q->wherePivot('is_active', true); }]) // Contar personajes activos
-                         ->orderBy('created_at', 'desc') // O el orden que prefieras
-                         ->paginate($request->get('per_page', 15))
-                         ->withQueryString();
+            ->where('date_start', '<=', now())
+            ->where('date_end', '>=', now())
+            ->with(['category:id,name,slug']) // Cargar solo campos básicos de la categoría
+            ->withCount(['characters' => function ($q) {
+                $q->wherePivot('is_active', true);
+            }]) // Contar personajes activos
+            ->orderBy('created_at', 'desc') // O el orden que prefieras
+            ->paginate($request->get('per_page', 15))
+            ->withQueryString();
 
         // Pasar datos a la vista Inertia
         return Inertia::render('Public/Surveys/Index', [ // <-- CORREGIDO: Ruta correcta
@@ -50,19 +52,18 @@ class PublicSurveyController extends Controller
      * Verifica y muestra la información de resumen de una encuesta específica.
      * NO inicia automáticamente la sesión de votación.
      *
-     * @param Survey $survey El modelo de encuesta, inyectado por Laravel gracias al route model binding.
-     * @return Response
+     * @param  Survey  $survey  El modelo de encuesta, inyectado por Laravel gracias al route model binding.
      */
     public function show(Survey $survey): Response
     {
         // Verificar si la encuesta está activa
-        if (!$this->isSurveyActive($survey)) {
+        if (! $this->isSurveyActive($survey)) {
             abort(404, 'Survey not found or not active.');
         }
 
         // Obtener el usuario autenticado
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             // Opcional: Redirigir a login o mostrar mensaje si es necesario
             abort(401, 'Authentication required to view this survey.');
         }
@@ -72,11 +73,11 @@ class PublicSurveyController extends Controller
 
         // Cargar personajes activos en esta encuesta
         $activeCharacters = $survey->characters()
-                                   ->wherePivot('is_active', true)
+            ->wherePivot('is_active', true)
                                    /* ->with(['category_stats' => function($q) use ($survey) { // Cargar stats del personaje en la categoría de la encuesta
                                        $q->where('category_id', $survey->category_id);
                                    }]) */
-                                   ->get();
+            ->get();
 
         // Verificar el estado del progreso del usuario en esta encuesta (opcional, para mostrar en la vista de show)
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
@@ -94,19 +95,18 @@ class PublicSurveyController extends Controller
      * Prepara la encuesta para que el usuario pueda votar.
      * Carga los datos necesarios para la vista de votación.
      *
-     * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
-     * @return Response
+     * @param  Survey  $survey  El modelo de encuesta, inyectado por route model binding.
      */
     public function vote(Survey $survey): Response
     {
         // 1. Verificar autenticación
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login')->with('error', 'Authentication required.');
         }
 
         // 2. Verificar si la encuesta está activa
-        if (!$this->isSurveyActive($survey)) {
+        if (! $this->isSurveyActive($survey)) {
             abort(404, 'Survey not found or not active.');
         }
 
@@ -135,11 +135,33 @@ class PublicSurveyController extends Controller
         ]);
     }
 
+    public function voto(Survey $survey): Response
+    {
+        dump($survey);
+        dd(SurveyVoteResource::make($survey)->resolve());
+
+        // 1. Verificar autenticación
+
+        // 2. Verificar si la encuesta está activa - ya lo hace el SurveyVoteResource
+
+        // 3. Cargar solo los datos necesarios para la vista de votación
+
+        // 4. Cargar datos de progreso del usuario actual
+        $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
+
+        // 5. Obtener la próxima combinación para mostrar al usuario
+
+        // 6. Renderizar la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Surveys/Voto', [ // <-- CORREGIDO: Ruta correcta
+            // Usar SurveyVoteResource para serializar solo los datos necesarios de la encuesta
+            'survey' => SurveyVoteResource::make($survey)->resolve(), // <-- Usar .resolve() para pasar el array directamente
+            'userProgress' => $progressStatus, // <-- NO ES NECESARIO SI LOS DATOS YA ESTÁN EN 'survey' RESUELTO
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, la lista de estrategias si se puede cambiar dinámicamente)
+        ]);
+    }
+
     /**
      * Verifica si una encuesta está activa.
-     *
-     * @param Survey $survey
-     * @return bool
      */
     private function isSurveyActive(Survey $survey): bool
     {
