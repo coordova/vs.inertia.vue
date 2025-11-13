@@ -163,8 +163,13 @@ class PublicSurveyController extends Controller
 
     public function getCombination4VotoVersion(Survey $survey): Response
     {
+        $user = Auth::user();
         // 5. Obtener la próxima combinación para mostrar al usuario
         $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+        // dd($nextCombination);
+        // $nextCombination->loadMissing(['character1', 'character2']);
+        $combination = new CombinatoricResource($nextCombination);
+        dd($combination->toArray());
 
         return (new CombinatoricResource($nextCombination))
             ->response()

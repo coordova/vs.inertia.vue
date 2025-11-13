@@ -56,8 +56,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
 
         Route::get('/surveys/{survey}/voto', [PublicSurveyController::class, 'voto'])->name('surveys.voto');
-        Route::get('/surveys/{survey}/combination', [PublicSurveyController::class, 'getCombination4VotoVersion'])
-            ->name('surveys.combination4votoversion');
+        Route::get('/ajax/surveys/{survey}/combination', [PublicSurveyController::class, 'getCombination4VotoVersion'])
+            ->name('ajax.surveys.combination4votoversion');
 
         // Procesar un voto (requiere autenticación)
         Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');

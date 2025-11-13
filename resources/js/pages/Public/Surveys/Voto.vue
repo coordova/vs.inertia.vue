@@ -94,13 +94,24 @@ const vote = async (winnerId: number, loserId: number) => {
 
 // Obtener combinación inicial
 const loadCombination = async () => {
+    alert('Loading next combination...');
     loadingNext.value = true;
     try {
         const response = await axios.get(
-            route('surveys.combination4votoversion', props.survey.id),
+            route('ajax.surveys.combination4votoversion', props.survey.id),
         );
-        console.log(response.data);
-        nextCombination.value = response.data;
+        const data = response.data;
+        console.log(data);
+        if (data.combination) {
+            nextCombination.value = data.combination;
+        } else {
+            // No hay más combinaciones o encuesta completada
+            nextCombination.value = null;
+            // Opcional: Actualizar el estado de completado si el backend lo indica
+            // props.survey.is_completed = true; // Esto no funcionará directamente porque props es inmutable
+            // La mejor forma es que el backend devuelva el survey actualizado también
+            // y que Inertia lo recargue.
+        }
     } catch (err: any) {
         // console.error('Error loading combination:', err);
 
