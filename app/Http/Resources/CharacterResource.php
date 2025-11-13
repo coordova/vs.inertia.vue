@@ -25,21 +25,21 @@ class CharacterResource extends JsonResource
             'nickname' => $this->nickname,
             'slug' => $this->slug,
             'bio' => $this->bio,
-            'dob' => $this->dob, // Fecha de nacimiento (puede formatearse aquí o en el frontend)
-            'dob_formatted' => $this->dob?->format('Y-m-d'),
+            // 'dob' => $this->dob, // Fecha de nacimiento (puede formatearse aquí o en el frontend)
+            'dob_formatted' => $this->dob?->format('d-m-Y'),
             'dob_for_humans' => $this->dob?->diffForHumans(),
             'gender' => $this->gender, // 0=otro, 1=masculino, 2=femenino, 3=no-binario
             'nationality' => $this->nationality,
             'occupation' => $this->occupation,
-            'picture' => $this->picture, // Ruta relativa
+            // 'picture' => $this->picture, // Ruta relativa
             'picture_url' => $this->picture ? Storage::url($this->picture) : null, // URL pública generada
             'status' => $this->status,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'created_at_formatted' => $this->created_at->translatedFormat('Y-m-d H:i:s'),
-            'updated_at_formatted' => $this->updated_at->translatedFormat('Y-m-d H:i:s'),
+            // 'created_at' => $this->created_at,
+            // 'updated_at' => $this->updated_at,
+            'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i:s'),
+            'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i:s'),
             // No incluimos estadísticas ELO aquí, a menos que se necesiten para mostrar en la interfaz de votación
             // 'elo_rating' => $this->elo_rating, // <-- Solo si se muestra en la UI de votación
         ];

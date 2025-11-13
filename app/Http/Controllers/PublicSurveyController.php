@@ -161,19 +161,72 @@ class PublicSurveyController extends Controller
         ]);
     }
 
-    public function getCombination4VotoVersion(Survey $survey): Response
+    /**
+     * Obtiene la próxima combinación de personajes para votar en una encuesta específica.
+     * Endpoint para ser llamado vía AJAX desde el frontend (Voto.vue).
+     * Devuelve un JSON estándar, no una respuesta de Inertia.
+     *
+     * @param  Survey  $survey  El modelo de encuesta, inyectado por route model binding.
+     */
+    public function getCombination4Voto(Survey $survey): JsonResponse
+    {
+        $user = Auth::user();
+        if (! $user) {
+            // Si no hay usuario autenticado, devolver error 401
+            return response()->json(['message' => 'Authentication required.'], 401);
+        }
+
+        // Verificar si la encuesta está activa
+        if (! $this->isSurveyActive($survey)) {
+            return response()->json(['message' => 'Survey not found or not active.'], 404);
+        }
+
+        // Verificar el estado del progreso del usuario
+        $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
+
+        if ($progressStatus['is_completed']) {
+            // Si el usuario ya completó la encuesta, no hay más combinaciones
+            return response()->json(['combination' => null, 'message' => 'Survey already completed for this user.'], 200);
+        }
+
+        // --- Obtener la próxima combinación ---
+        // Aquí es donde se conectaría la lógica para obtener la combinación
+        // Usando CombinatoricService (que ya implementamos con Query Builder)
+        $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
+
+        if (! $nextCombination) {
+            // Si getNextCombination devuelve null, significa que no hay más combinaciones posibles
+            // para este usuario en esta encuesta en este momento.
+            return response()->json(['combination' => null, 'message' => 'No more combinations available.'], 200);
+        }
+        dd($nextCombination);
+
+        // Devolver la combinación encontrada como un JSON estándar
+        // Usar CombinatoricResource y .resolve() para serializarla
+        return response()->json([
+            'combination' => CombinatoricResource::make($nextCombination)->resolve(), // <-- Resolver el recurso a un array
+            'message' => 'Combination retrieved successfully.', // Mensaje opcional
+        ], 200);
+
+        // NOTA: NO usar ->header('X-Inertia', 'true') ni ->response() aquí para una llamada axios.
+        // Ese patrón es para respuestas que Inertia.js maneja internamente tras una navegación.
+    }
+
+    public function getCombination4Voto2(Survey $survey)
     {
         $user = Auth::user();
         // 5. Obtener la próxima combinación para mostrar al usuario
         $nextCombination = $this->combinatoricService->getNextCombination($survey, $user->id);
-        // dd($nextCombination);
         // $nextCombination->loadMissing(['character1', 'character2']);
-        $combination = new CombinatoricResource($nextCombination);
-        dd($combination->toArray());
+        $combination = CombinatoricResource::make($nextCombination)->resolve();
 
-        return (new CombinatoricResource($nextCombination))
-            ->response()
-            ->header('X-Inertia', 'true');
+        $combination2 = (new CombinatoricResource($nextCombination))->response()->header('X-Inertia', 'true');
+        // dump($nextCombination);
+        // dd($combination, $combination2);
+
+        // return (new CombinatoricResource($nextCombination))->response()->header('X-Inertia', 'true');
+
+        return $combination2;
     }
 
     /**

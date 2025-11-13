@@ -37,7 +37,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-// console.log(props);
+console.log(props);
 // --- Composables ---
 const { success, error } = useToast();
 
@@ -94,14 +94,14 @@ const vote = async (winnerId: number, loserId: number) => {
 
 // Obtener combinación inicial
 const loadCombination = async () => {
-    alert('Loading next combination...');
+    console.log('loadCombination');
     loadingNext.value = true;
     try {
         const response = await axios.get(
-            route('ajax.surveys.combination4votoversion', props.survey.id),
+            route('ajax.surveys.combination4voto', props.survey.id),
         );
         const data = response.data;
-        console.log(data);
+        console.log('data', data);
         if (data.combination) {
             nextCombination.value = data.combination;
         } else {

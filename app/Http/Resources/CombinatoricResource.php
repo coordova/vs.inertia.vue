@@ -31,13 +31,14 @@ class CombinatoricResource extends JsonResource
             'total_comparisons' => $this->total_comparisons,
             'last_used_at' => $this->last_used_at,
             'status' => $this->status,
+            'foo' => 'bar',
             // 'created_at' => $this->created_at,
             // 'updated_at' => $this->updated_at,
 
             // Datos de los personajes involucrados en la combinación
             // Asumiendo que 'character1' y 'character2' se cargan en el controlador o servicio que llama a este recurso
-            'character1' => $this->whenLoaded('character1', fn () => new CharacterResource($this->character1)), // Usar CharacterResource para datos del personaje
-            'character2' => $this->whenLoaded('character2', fn () => new CharacterResource($this->character2)), // Usar CharacterResource para datos del personaje
+            'character1' => $this->whenLoaded('character1', fn () => CharacterResource::make($this->character1)->resolve()), // Usar CharacterResource para datos del personaje
+            'character2' => $this->whenLoaded('character2', fn () => CharacterResource::make($this->character2)->resolve()), // Usar CharacterResource para datos del personaje
         ];
     }
 }
