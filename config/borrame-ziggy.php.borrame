@@ -1,0 +1,24 @@
+<?php
+
+// config/ziggy.php
+
+// Asegúrate de que no haya errores de sintaxis PHP antes de 'return'
+// y que la estructura del array sea correcta.
+
+return [
+    // Middleware para *incluir* explícitamente en la generación de rutas para Ziggy
+    // Por defecto, Ziggy incluye rutas con middleware 'web'.
+    // Rutas con 'auth' están excluidas por defecto.
+    'middleware' => [
+        'web', // Middleware web (por defecto)
+        'auth', // <-- Incluir rutas protegidas por 'auth'
+        // Puedes añadir otros middleware si es necesario
+    ],
+
+    // 'except' => [ // Opcional: Excluir rutas específicas
+    //     // 'admin.*', // Ejemplo: Excluir rutas de administración
+    // ],
+
+    // 'domain' => null, // Opcional: Dominio específico para las rutas generadas
+    // 'group' => null, // Opcional: Grupo específico de rutas para generar
+];

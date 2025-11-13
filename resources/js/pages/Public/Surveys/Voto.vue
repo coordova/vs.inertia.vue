@@ -37,7 +37,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-console.log(props);
+
 // --- Composables ---
 const { success, error } = useToast();
 
@@ -50,17 +50,27 @@ const noMoreCombinations = ref(!props.nextCombination); // Estado para indicar s
 const isCompleted = computed(() => props.userProgress.is_completed); // Calcular si la encuesta está completada localmente
 const userProgress = ref<ProgressData>({ ...props.userProgress }); // Estado local para el progreso del usuario
 
+// --- Logs ---
+console.log('props', props);
+console.log('surveyData', surveyData.value);
+console.log('userProgress', userProgress.value);
+console.log('nextCombination', nextCombination.value);
+console.log('voting', voting.value);
+console.log('loadingNext', loadingNext.value);
+console.log('noMoreCombinations', noMoreCombinations.value);
+console.log('isCompleted', isCompleted.value);
+
 // --- Funciones ---
 
 const vote = async (winnerId: number, loserId: number) => {
-    if (!currentCombination.value || voting.value) return;
+    if (!nextCombination.value || voting.value) return;
 
     voting.value = true;
     try {
         const response = await axios.post(
             route('surveys.store-vote', props.survey.id),
             {
-                combination_id: currentCombination.value.id,
+                combination_id: nextCombination.value.id,
                 winner_id: winnerId,
                 loser_id: loserId,
             },
@@ -72,8 +82,8 @@ const vote = async (winnerId: number, loserId: number) => {
 
         // ✅ Actualizar datos locales
         if (response.data.survey) {
-            survey.value = {
-                ...survey.value,
+            surveyData.value = {
+                ...surveyData.value,
                 ...response.data.survey,
             };
         }
@@ -94,37 +104,47 @@ const vote = async (winnerId: number, loserId: number) => {
 
 // Obtener combinación inicial
 const loadCombination = async () => {
-    console.log('loadCombination');
     loadingNext.value = true;
     try {
         const response = await axios.get(
-            route('ajax.surveys.combination4voto', props.survey.id),
+            route('public.ajax.surveys.combination4voto', props.survey.id),
         );
         const data = response.data;
-        console.log('data', data);
+        // console.log('data', data);
         if (data.combination) {
             nextCombination.value = data.combination;
+            noMoreCombinations.value = false;
+
+            console.log('nextCombination', nextCombination.value);
         } else {
             // No hay más combinaciones o encuesta completada
             nextCombination.value = null;
+            noMoreCombinations.value = true;
             // Opcional: Actualizar el estado de completado si el backend lo indica
             // props.survey.is_completed = true; // Esto no funcionará directamente porque props es inmutable
             // La mejor forma es que el backend devuelva el survey actualizado también
             // y que Inertia lo recargue.
         }
     } catch (err: any) {
-        // console.error('Error loading combination:', err);
+        // console.error('Error loading combination:', err); // Añadir log para debug
 
-        if (err.response?.status === 404) {
-            // ✅ No llamar a updateProgress, usar datos locales
-            nextCombination.value = null;
-            // Los datos de progreso ya están actualizados en props.survey
+        if (err.response?.status === 401) {
+            // Usuario no autenticado
+            error('Authentication required to load combinations.');
+            // Opcional: Redirigir al login
+            // router.visit(route('login'));
+        } else if (err.response?.status === 404) {
+            // Encuesta no encontrada o no activa, o usuario ya completó
+            const serverMessage =
+                err.response?.data?.message ||
+                'Survey not found or not active.';
+            error(serverMessage);
+            nextCombination.value = null; // Indicar que no hay combinación
         } else {
-            // ✅ Mostrar mensaje de error del backend o fallback
+            // Otro error (500, problemas de red, etc.)
             const errorMessage =
                 err.response?.data?.message || 'Failed to load combination';
             error(errorMessage);
-            // error('Failed to load combination');
         }
     } finally {
         loadingNext.value = false;
@@ -209,19 +229,16 @@ onUnmounted(() => {
                                 {{ userProgress.total_expected }}
                             </div>
 
-                            <Button
-                                variant="outline"
-                                @click="
-                                    router.visit(
-                                        route(
-                                            'public.surveys.show',
-                                            surveyData.id,
-                                        ),
-                                    )
+                            <Link
+                                as="button"
+                                :href="
+                                    route('public.surveys.show', surveyData.id)
                                 "
                             >
-                                Back to Survey
-                            </Button>
+                                <Button variant="outline">
+                                    Back to Survey
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </header>
@@ -289,6 +306,200 @@ onUnmounted(() => {
                                 </Button>
                             </CardFooter>
                         </Card>
+                    </div>
+
+                    <!-- Interfaz de Votación -->
+                    <div v-else class="mx-auto max-w-4xl">
+                        <!-- Characters comparison -->
+                        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                            <!-- Character 1 -->
+                            <Card>
+                                <CardHeader class="text-center">
+                                    <CardTitle>{{
+                                        nextCombination.character1.fullname
+                                    }}</CardTitle>
+                                    <CardDescription
+                                        v-if="
+                                            nextCombination.character1.nickname
+                                        "
+                                    >
+                                        {{
+                                            nextCombination.character1.nickname
+                                        }}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div
+                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
+                                    >
+                                        <img
+                                            v-if="
+                                                nextCombination.character1
+                                                    .picture_url
+                                            "
+                                            :src="
+                                                nextCombination.character1
+                                                    .picture_url
+                                            "
+                                            :alt="
+                                                nextCombination.character1
+                                                    .fullname
+                                            "
+                                            class="h-full w-full object-cover"
+                                        />
+                                        <div
+                                            v-else
+                                            class="flex h-full w-full items-center justify-center bg-muted"
+                                        >
+                                            <span class="text-muted-foreground"
+                                                >No image</span
+                                            >
+                                        </div>
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <Button
+                                        class="w-full"
+                                        :disabled="voting"
+                                        @click="handleVoteCharacter1"
+                                    >
+                                        <span v-if="voting">Voting...</span>
+                                        <span v-else
+                                            >Vote for
+                                            {{
+                                                nextCombination.character1
+                                                    .fullname
+                                            }}
+                                            (1)</span
+                                        >
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+
+                            <!-- Character 2 -->
+                            <Card>
+                                <CardHeader class="text-center">
+                                    <CardTitle>{{
+                                        nextCombination.character2.fullname
+                                    }}</CardTitle>
+                                    <CardDescription
+                                        v-if="
+                                            nextCombination.character2.nickname
+                                        "
+                                    >
+                                        {{
+                                            nextCombination.character2.nickname
+                                        }}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div
+                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
+                                    >
+                                        <img
+                                            v-if="
+                                                nextCombination.character2
+                                                    .picture_url
+                                            "
+                                            :src="
+                                                nextCombination.character2
+                                                    .picture_url
+                                            "
+                                            :alt="
+                                                nextCombination.character2
+                                                    .fullname
+                                            "
+                                            class="h-full w-full object-cover"
+                                        />
+                                        <div
+                                            v-else
+                                            class="flex h-full w-full items-center justify-center bg-muted"
+                                        >
+                                            <span class="text-muted-foreground"
+                                                >No image</span
+                                            >
+                                        </div>
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <Button
+                                        class="w-full"
+                                        :disabled="voting"
+                                        @click="handleVoteCharacter2"
+                                    >
+                                        <span v-if="voting">Voting...</span>
+                                        <span v-else
+                                            >Vote for
+                                            {{
+                                                nextCombination.character2
+                                                    .fullname
+                                            }}
+                                            (2)</span
+                                        >
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        </div>
+
+                        <!-- Botón de Empate -->
+                        <div class="mt-8 flex justify-center">
+                            <Button
+                                variant="outline"
+                                :disabled="voting"
+                                @click="handleTie"
+                            >
+                                {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
+                            </Button>
+                        </div>
+
+                        <!-- Información adicional - Estadisticas -->
+                        <div class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <Card>
+                                <CardContent class="pt-4 text-center">
+                                    <div class="text-2xl font-bold">
+                                        {{ votesRemaining }}
+                                    </div>
+                                    <div class="text-sm text-muted-foreground">
+                                        Remaining
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent class="pt-4 text-center">
+                                    <!-- <div class="text-2xl font-bold">
+                                        {{ progressPercentage.toFixed(2) }}%
+                                    </div> -->
+                                    <div class="text-sm text-muted-foreground">
+                                        Completed
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent class="pt-4 text-center">
+                                    <div class="text-2xl font-bold">
+                                        {{ totalVotes }}
+                                    </div>
+                                    <div class="text-sm text-muted-foreground">
+                                        Voted
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <!-- Instrucciones -->
+                        <div
+                            class="mt-8 text-center text-sm text-muted-foreground"
+                        >
+                            <p>
+                                Press
+                                <kbd class="rounded bg-muted px-2 py-1">1</kbd>
+                                to vote for the first character,
+                                <kbd class="rounded bg-muted px-2 py-1">2</kbd>
+                                for the second character, or
+                                <kbd class="rounded bg-muted px-2 py-1">3</kbd>
+                                for a tie.
+                            </p>
+                        </div>
                     </div>
                 </main>
             </div>

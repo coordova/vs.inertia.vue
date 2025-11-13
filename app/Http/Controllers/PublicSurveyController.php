@@ -14,6 +14,7 @@ use Illuminate\Http\Request; // <-- Importar el recurso de combinación
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia; // Asegúrate de importar SurveyIndexResource
 use Inertia\Response; // <-- Importar el recurso específico para la vista de detalle (si existe)
+use Illuminate\Http\JsonResponse; // Importar JsonResponse
 
 class PublicSurveyController extends Controller
 {
@@ -199,7 +200,7 @@ class PublicSurveyController extends Controller
             // para este usuario en esta encuesta en este momento.
             return response()->json(['combination' => null, 'message' => 'No more combinations available.'], 200);
         }
-        dd($nextCombination);
+        // dd(CombinatoricResource::make($nextCombination)->resolve());
 
         // Devolver la combinación encontrada como un JSON estándar
         // Usar CombinatoricResource y .resolve() para serializarla
