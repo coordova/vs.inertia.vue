@@ -10,11 +10,11 @@ use App\Http\Resources\SurveyVoteResource;
 use App\Models\Survey;
 use App\Services\Survey\CombinatoricService; // Para obtener el usuario autenticado
 use App\Services\Survey\SurveyProgressService; // <-- Importar el recurso específico para la vista de votación
-use Illuminate\Http\Request; // <-- Importar el recurso de combinación
-use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia; // Asegúrate de importar SurveyIndexResource
-use Inertia\Response; // <-- Importar el recurso específico para la vista de detalle (si existe)
-use Illuminate\Http\JsonResponse; // Importar JsonResponse
+use Illuminate\Http\JsonResponse; // <-- Importar el recurso de combinación
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Asegúrate de importar SurveyIndexResource
+use Inertia\Inertia; // <-- Importar el recurso específico para la vista de detalle (si existe)
+use Inertia\Response; // Importar JsonResponse
 
 class PublicSurveyController extends Controller
 {
@@ -206,6 +206,7 @@ class PublicSurveyController extends Controller
         // Usar CombinatoricResource y .resolve() para serializarla
         return response()->json([
             'combination' => CombinatoricResource::make($nextCombination)->resolve(), // <-- Resolver el recurso a un array
+            'progress' => $progressStatus,
             'message' => 'Combination retrieved successfully.', // Mensaje opcional
         ], 200);
 

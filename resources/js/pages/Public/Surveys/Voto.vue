@@ -21,19 +21,11 @@ import type { CombinatoricResource, SurveyResource } from '@/types/global';
 
 import axios from 'axios';
 
-interface ProgressData {
-    exists: boolean;
-    is_completed: boolean;
-    progress: number;
-    total_votes: number;
-    total_expected: number;
-}
-
 // --- Props del componente ---
 interface Props {
     survey: SurveyResource; // Datos de la encuesta actual, incluyendo progreso
-    nextCombination: CombinatoricResource | null; // La próxima combinación a votar
-    userProgress: ProgressData; // Progreso del usuario en la encuesta
+    // nextCombination: CombinatoricResource | null; // La próxima combinación a votar
+    // userProgress: ProgressData; // Progreso del usuario en la encuesta
 }
 
 const props = defineProps<Props>();
@@ -41,92 +33,146 @@ const props = defineProps<Props>();
 // --- Composables ---
 const { success, error } = useToast();
 
+// --- Tipos ---
+// Estado local para el progreso del usuario (devuelto por el backend)
+// Asumiendo que el backend devuelve un objeto con esta estructura
+interface ProgressData {
+    exists: boolean;
+    is_completed: boolean; // Puede ser boolean o integer (0/1)
+    progress: number; // Porcentaje
+    total_votes: number;
+    total_expected: number | null; // Puede ser null si no se pudo calcular
+    // Añadir otros campos si el backend los envía
+}
+
 // --- Estados reactivos ---
-const nextCombination = ref<CombinatoricResource | null>(props.nextCombination); // Estado local para la combinación actual
+const nextCombination = ref<CombinatoricResource | null>(null); // Estado local para la combinación actual
 const surveyData = ref<SurveyResource>({ ...props.survey }); // Estado local para los datos de la encuesta (progreso, etc.)
 const voting = ref(false); // Estado para deshabilitar botones durante el voto
 const loadingNext = ref(false); // Estado para mostrar indicador de carga de la siguiente combinación
-const noMoreCombinations = ref(!props.nextCombination); // Estado para indicar si no hay más combinaciones
-const isCompleted = computed(() => props.userProgress.is_completed); // Calcular si la encuesta está completada localmente
-const userProgress = ref<ProgressData>({ ...props.userProgress }); // Estado local para el progreso del usuario
+const noMoreCombinations = ref(false); // Estado para indicar si no hay más combinaciones
+const isCompleted = computed(() => surveyData.value.is_completed); // Calcular si la encuesta está completada localmente
+const userProgress = ref<ProgressData | null>(null); // Estado local para el progreso del usuario
+
+// --- Propiedades Computadas para Datos Derivados del Progreso ---
+// Estas propiedades se recalculan automáticamente cuando userProgress.value cambia
+const progressPercentage = computed(() => userProgress.value?.progress ?? 0); // Porcentaje de progreso
+const totalVotes = computed(() => userProgress.value?.total_votes ?? 0); // Votos totales del usuario
+const totalExpected = computed(() => userProgress.value?.total_expected ?? 0); // Total esperado de combinaciones para el usuario
+const votesRemaining = computed(() =>
+    Math.max(0, totalExpected.value - totalVotes.value),
+); // Votos restantes
 
 // --- Logs ---
-console.log('props', props);
-console.log('surveyData', surveyData.value);
-console.log('userProgress', userProgress.value);
-console.log('nextCombination', nextCombination.value);
-console.log('voting', voting.value);
-console.log('loadingNext', loadingNext.value);
-console.log('noMoreCombinations', noMoreCombinations.value);
-console.log('isCompleted', isCompleted.value);
+// console.log('props', props);
+// console.log('surveyData', surveyData.value);
+// console.log('userProgress', userProgress.value);
+// console.log('nextCombination', nextCombination.value);
+// console.log('voting', voting.value);
+// console.log('loadingNext', loadingNext.value);
+// console.log('noMoreCombinations', noMoreCombinations.value);
+// console.log('isCompleted', isCompleted.value);
+
+// console.log('progressPercentage', progressPercentage.value);
+// console.log('totalVotes', totalVotes.value);
+// console.log('totalExpected', totalExpected.value);
+// console.log('votesRemaining', votesRemaining.value);
 
 // --- Funciones ---
 
+/**
+ * Enviar un voto para la combinación actual.
+ * @param winnerId ID del personaje ganador
+ * @param loserId ID del personaje perdedor
+ */
 const vote = async (winnerId: number, loserId: number) => {
     if (!nextCombination.value || voting.value) return;
 
     voting.value = true;
     try {
         const response = await axios.post(
-            route('surveys.store-vote', props.survey.id),
+            route('surveys.vote.store', props.survey.id), // Asumiendo nombre de ruta correcto
             {
-                combination_id: nextCombination.value.id,
+                combinatoric_id: nextCombination.value.id, // Asumiendo que el backend espera 'combinatoric_id'
                 winner_id: winnerId,
                 loser_id: loserId,
             },
         );
 
-        // ✅ Mostrar toast del backend o mensaje por defecto
+        // Mostrar mensaje de éxito del backend
         const message = response.data.message || 'Vote recorded successfully!';
         success(message);
 
-        // ✅ Actualizar datos locales
-        if (response.data.survey) {
+        // Actualizar datos locales devueltos por el backend (progreso de la encuesta)
+        if (response.data.survey_data) {
+            // Asumiendo que el backend devuelve 'survey_data'
             surveyData.value = {
                 ...surveyData.value,
-                ...response.data.survey,
+                ...response.data.survey_data,
             };
         }
 
-        // Cargar siguiente combinación
+        // Opcional: Actualizar ratings locales si el backend los devuelve
+        if (response.data.character_ratings) {
+            // Lógica para actualizar ratings locales si es necesario
+        }
+
+        // Cargar la siguiente combinación
         await loadCombination();
     } catch (err: any) {
-        // ✅ Mostrar mensaje de error del backend o fallback
+        console.error('Error submitting vote:', err); // Log para debugging
+        // Mostrar mensaje de error del backend o fallback
         const errorMessage =
             err.response?.data?.message || 'Failed to record vote';
         error(errorMessage);
-        // error('Failed to record vote: ' + (err.response?.data?.message || 'Unknown error'));
-        // console.error('Vote error:', err);
     } finally {
         voting.value = false;
     }
 };
 
-// Obtener combinación inicial
+/**
+ * Cargar la próxima combinación para votar.
+ */
 const loadCombination = async () => {
     loadingNext.value = true;
     try {
+        // Hacer la solicitud GET al endpoint del backend para obtener la próxima combinación
         const response = await axios.get(
-            route('public.ajax.surveys.combination4voto', props.survey.id),
+            route('public.ajax.surveys.combination4voto', props.survey.id), // Asegurar nombre de ruta correcto
         );
         const data = response.data;
-        // console.log('data', data);
-        if (data.combination) {
-            nextCombination.value = data.combination;
-            noMoreCombinations.value = false;
+        console.log('Data received from backend:', data); // Log para debugging
 
-            console.log('nextCombination', nextCombination.value);
+        if (data.combination) {
+            // Actualizar la combinación actual
+            nextCombination.value = data.combination;
+            // Actualizar el progreso del usuario (si el backend lo devuelve)
+            userProgress.value = data.progress; // <-- Asignación reactiva
+            // Indicar que hay combinaciones disponibles
+            noMoreCombinations.value = false;
+            // Actualizar isCompleted local si el backend lo indica
+            // surveyData.value.is_completed = data.progress?.is_completed ?? surveyData.value.is_completed;
+
+            console.log('Updated nextCombination:', nextCombination.value);
+            console.log('Updated userProgress:', userProgress.value);
+            // Ahora, al acceder a las propiedades computadas, deberían reflejar los nuevos valores
+            console.log(
+                'Computed progressPercentage:',
+                progressPercentage.value,
+            );
+            console.log('Computed totalVotes:', totalVotes.value);
+            console.log('Computed totalExpected:', totalExpected.value);
+            console.log('Computed votesRemaining:', votesRemaining.value);
         } else {
-            // No hay más combinaciones o encuesta completada
+            // No hay más combinaciones disponibles o la encuesta está completada para el usuario
             nextCombination.value = null;
+            userProgress.value = null; // O mantener el último estado de progreso
             noMoreCombinations.value = true;
-            // Opcional: Actualizar el estado de completado si el backend lo indica
-            // props.survey.is_completed = true; // Esto no funcionará directamente porque props es inmutable
-            // La mejor forma es que el backend devuelva el survey actualizado también
-            // y que Inertia lo recargue.
+            // Opcional: Actualizar isCompleted local si el backend lo indica explícitamente
+            // surveyData.value.is_completed = true;
         }
     } catch (err: any) {
-        // console.error('Error loading combination:', err); // Añadir log para debug
+        console.error('Error loading next combination:', err); // Log para debugging
 
         if (err.response?.status === 401) {
             // Usuario no autenticado
@@ -134,12 +180,13 @@ const loadCombination = async () => {
             // Opcional: Redirigir al login
             // router.visit(route('login'));
         } else if (err.response?.status === 404) {
-            // Encuesta no encontrada o no activa, o usuario ya completó
+            // Encuesta no encontrada, inactiva o usuario ya completó
             const serverMessage =
                 err.response?.data?.message ||
-                'Survey not found or not active.';
+                'Survey not found, not active, or already completed.';
             error(serverMessage);
             nextCombination.value = null; // Indicar que no hay combinación
+            noMoreCombinations.value = true; // Indicar que no hay más
         } else {
             // Otro error (500, problemas de red, etc.)
             const errorMessage =
@@ -148,6 +195,46 @@ const loadCombination = async () => {
         }
     } finally {
         loadingNext.value = false;
+    }
+};
+
+/**
+ * Manejar el voto por el personaje 1.
+ */
+const handleVoteCharacter1 = () => {
+    if (nextCombination.value) {
+        vote(
+            nextCombination.value.character1.id,
+            nextCombination.value.character2.id,
+        );
+    }
+};
+
+/**
+ * Manejar el voto por el personaje 2.
+ */
+const handleVoteCharacter2 = () => {
+    if (nextCombination.value) {
+        vote(
+            nextCombination.value.character2.id,
+            nextCombination.value.character1.id,
+        );
+    }
+};
+
+/**
+ * Manejar el voto de empate.
+ */
+const handleTie = () => {
+    if (nextCombination.value) {
+        // Para empates, enviar IDs nulos o un flag especial, dependiendo de la API backend
+        // Asumiendo que el backend maneja empates con winner_id=null, loser_id=null, tie=true
+        // y que el formulario Inertia o la solicitud axios lo envía así.
+        // Opción 1: Enviar un objeto diferente para empates
+        // submitTie(nextCombination.value.id);
+        // Opción 2: Modificar la función vote para manejar empates
+        vote(-1, -1); // O usar un ID especial o null si la API lo soporta y se adapta la lógica de `vote`
+        // La mejor práctica es tener una función específica para empates si la API lo requiere distinto
     }
 };
 
@@ -176,14 +263,14 @@ const handleKeyPress = (e: KeyboardEvent) => {
         !voting.value &&
         !loadingNext.value
     ) {
-        // Opcional: '3' para empate
+        // Opcional: tecla para empate
         handleTie();
     }
 };
 
 // --- Lifecycle Hooks ---
 onMounted(() => {
-    // Cargar combinación inicial
+    // Cargar la primera combinación al montar el componente
     loadCombination();
     // Agregar event listener para teclado
     window.addEventListener('keydown', handleKeyPress);
@@ -215,18 +302,18 @@ onUnmounted(() => {
                             <div class="flex items-center gap-2">
                                 <div class="w-32">
                                     <Progress
-                                        :model-value="userProgress.progress"
+                                        :model-value="userProgress?.progress"
                                         :max="100"
                                     />
                                 </div>
                                 <span class="text-sm text-muted-foreground">
-                                    {{ userProgress.progress.toFixed(2) }}%
+                                    {{ userProgress?.progress.toFixed(2) }}%
                                 </span>
                             </div>
 
                             <div class="text-sm text-muted-foreground">
-                                {{ userProgress.total_votes }} /
-                                {{ userProgress.total_expected }}
+                                {{ userProgress?.total_votes }} /
+                                {{ userProgress?.total_expected }}
                             </div>
 
                             <Link
@@ -466,9 +553,9 @@ onUnmounted(() => {
                             </Card>
                             <Card>
                                 <CardContent class="pt-4 text-center">
-                                    <!-- <div class="text-2xl font-bold">
-                                        {{ progressPercentage.toFixed(2) }}%
-                                    </div> -->
+                                    <div class="text-2xl font-bold">
+                                        {{ progressPercentage?.toFixed(2) }}%
+                                    </div>
                                     <div class="text-sm text-muted-foreground">
                                         Completed
                                     </div>
