@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useToast } from '@/composables/useToast'; // Importar el composable de toast
 import VotingLayout from '@/layouts/VotingLayout.vue';
+import { Head } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 // Layouts & Components
@@ -8,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // 
 import { Button } from '@/components/ui/button';
 import {
     Card,
+    CardContent,
     CardDescription,
     CardFooter,
     CardHeader,
@@ -91,7 +93,7 @@ const vote = async (winnerId: number, loserId: number) => {
     voting.value = true;
     try {
         const response = await axios.post(
-            route('surveys.vote.store', props.survey.id), // Asumiendo nombre de ruta correcto
+            route('public.surveys.vote.store', props.survey.id), // Asumiendo nombre de ruta correcto
             {
                 combinatoric_id: nextCombination.value.id, // Asumiendo que el backend espera 'combinatoric_id'
                 winner_id: winnerId,

@@ -44,6 +44,8 @@ class SurveyVoteController extends Controller
         $loserId = $validatedData['loser_id'] ?? null;
         $tie = $validatedData['tie'] ?? false;
 
+        // dd($combinatoricId, $winnerId, $loserId, $tie);
+
         // --- Validación de Lógica de Negocio ---
         if ($tie) {
             if ($winnerId !== null || $loserId !== null) {
