@@ -65,6 +65,8 @@ const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
 ); // Votos restantes
 
+const isTieSelected = ref(false);
+
 // --- Logs ---
 // console.log('props', props);
 // console.log('surveyData', surveyData.value);
@@ -87,7 +89,7 @@ const votesRemaining = computed(() =>
  * @param winnerId ID del personaje ganador
  * @param loserId ID del personaje perdedor
  */
-const vote = async (winnerId: number, loserId: number) => {
+const vote = async (winnerId: number | null, loserId: number | null) => {
     if (!nextCombination.value || voting.value) return;
 
     voting.value = true;
@@ -98,6 +100,7 @@ const vote = async (winnerId: number, loserId: number) => {
                 combinatoric_id: nextCombination.value.id, // Asumiendo que el backend espera 'combinatoric_id'
                 winner_id: winnerId,
                 loser_id: loserId,
+                tie: isTieSelected.value,
             },
         );
 
@@ -229,13 +232,14 @@ const handleVoteCharacter2 = () => {
  */
 const handleTie = () => {
     if (nextCombination.value) {
+        isTieSelected.value = true;
         // Para empates, enviar IDs nulos o un flag especial, dependiendo de la API backend
         // Asumiendo que el backend maneja empates con winner_id=null, loser_id=null, tie=true
         // y que el formulario Inertia o la solicitud axios lo envía así.
         // Opción 1: Enviar un objeto diferente para empates
         // submitTie(nextCombination.value.id);
         // Opción 2: Modificar la función vote para manejar empates
-        vote(-1, -1); // O usar un ID especial o null si la API lo soporta y se adapta la lógica de `vote`
+        vote(null, null); // O usar un ID especial o null si la API lo soporta y se adapta la lógica de `vote`
         // La mejor práctica es tener una función específica para empates si la API lo requiere distinto
     }
 };
