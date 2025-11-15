@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useToast } from '@/composables/useToast'; // Importar el composable de toast
 import VotingLayout from '@/layouts/VotingLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 // Layouts & Components
@@ -16,7 +16,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress'; // Componente de progreso de shadcn
-import { AlertCircle, Link } from 'lucide-vue-next'; // Iconos
+import { AlertCircle } from 'lucide-vue-next'; // Iconos
 
 // Tipos (asumiendo que están definidos en global.d.ts o en otro lugar)
 import type { CombinatoricResource, SurveyResource } from '@/types/global';
@@ -317,14 +317,16 @@ onUnmounted(() => {
                                 {{ userProgress?.total_votes }} /
                                 {{ userProgress?.total_expected }}
                             </div>
-
                             <Link
                                 as="button"
                                 :href="
                                     route('public.surveys.show', surveyData.id)
                                 "
                             >
-                                <Button variant="outline">
+                                <Button
+                                    variant="outline"
+                                    class="cursor-pointer"
+                                >
                                     Back to Survey
                                 </Button>
                             </Link>
