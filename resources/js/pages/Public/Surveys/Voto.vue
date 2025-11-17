@@ -60,7 +60,8 @@ const userProgress = ref<ProgressData | null>(null); // Estado local para el pro
 // Estas propiedades se recalculan automáticamente cuando userProgress.value cambia
 const progressPercentage = computed(() => userProgress.value?.progress ?? 0); // Porcentaje de progreso
 const totalVotes = computed(() => userProgress.value?.total_votes ?? 0); // Votos totales del usuario
-const totalExpected = computed(() => userProgress.value?.total_expected ?? 0); // Total esperado de combinaciones para el usuario
+// const totalExpected = computed(() => userProgress.value?.total_expected ?? 0); // Total esperado de combinaciones para el usuario
+const totalExpected = computed(() => surveyData.value.combinatorics_count ?? 0); // Total esperado de combinaciones para el usuario
 const votesRemaining = computed(() =>
     Math.max(0, totalExpected.value - totalVotes.value),
 ); // Votos restantes
@@ -319,7 +320,8 @@ onUnmounted(() => {
 
                             <div class="text-sm text-muted-foreground">
                                 {{ userProgress?.total_votes }} /
-                                {{ userProgress?.total_expected }}
+                                <!-- {{ userProgress?.total_expected }} -->
+                                {{ totalExpected }}
                             </div>
                             <Link
                                 as="button"

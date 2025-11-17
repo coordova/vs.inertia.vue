@@ -31,6 +31,8 @@ class SurveyVoteResource extends SurveyBaseResource
             // 'image_url' => $this->image ? \Storage::url($this->image) : null, // Generar URL si es necesario
             'allow_ties' => $this->allow_ties,
             'tie_weight' => $this->tie_weight,
+
+            'combinatorics_count' => $this->combinatorics_count,
         ]);
     }
 

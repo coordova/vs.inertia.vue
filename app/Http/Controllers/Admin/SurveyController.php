@@ -169,7 +169,7 @@ class SurveyController extends Controller
         $survey->load([
             'category:id,name',
             'characters:id,fullname,gender,status',
-        ]);
+        ])->loadCount(['combinatorics']);
         // Obtener user survey progress
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
         // dd($survey);

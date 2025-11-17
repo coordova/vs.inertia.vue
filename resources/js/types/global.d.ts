@@ -177,6 +177,7 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     }; */
     character_count: number;
     combinations_count: number;
+    combinatorics_count: number;
     user_votes_count: number;
     progress_percentage: number;
     is_completed: boolean;

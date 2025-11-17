@@ -267,7 +267,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     />
                                     {{
                                         (
-                                            userProgress?.total_expected || 0
+                                            survey.combinations_count || 0
                                         ).toString()
                                     }}
                                 </div>
@@ -280,7 +280,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     />
                                     {{
                                         (
-                                            userProgress?.total_expected || 0
+                                            survey.combinations_count || 0
                                         ).toString()
                                     }}
                                 </div>
@@ -315,7 +315,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     />
                                     {{
                                         (
-                                            userProgress?.total_expected || 0
+                                            survey.combinations_count || 0
                                         ).toString()
                                     }}
                                 </div>
@@ -342,7 +342,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </dl>
 
                         <!-- Barra de progreso visual -->
-                        <div v-if="userProgress?.total_expected" class="mt-4">
+                        <div v-if="survey.combinations_count" class="mt-4">
                             <div class="flex justify-between text-sm">
                                 <span>Progress</span>
                                 <span

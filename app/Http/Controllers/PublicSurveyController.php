@@ -143,7 +143,7 @@ class PublicSurveyController extends Controller
         // 2. Verificar si la encuesta está activa - ya lo hace el SurveyVoteResource
 
         // 3. Cargar solo los datos necesarios para la vista de votación
-
+        $survey->loadCount(['combinatorics']);
         // 4. Cargar datos de progreso del usuario actual
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
         // dump($survey);
