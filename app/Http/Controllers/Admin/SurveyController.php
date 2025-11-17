@@ -5,19 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSurveyRequest;
 use App\Http\Requests\UpdateSurveyRequest;
+use App\Http\Resources\SurveyIndexResource;
 use App\Http\Resources\SurveyResource;
 use App\Http\Resources\SurveyShowResource;
-use App\Http\Resources\SurveyIndexResource;
-use App\Models\Survey;
 use App\Models\Category;
 use App\Models\Combinatoric;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
-use Inertia\Response;
 use App\Models\Lookup;
+use App\Models\Survey;
 use App\Services\LookupService;
 use App\Services\Survey\CombinatoricService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SurveyController extends Controller
 {
@@ -38,23 +38,23 @@ class SurveyController extends Controller
 
         $surveys = Survey::with(['category:id,name'])
                             // ->withCount(['characters', 'votes as user_votes_count'])
-                            ->withCount(['characters'])
-                            ->when(request('search'), function ($query, $search) {
-                                $query->where('title', 'like', '%' . $search . '%');
-                            })
+            ->withCount(['characters'])
+            ->when(request('search'), function ($query, $search) {
+                $query->where('title', 'like', '%'.$search.'%');
+            })
                             // orderBy('fullname', 'asc')
-                            ->latest()
-                            ->paginate($perPage)
-                            ->withQueryString();
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
 
         // dd($surveys);
-        /*---------------------------------------------------------------------*/
+        /* --------------------------------------------------------------------- */
         // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
         if ($surveys->lastPage() > 0 && $request->get('page', 1) > $surveys->lastPage()) {
             // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
             return redirect($surveys->url($surveys->lastPage()));
         }
-        /*---------------------------------------------------------------------*/
+        /* --------------------------------------------------------------------- */
 
         return Inertia::render('Admin/Surveys/Index', [
             'surveys' => SurveyIndexResource::collection($surveys),
@@ -70,6 +70,7 @@ class SurveyController extends Controller
         // Puedes pasar datos auxiliares si es necesario (por ejemplo, lista de categorías)
         $categories = Category::query()->select('id', 'name', 'status')->get();
         $selectionStrategies = LookupService::getSelectionStrategies();
+
         return Inertia::render('Admin/Surveys/Create', [
             'categories' => $categories,
             'selectionStrategies' => $selectionStrategies,
@@ -86,7 +87,7 @@ class SurveyController extends Controller
 
         // 2. Asociar personajes seleccionados (si se proporcionan)
         $characterIds = $request->validated()['characters'] ?? [];
-        if (is_array($characterIds) && !empty($characterIds)) {
+        if (is_array($characterIds) && ! empty($characterIds)) {
             $survey->characters()->attach($characterIds);
         }
 
@@ -120,7 +121,6 @@ class SurveyController extends Controller
         return to_route('admin.surveys.index')->with('success', 'Survey created successfully.');
     }
 
-     
     public function store_old(StoreSurveyRequest $request): RedirectResponse
     {
         $survey = Survey::create($request->validated());
@@ -151,29 +151,28 @@ class SurveyController extends Controller
     public function show(Survey $survey): Response
     {
         $survey->load([
-            'characters:id,fullname,gender,status', 
+            'characters:id,fullname,gender,status',
             'category:id,name',
             'votes' => function ($query) {
                 $query->where('user_id', auth()->id())
                     ->with(['winner:id,fullname', 'loser:id,fullname'])
                     ->latest()
                     ->limit(5);
-            }
+            },
         ])->loadCount(['characters', 'votes as user_votes_count']); // ✅ Cargar conteo de votos
-    
+        // dd($survey);
         $strategyInfo = Lookup::byCategory('selection_strategies')
             ->byCode($survey->selection_strategy)
             ->first();
-    
+
         return Inertia::render('Admin/Surveys/Show', [
             'survey' => SurveyShowResource::make($survey)->resolve(),
             'selectionStrategyInfo' => $strategyInfo ? [
                 'name' => $strategyInfo->name,
                 'description' => $strategyInfo->description,
-                'metadata' => LookupService::parseMetadata($strategyInfo->metadata)
-            ] : null
+                'metadata' => LookupService::parseMetadata($strategyInfo->metadata),
+            ] : null,
         ]);
-
 
         /* $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario
         return Inertia::render('Admin/Surveys/Show', [
@@ -225,7 +224,7 @@ class SurveyController extends Controller
         // Generar todas las combinaciones posibles de 2 personajes
         $combinations = [];
         $count = count($characterIds);
-        
+
         for ($i = 0; $i < $count; $i++) {
             for ($j = $i + 1; $j < $count; $j++) {
                 $combinations[] = [
@@ -236,7 +235,7 @@ class SurveyController extends Controller
                 ];
             }
         }
-        
+
         // Insertar todas las combinaciones
         Combinatoric::insert($combinations);
     }

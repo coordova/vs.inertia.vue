@@ -193,7 +193,7 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
 
 export interface SurveyResourceForm { // Interfaz para el recurso individual resuelto
     // id: number;
-    category_id: number | null; // ID de la categoría
+    category_id: string | number | null; // ID de la categoría
     // category: CategoryResource; // Objeto de la categoría relacionada (resuelto)
     title: string;
     // slug: string;

@@ -94,7 +94,7 @@ interface CharacterOption {
  * @property {number[]} modelValue - IDs de personajes seleccionados
  */
 const props = defineProps<{
-  categoryId: number | null
+  categoryId: number | string | null
   modelValue: number[]
 }>()
 

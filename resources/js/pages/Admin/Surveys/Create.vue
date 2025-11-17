@@ -72,12 +72,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // Formulario con tipos de datos corregidos
 const form = useForm<SurveyResourceForm>({
-    category_id: null as number | null, // Tipado explícito para claridad
+    category_id: null as number | null | string, // Tipado explícito para claridad
     title: '',
     description: '',
     type: 0, // 0 = public, 1 = private
     status: true, // 1 = enabled, 0 = disabled
     reverse: false, // 0 = no reverse, 1 = reverse
+    is_active: true,
     date_start: '',
     date_end: '',
     selection_strategy: 'cooldown' as string, // ✅ Valor por defecto

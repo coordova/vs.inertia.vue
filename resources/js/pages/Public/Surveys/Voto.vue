@@ -537,7 +537,10 @@ onUnmounted(() => {
                         </div>
 
                         <!-- Botón de Empate -->
-                        <div class="mt-8 flex justify-center">
+                        <div
+                            v-if="surveyData.allow_ties"
+                            class="mt-8 flex justify-center"
+                        >
                             <Button
                                 variant="outline"
                                 :disabled="voting"
@@ -590,9 +593,14 @@ onUnmounted(() => {
                                 <kbd class="rounded bg-muted px-2 py-1">1</kbd>
                                 to vote for the first character,
                                 <kbd class="rounded bg-muted px-2 py-1">2</kbd>
-                                for the second character, or
-                                <kbd class="rounded bg-muted px-2 py-1">3</kbd>
-                                for a tie.
+                                for the second character
+                                <span v-if="surveyData.allow_ties"
+                                    >, or
+                                    <kbd class="rounded bg-muted px-2 py-1"
+                                        >3</kbd
+                                    >
+                                    for a tie.</span
+                                >
                             </p>
                         </div>
                     </div>
