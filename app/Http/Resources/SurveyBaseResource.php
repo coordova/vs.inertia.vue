@@ -27,21 +27,24 @@ class SurveyBaseResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'status' => (bool) $this->status,
-            'type' => (int) $this->type,
             'category_id' => $this->category_id,
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'type' => (int) $this->type,
+            'status' => (bool) $this->status,
+            'reverse' => (bool) $this->reverse,
+            'date_start_formatted' => $this->date_start->translatedFormat('d-m-Y'), // o 'Y-m-d' o 'M j, Y'
+            'date_end_formatted' => $this->date_end->translatedFormat('d-m-Y'),
+            
+            'is_active' => ($this->status && $this->date_start <= now() && $this->date_end >= now()),
+
             // 'date_start' => $this->date_start, // $this->date_start?->format('Y-m-d'),
             // 'date_end' => $this->date_end, // $this->date_end?->format('Y-m-d'),
-            'selection_strategy' => $this->selection_strategy,
-            'slug' => $this->slug,
-            'is_active' => $this->date_start <= now() && $this->date_end >= now(),
+            // 'selection_strategy' => $this->selection_strategy,
 
             // Datos de fechas formateadas
             // 'date_start_formatted' => $this->date_start?->utc()->format('d-m-Y'),
             // 'date_end_formatted' => $this->date_end?->utc()->format('d-m-Y'),
-            'date_start_formatted' => $this->date_start?->translatedFormat('d-m-Y'), // o 'Y-m-d' o 'M j, Y'
-            'date_end_formatted' => $this->date_end?->translatedFormat('d-m-Y'),
             // 'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i:s'),
             // 'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i:s'),
         ];

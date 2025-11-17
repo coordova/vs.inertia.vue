@@ -14,8 +14,10 @@ use App\Models\Lookup;
 use App\Models\Survey;
 use App\Services\LookupService;
 use App\Services\Survey\CombinatoricService;
+use App\Services\Survey\SurveyProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,6 +25,7 @@ class SurveyController extends Controller
 {
     // Inyectar el servicio en el constructor
     public function __construct(
+        protected SurveyProgressService $surveyProgressService,
         protected CombinatoricService $combinatoricService // <-- Inyección
     ) {
         // Si necesitas aplicar middleware a todos los métodos del controlador
@@ -150,7 +153,7 @@ class SurveyController extends Controller
      */
     public function show(Survey $survey): Response
     {
-        $survey->load([
+        /* $survey->load([
             'characters:id,fullname,gender,status',
             'category:id,name',
             'votes' => function ($query) {
@@ -159,7 +162,16 @@ class SurveyController extends Controller
                     ->latest()
                     ->limit(5);
             },
-        ])->loadCount(['characters', 'votes as user_votes_count']); // ✅ Cargar conteo de votos
+        ])->loadCount(['characters', 'votes as user_votes_count']); // ✅ Cargar conteo de votos */
+
+        $user = Auth::user();
+        // Cargar relaciones
+        $survey->load([
+            'category:id,name',
+            'characters:id,fullname,gender,status',
+        ]);
+        // Obtener user survey progress
+        $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
         // dd($survey);
         $strategyInfo = Lookup::byCategory('selection_strategies')
             ->byCode($survey->selection_strategy)
@@ -172,6 +184,7 @@ class SurveyController extends Controller
                 'description' => $strategyInfo->description,
                 'metadata' => LookupService::parseMetadata($strategyInfo->metadata),
             ] : null,
+            'userProgress' => $progressStatus,
         ]);
 
         /* $survey->load(['category', 'characters', 'votes']); // Carga relacional según sea necesario

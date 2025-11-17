@@ -29,6 +29,15 @@ import {
     Venus,
 } from 'lucide-vue-next'; // Iconos
 
+interface ProgressData {
+    exists: boolean;
+    is_completed: boolean; // Puede ser boolean o integer (0/1)
+    progress: number; // Porcentaje
+    total_votes: number;
+    total_expected: number | null; // Puede ser null si no se pudo calcular
+    // Añadir otros campos si el backend los envía
+}
+
 interface Props {
     survey: SurveyResource; // Usamos el tipo del recurso resuelto
     selectionStrategyInfo: {
@@ -38,6 +47,7 @@ interface Props {
             [key: string]: any;
         };
     };
+    userProgress: ProgressData;
 }
 
 const props = defineProps<Props>();
@@ -257,7 +267,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     />
                                     {{
                                         (
-                                            survey?.combinations_count || 0
+                                            userProgress?.total_expected || 0
                                         ).toString()
                                     }}
                                 </div>
@@ -268,7 +278,11 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <Users
                                         class="mr-2 h-4 w-4 text-muted-foreground"
                                     />
-                                    {{ (survey?.counter || 0).toString() }}
+                                    {{
+                                        (
+                                            userProgress?.total_expected || 0
+                                        ).toString()
+                                    }}
                                 </div>
                             </DetailItem>
                             <DetailItem
@@ -301,7 +315,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     />
                                     {{
                                         (
-                                            survey?.combinations_count || 0
+                                            userProgress?.total_expected || 0
                                         ).toString()
                                     }}
                                 </div>
@@ -309,17 +323,17 @@ const breadcrumbs: BreadcrumbItem[] = [
                             <DetailItem
                                 label="Your Votes"
                                 :content="
-                                    (survey?.user_votes_count || 0).toString()
+                                    (userProgress?.total_votes || 0).toString()
                                 "
                             />
                             <DetailItem
                                 label="Progress"
-                                :content="`${survey?.progress_percentage || 0}%`"
+                                :content="`${userProgress?.progress.toFixed(2) || 0}%`"
                             />
                             <DetailItem
                                 label="Status"
                                 :content="
-                                    survey?.is_completed
+                                    userProgress?.is_completed
                                         ? 'Completed'
                                         : 'In Progress'
                                 "
@@ -328,12 +342,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </dl>
 
                         <!-- Barra de progreso visual -->
-                        <div v-if="survey?.combinations_count > 0" class="mt-4">
+                        <div v-if="userProgress?.total_expected" class="mt-4">
                             <div class="flex justify-between text-sm">
                                 <span>Progress</span>
                                 <span
                                     >{{
-                                        survey?.progress_percentage || 0
+                                        userProgress?.progress.toFixed(2) || 0
                                     }}%</span
                                 >
                             </div>
@@ -342,8 +356,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     class="h-2 rounded-full bg-primary transition-all duration-300"
                                     :style="{
                                         width:
-                                            (survey?.progress_percentage || 0) +
-                                            '%',
+                                            (userProgress?.progress.toFixed(
+                                                2,
+                                            ) || 0) + '%',
                                     }"
                                 ></div>
                             </div>
@@ -359,13 +374,13 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <h3 class="text-lg font-semibold">Characters in Survey</h3>
                 <div class="rounded-lg border p-4">
                     <DetailItem
-                        v-if="props.survey?.characters?.length > 0"
+                        v-if="survey?.characters?.length > 0"
                         label=""
                         :showBorder="false"
                     >
                         <ul class="flex flex-wrap gap-2 py-2">
                             <li
-                                v-for="character in props.survey?.characters"
+                                v-for="character in survey?.characters"
                                 :key="character.id"
                             >
                                 <Link
@@ -413,12 +428,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <DetailItem
                         label="Created"
-                        :content="props.survey?.created_at_formatted"
+                        :content="survey?.created_at_formatted"
                         :showBorder="false"
                     />
                     <DetailItem
                         label="Last Updated"
-                        :content="props.survey?.updated_at_formatted"
+                        :content="survey?.updated_at_formatted"
                         :showBorder="false"
                     />
                 </dl>
@@ -432,9 +447,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </Link>
                 </Button>
                 <Button asChild variant="default">
-                    <Link
-                        :href="route('public.surveys.show', props.survey?.id)"
-                    >
+                    <Link :href="route('public.surveys.show', survey?.id)">
                         Start Voting
                     </Link>
                 </Button>
@@ -452,7 +465,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             <AlertDialogDescription>
                                 This action cannot be undone. This will
                                 permanently delete the survey "{{
-                                    props.survey?.title
+                                    survey?.title
                                 }}".
                             </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -460,8 +473,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
                                 @click="
-                                    (e: Event) =>
-                                        handleDelete(e, props.survey?.id)
+                                    (e: Event) => handleDelete(e, survey?.id)
                                 "
                             >
                                 Confirm Delete
