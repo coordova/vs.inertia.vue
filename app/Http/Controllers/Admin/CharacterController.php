@@ -7,14 +7,14 @@ use App\Http\Requests\StoreCharacterRequest;
 use App\Http\Requests\UpdateCharacterRequest;
 use App\Http\Resources\CharacterIndexResource;
 use App\Http\Resources\CharacterResource;
-use App\Models\Character;
 use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Inertia;
-use Inertia\Response;   
-use Illuminate\Support\Str;
+use App\Models\Character;
 use App\Services\ImageService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CharacterController extends Controller
 {
@@ -24,22 +24,22 @@ class CharacterController extends Controller
     public function index(Request $request): Response
     {
         $characters = Character::query()
-                            ->when(request('search'), function ($query, $search) {
-                                $query->where('name', 'like', '%' . $search . '%');
-                            })
+            ->when(request('search'), function ($query, $search) {
+                $query->where('name', 'like', '%'.$search.'%');
+            })
                             // orderBy('fullname', 'asc')
-                            ->latest()
-                            ->paginate($request->get('per_page', 15))
-                            ->withQueryString();
+            ->latest()
+            ->paginate($request->get('per_page', 15))
+            ->withQueryString();
 
-        /*---------------------------------------------------------------------*/
+        /* --------------------------------------------------------------------- */
         // TODO: Monitorear su funcionamiento - por ahora todo funciona correctamente
         // Verificar si la página actual es mayor que la última página disponible - si es mayor, redirigir a la última página válida, manteniendo los parámetros de búsqueda
         if ($characters->lastPage() > 0 && $request->get('page', 1) > $characters->lastPage()) {
             // Redirigir a la última página válida, manteniendo los parámetros de búsqueda
             return redirect($characters->url($characters->lastPage()));
         }
-        /*---------------------------------------------------------------------*/
+        /* --------------------------------------------------------------------- */
 
         return Inertia::render('Admin/Characters/Index', [
             'characters' => CharacterIndexResource::collection($characters),
@@ -67,7 +67,7 @@ class CharacterController extends Controller
 
         // Procesar imagen: canvas + thumbnail
         if ($request->hasFile('picture')) {
-            $filenameBase = Str::slug($request->fullname) . '-' . now()->timestamp;
+            $filenameBase = Str::slug($request->fullname).'-'.now()->timestamp;
             try {
                 // Crea y guarda la imagen principal y el thumbnail
                 $result = $imageService->makeCanvasWithThumb(
@@ -84,7 +84,8 @@ class CharacterController extends Controller
                 $validated['picture'] = $result['main']; // ruta guardada de imagen principal
                 $validated['picture_thumb'] = $result['thumb']; // (opcional, si tienes columna en la BD)
             } catch (\Exception $e) {
-                \Log::error('Error al generar la imagen/canvas: ' . $e->getMessage());
+                \Log::error('Error al generar la imagen/canvas: '.$e->getMessage());
+
                 return to_route('admin.characters.index')
                     ->with('error', 'Error al procesar la imagen.');
             }
@@ -98,12 +99,12 @@ class CharacterController extends Controller
             return to_route('admin.characters.show', $character)
                 ->with('success', 'Character created successfully.');
         } catch (\Exception $e) {
-            \Log::error('Error al crear el personaje: ' . $e->getMessage());
+            \Log::error('Error al crear el personaje: '.$e->getMessage());
+
             return to_route('admin.characters.index')
                 ->with('error', 'Error al crear el personaje.');
         }
     }
-
 
     public function store_original_ok_deprecated(StoreCharacterRequest $request): RedirectResponse
     {
@@ -203,8 +204,8 @@ class CharacterController extends Controller
         return Inertia::render('Admin/Characters/Edit', [
             // 'character' => new CharacterResource($character),
             'character' => CharacterResource::make($character)->resolve(),
-            'categories'           => $categories,
-            'characterCategories'  => $characterCategories,
+            'categories' => $categories,
+            'characterCategories' => $characterCategories,
         ]);
     }
 
@@ -217,7 +218,7 @@ class CharacterController extends Controller
 
         // Procesar y reemplazar imagen si se sube una nueva
         if ($request->hasFile('picture')) {
-            $filenameBase = Str::slug($validated['fullname']) . '-' . now()->timestamp;
+            $filenameBase = Str::slug($validated['fullname']).'-'.now()->timestamp;
 
             try {
                 $result = $imageService->makeCanvasWithThumb(
@@ -239,6 +240,7 @@ class CharacterController extends Controller
                 $validated['picture_thumb'] = $result['thumb'];
             } catch (\Exception $e) {
                 \Log::error('Error al procesar la imagen: '.$e->getMessage());
+
                 return to_route('admin.characters.show', $character)
                     ->with('error', 'Error al actualizar la imagen.');
             }
@@ -255,12 +257,11 @@ class CharacterController extends Controller
                 ->with('success', 'Character updated successfully.');
         } catch (\Exception $e) {
             \Log::error('Error al actualizar el personaje: '.$e->getMessage());
+
             return to_route('admin.characters.index')
                 ->with('error', 'Error al actualizar el personaje.');
         }
     }
-
-
 
     public function update_original_ok_deprecated(UpdateCharacterRequest $request, Character $character): RedirectResponse
     {
@@ -309,8 +310,6 @@ class CharacterController extends Controller
 
         return to_route('admin.characters.show', $character)->with('success', 'Character updated successfully.');
 
-
-
         // $character->update($request->validated());
 
         // return to_route('admin.characters.index')->with('success', 'Character updated successfully.');
@@ -334,9 +333,9 @@ class CharacterController extends Controller
         $characters = $category
             ->characters()
             ->select('characters.id', 'characters.fullname', 'characters.status')
-            ->where('characters.status', true)     // ✅ Solo personajes activos 
+            ->where('characters.status', true)     // ✅ Solo personajes activos
             ->get()
-            ->map(fn($char) => [
+            ->map(fn ($char) => [
                 'value' => $char->id,
                 'label' => $char->fullname,
             ]);

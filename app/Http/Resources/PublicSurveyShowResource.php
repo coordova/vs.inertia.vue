@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+
 // use Illuminate\Http\Resources\Json\JsonResource;
 
 class PublicSurveyShowResource extends SurveyBaseResource
@@ -23,7 +24,7 @@ class PublicSurveyShowResource extends SurveyBaseResource
         // ✅ Solo cargar votos recientes si se necesitan
         $recentVotes = collect();
         if ($this->relationLoaded('userVotes')) {
-            $recentVotes = $this->userVotes->take(5)->map(fn($vote) => [
+            $recentVotes = $this->userVotes->take(5)->map(fn ($vote) => [
                 'id' => $vote->id,
                 'winner' => $vote->winner->fullname ?? 'Unknown',
                 'loser' => $vote->loser->fullname ?? 'Unknown',
@@ -52,7 +53,7 @@ class PublicSurveyShowResource extends SurveyBaseResource
             // 'created_at_utc' => $this->created_at->utc()->toIso8601String(),
             // 'date_start_utc' => $this->date_start?->utc()->toIso8601String(),
             // 'date_end_utc' => $this->date_end?->utc()->toIso8601String(),
-            
+
         ]);
     }
 }

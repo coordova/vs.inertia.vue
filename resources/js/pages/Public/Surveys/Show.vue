@@ -9,8 +9,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import VotingLayout from '@/layouts/VotingLayout.vue';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
 // import { format } from 'date-fns'; // O dayjs, o formateo nativo
@@ -25,7 +24,7 @@ interface Props {
 const props = defineProps<Props>();
 console.log(props);
 // --- Breadcrumbs ---
-const breadcrumbs: BreadcrumbItem[] = [
+/* const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Surveys',
         href: route('public.surveys.index'),
@@ -34,13 +33,13 @@ const breadcrumbs: BreadcrumbItem[] = [
         title: props.survey.title,
         href: route('public.surveys.show', props.survey.slug), // O props.survey.id
     },
-];
+]; */
 </script>
 
 <template>
     <Head :title="`Survey: ${survey.title}`" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <VotingLayout>
         <div class="container mx-auto py-8">
             <div
                 class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
@@ -217,7 +216,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <Link
                                             :href="
                                                 route(
-                                                    'public.surveys.vote',
+                                                    'public.surveys.voto',
                                                     survey.id,
                                                 )
                                             "
@@ -307,7 +306,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </main>
             </div>
         </div>
-    </AppLayout>
+    </VotingLayout>
 </template>
 
 <style scoped>

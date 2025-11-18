@@ -10,7 +10,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import AppLayout from '@/layouts/AppLayout.vue';
+import VotingLayout from '@/layouts/VotingLayout.vue';
 import { SurveyResource } from '@/types/global'; // Asumiendo que SurveyIndexResource está definido y optimizado para esta vista
 import { Head } from '@inertiajs/vue3';
 import { Calendar, Tag } from 'lucide-vue-next'; // Iconos
@@ -50,7 +50,7 @@ const breadcrumbs = [
 <template>
     <Head title="Surveys" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <VotingLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8">
             <div
                 class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
@@ -155,7 +155,7 @@ const breadcrumbs = [
                                     </div>
                                     <div>
                                         <div class="font-semibold">
-                                            {{ survey.combinations_count ?? 0 }}
+                                            {{ survey.total_combinations ?? 0 }}
                                         </div>
                                         <div class="text-muted-foreground">
                                             Matches
@@ -275,7 +275,7 @@ const breadcrumbs = [
                 </main>
             </div>
         </div>
-    </AppLayout>
+    </VotingLayout>
 </template>
 
 <style scoped>

@@ -299,8 +299,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                 >
                                                     {{ category.name }} :
                                                     {{
-                                                        category.pivot
-                                                            .elo_rating
+                                                        category.pivot.elo_rating.toFixed(
+                                                            2,
+                                                        )
                                                     }}
                                                 </Badge>
                                             </li>
@@ -314,7 +315,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <dt
                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
                                     >
-                                        Created/Updated at
+                                        Created / Updated
                                     </dt>
                                     <dd
                                         class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"

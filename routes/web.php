@@ -52,10 +52,12 @@ Route::middleware(['auth'])->group(function () {
         // Vista de ranking de una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/ranking', [PublicSurveyController::class, 'ranking'])->name('surveys.ranking');   // <-- Asegúrate de que RankingController existe
 
-        // Vista para iniciar la votación en una encuesta (requiere autenticación)
+        // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Vote - utilizando solo inertia
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
 
+        // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Voto - utilizando inertia y axios
         Route::get('/surveys/{survey}/voto', [PublicSurveyController::class, 'voto'])->name('surveys.voto');
+        // Vista para obtener la próxima combinación para votar - llamada AJAX con axios desde la vista voto.vue
         Route::get('/ajax/surveys/{survey}/combination', [PublicSurveyController::class, 'getCombination4Voto'])
             ->name('ajax.surveys.combination4voto');
 

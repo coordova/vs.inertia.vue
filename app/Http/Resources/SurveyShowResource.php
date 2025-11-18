@@ -36,8 +36,8 @@ class SurveyShowResource extends SurveyBaseResource
             'character_count' => count($this->characters),
             'combinations_count' => $this->combinatorics_count,
 
-            'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y | H:i'),
-            'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y | H:i'),
+            'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i'),
+            'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i'),
 
             // ----------------------------------------------
             //
