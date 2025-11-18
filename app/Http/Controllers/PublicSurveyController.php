@@ -34,13 +34,15 @@ class PublicSurveyController extends Controller
             // ->where('date_start', '<=', now())
             // ->where('date_end', '>=', now())
             ->with(['category:id,name,slug']) // Cargar solo campos básicos de la categoría
-            ->withCount(['characters' => function ($q) {
+            ->withCount(['characters'])
+            /* ->withCount(['characters' => function ($q) {
                 $q->wherePivot('is_active', true);
-            }]) // Contar personajes activos
+            }]) // Contar personajes activos */
             ->orderBy('created_at', 'desc') // O el orden que prefieras
             ->paginate($request->get('per_page', 15))
             ->withQueryString();
-        dd($surveys);
+
+        // dd($surveys);
 
         // Pasar datos a la vista Inertia
         return Inertia::render('Public/Surveys/Index', [ // <-- CORREGIDO: Ruta correcta

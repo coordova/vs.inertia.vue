@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\SurveyBaseResource;
 
 class SurveyIndexResource extends SurveyBaseResource
 {
@@ -23,6 +22,7 @@ class SurveyIndexResource extends SurveyBaseResource
                 'id' => $this->category->id,
                 'name' => $this->category->name,
             ] : null,
+            'total_combinations' => $this->total_combinations,
             'character_count' => $this->characters_count ?? $this->characters->count(),
             'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y'),
         ]);
