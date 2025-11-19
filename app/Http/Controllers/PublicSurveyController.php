@@ -34,7 +34,7 @@ class PublicSurveyController extends Controller
             // ->where('date_start', '<=', now())
             // ->where('date_end', '>=', now())
             ->with(['category:id,name,slug']) // Cargar solo campos básicos de la categoría
-            ->withCount(['characters'])
+            ->withCount(['characters']) // Contar personajes (activos o no)
             /* ->withCount(['characters' => function ($q) {
                 $q->wherePivot('is_active', true);
             }]) // Contar personajes activos */

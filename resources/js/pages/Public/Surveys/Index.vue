@@ -78,33 +78,37 @@ const breadcrumbs = [
                             class="flex flex-col"
                         >
                             <CardHeader>
-                                <div class="flex items-start justify-between">
-                                    <div>
-                                        <CardTitle class="text-lg">{{
-                                            survey.title
-                                        }}</CardTitle>
-                                        <CardDescription
-                                            v-if="survey.description"
-                                            class="truncate"
-                                        >
-                                            {{ survey.description }}
-                                        </CardDescription>
-                                    </div>
-                                    <Badge
-                                        :variant="
-                                            survey.status
-                                                ? 'default'
-                                                : 'secondary'
-                                        "
-                                        class="ml-2"
+                                <CardTitle class="text-lg">
+                                    <div
+                                        class="flex items-start justify-between"
                                     >
-                                        {{
-                                            survey.status
-                                                ? 'Active'
-                                                : 'Inactive'
-                                        }}
-                                    </Badge>
-                                </div>
+                                        <div>
+                                            {{ survey.title }}
+                                        </div>
+                                        <div>
+                                            <Badge
+                                                :variant="
+                                                    survey.status
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                "
+                                                class="ml-2"
+                                            >
+                                                {{
+                                                    survey.status
+                                                        ? 'Active'
+                                                        : 'Inactive'
+                                                }}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </CardTitle>
+                                <CardDescription
+                                    v-if="survey.description"
+                                    class="truncate"
+                                >
+                                    {{ survey.description }}
+                                </CardDescription>
                                 <div
                                     v-if="survey.category"
                                     class="mt-2 flex items-center gap-2 text-sm text-muted-foreground"
@@ -114,25 +118,6 @@ const breadcrumbs = [
                                 </div>
                             </CardHeader>
                             <CardContent class="flex-grow">
-                                <!-- <div
-                                    v-if="survey.image"
-                                    class="relative aspect-video w-full overflow-hidden rounded-lg border"
-                                >
-                                    <img
-                                        :src="survey.image_url"
-                                        :alt="survey.title"
-                                        class="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div
-                                    v-else
-                                    class="flex h-40 w-full items-center justify-center bg-muted"
-                                >
-                                    <span class="text-muted-foreground"
-                                        >No image</span
-                                    >
-                                </div> -->
-
                                 <!-- Estadísticas de la encuesta -->
                                 <div
                                     class="mt-4 grid grid-cols-3 gap-2 text-center text-sm"
