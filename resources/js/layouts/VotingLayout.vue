@@ -24,7 +24,7 @@ const props = defineProps<{
             >
                 <div class="flex items-center gap-3">
                     <Link
-                        :href="route('dashboard')"
+                        :href="route('public.landing.index')"
                         class="text-xl font-bold text-primary"
                     >
                         VS

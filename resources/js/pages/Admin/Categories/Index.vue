@@ -35,20 +35,20 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/composables/useToast'; // Importar el composable
-import { CategoriesData, CategoryResource } from '@/types/global';
+import { CategoriesData } from '@/types/global';
 import { debounce } from 'lodash';
 import { Eye, Pencil, RotateCw, Search, Trash } from 'lucide-vue-next';
 import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
 
 // --- Tipado de datos recibidos ---
-interface Category extends CategoryResource {
+/* interface Category extends CategoryResource {
     id: number;
     name: string;
     description: string;
     status: boolean;
     created_at_formatted: string;
     // Añade otros campos según CategoryResource
-}
+} */
 
 // Tipo para un enlace de paginación (Laravel)
 /* interface PaginationLink {

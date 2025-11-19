@@ -1,4 +1,3 @@
-import { Character } from './resources.d';
 // resources/js/types/global.d.ts
 
 // Importaciones (si se necesitan para otros tipos, pero no para extender PageProps aquí)
@@ -6,7 +5,7 @@ import { Character } from './resources.d';
 
 // Extender la interfaz PageProps de Inertia para incluir nuestras propiedades globales
 declare module '@inertiajs/core' {
-    interface PageProps {
+    /* interface PageProps {
         // Añadir aquí propiedades que *siempre* estarán presentes en todas las páginas
         // Por ejemplo, si defines auth globalmente en HandleInertiaRequests:
         // auth?: {
@@ -17,7 +16,7 @@ declare module '@inertiajs/core' {
         // Nota: Esto las hace *opcionales* en todas las páginas, lo cual puede no ser ideal
         // para props específicas de una página. Se prefiere usar `defineProps` en el componente.
         // flash?: { success?: string; error?: string }; // Ejemplo de flash global
-    }
+    } */
 }
 
 // Definir interfaces para las entidades que se pasan como props específicas
