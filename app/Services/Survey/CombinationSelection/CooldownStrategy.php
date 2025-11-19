@@ -2,10 +2,10 @@
 
 namespace App\Services\Survey\CombinationSelection;
 
-use App\Models\Survey;
 use App\Models\Combinatoric;
+use App\Models\Survey;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\Vote;
 
 /**
  * Estrategia de selección de combinaciones basada en "cooldown".
@@ -14,16 +14,14 @@ use Illuminate\Support\Facades\DB;
  * Esto ayuda a mostrar todas las combinaciones de forma más equilibrada y evitar
  * que ciertos enfrentamientos se repitan con mucha frecuencia.
  * Es ideal para encuestas donde se quiere cubrir todas las posibles comparaciones.
- *
- * @package App\Services\Survey\CombinationSelection
  */
 class CooldownStrategy implements CombinationSelectionStrategy
 {
     /**
      * Selecciona la combinación menos usada recientemente (o no usada) para el usuario en la encuesta.
      *
-     * @param Survey $survey La encuesta activa.
-     * @param User $user El usuario que está votando.
+     * @param  Survey  $survey  La encuesta activa.
+     * @param  User  $user  El usuario que está votando.
      * @return Combinatoric|null La combinación seleccionada o null si no hay más combinaciones disponibles.
      */
     public function selectCombination(Survey $survey, User $user): ?Combinatoric
@@ -39,9 +37,64 @@ class CooldownStrategy implements CombinationSelectionStrategy
                 $query->where('user_id', $userId);
             })
             ->with(['character1', 'character2']) // Cargar los personajes de la combinación
-            ->orderByRaw('COALESCE(last_used_at, "1970-01-01 00:00:00") ASC') // Ordenar por uso menos reciente
+            // ->orderByRaw('COALESCE(last_used_at, "1970-01-01 00:00:00") ASC') // Ordenar por uso menos reciente
+            ->inRandomOrder()   // hemos agregado esto para que sea ramdomico
             ->first(); // Obtener la combinación menos usada recientemente
 
         return $availableCombination; // Devuelve el modelo Combinatoric con character1 y character2 cargados
+    }
+
+    public function selectCombination_(Survey $survey, User $user): ?Combinatoric
+    {
+        $userId = $user->id;
+        // dd($survey, $userId);
+        // ✅ Obtener todas las combinaciones votadas en una sola consulta
+        $votedCombinations = Vote::where('user_id', $userId)
+            ->where('survey_id', $survey->id)
+            ->pluck('combinatoric_id')
+            ->toArray();
+
+        // ✅ Obtener combinaciones recientes (últimas 24h)
+        $recentlyVoted = Vote::where('user_id', $userId)
+            ->where('survey_id', $survey->id)
+            ->where('created_at', '>', now()->subHours(24))
+            ->pluck('combinatoric_id')
+            ->toArray();
+
+        // ✅ Construir query base una sola vez
+        $baseQuery = $survey->combinatorics()
+            // ->with(['character1:id,fullname,gender,status,picture', 'character2:id,fullname,gender,status,picture']);
+            ->with(['character1', 'character2']); // Cargar los personajes de la combinación
+
+        // ✅ Aplicar exclusiones solo si hay datos
+        if (! empty($votedCombinations)) {
+            $baseQuery->whereNotIn('id', $votedCombinations);
+        }
+
+        if (! empty($recentlyVoted)) {
+            $baseQuery->whereNotIn('id', $recentlyVoted);
+        }
+
+        // ✅ Estrategias optimizadas (sin clones innecesarios)
+        $combination = $baseQuery->clone()
+            ->where('total_comparisons', 0)
+            ->inRandomOrder()
+            ->first();
+
+        if ($combination) {
+            return $combination;
+        }
+
+        $combination = $baseQuery->clone()
+            ->where('total_comparisons', '<', 3)
+            ->inRandomOrder()
+            ->first();
+
+        if ($combination) {
+            return $combination;
+        }
+
+        // Fallback: cualquier combinación disponible
+        return $baseQuery->inRandomOrder()->first();
     }
 }
