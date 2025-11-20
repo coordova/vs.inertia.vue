@@ -243,7 +243,7 @@ function openModal(character: CharacterResource) {
                                 <CardHeader>
                                     <CardTitle>Participants ({{
                                         props.characters.length
-                                        }})</CardTitle>
+                                    }})</CardTitle>
                                     <CardDescription>
                                         Characters competing in this survey.
                                     </CardDescription>
@@ -290,7 +290,7 @@ function openModal(character: CharacterResource) {
                                                         <div>
                                                             <p class="text-sm text-muted-foreground">{{
                                                                 selectedCharacter?.bio
-                                                            }}</p>
+                                                                }}</p>
                                                             <!-- Character Information -->
                                                             <dl class="divide-y divide-gray-100 dark:divide-white/10">
                                                                 <div
@@ -326,7 +326,10 @@ function openModal(character: CharacterResource) {
                                                                         class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
                                                                         <div class="flex items-center gap-2">
                                                                             {{ selectedCharacter?.dob_formatted || 'N/A'
-                                                                            }}
+                                                                            }} <span class="text-xs text-gray-500">({{
+                                                                                selectedCharacter?.dob_for_humans ||
+                                                                                'N/A'
+                                                                            }})</span>
                                                                         </div>
                                                                     </dd>
                                                                 </div>
