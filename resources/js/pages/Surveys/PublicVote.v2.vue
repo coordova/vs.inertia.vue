@@ -14,7 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/composables/useToast';
-import VotingLayout from '@/layouts/VotingLayout.vue'; // <-- Usar VotingLayout
+import VotingLayout from '@/layouts/PublicLayout.vue'; // <-- Usar VotingLayout
 // import { motion } from 'framer-motion'; // Importar motion de framer-motion
 
 // Tipos: Definidos localmente para este componente
@@ -350,35 +350,28 @@ const breadcrumbs = [
 </script>
 
 <template>
+
     <Head :title="`Voting: ${survey.title}`" />
 
     <!-- Usar VotingLayout -->
     <VotingLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
+        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <!-- Header con progreso -->
             <header class="border-b pb-4">
-                <div
-                    class="container flex h-16 items-center justify-between px-4"
-                >
+                <div class="container flex h-16 items-center justify-between px-4">
                     <h1 class="text-xl font-semibold">{{ survey.title }}</h1>
 
                     <div class="flex items-center gap-6">
                         <!-- Barra de progreso -->
                         <div class="flex items-center gap-2">
                             <div class="h-2 w-32 rounded-full bg-muted">
-                                <motion.div
-                                    class="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                                <motion.div class="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
                                     :animate="{
                                         width: progressPercentage + '%',
-                                    }"
-                                    :initial="{ width: 0 }"
-                                    :transition="{
+                                    }" :initial="{ width: 0 }" :transition="{
                                         type: 'spring',
                                         stiffness: 100,
-                                    }"
-                                ></motion.div>
+                                    }"></motion.div>
                             </div>
                             <span class="text-sm text-muted-foreground">
                                 {{ progressPercentage.toFixed(2) }}%
@@ -390,9 +383,7 @@ const breadcrumbs = [
                         </div>
 
                         <Button asChild variant="outline">
-                            <router-link
-                                :href="route('surveys.public.show', survey.id)"
-                            >
+                            <router-link :href="route('surveys.public.show', survey.id)">
                                 Back to Survey
                             </router-link>
                         </Button>
@@ -402,19 +393,13 @@ const breadcrumbs = [
 
             <!-- Main content -->
             <main class="container py-8">
-                <div
-                    v-if="loadingNext"
-                    class="flex h-96 items-center justify-center"
-                >
+                <div v-if="loadingNext" class="flex h-96 items-center justify-center">
                     <div class="text-muted-foreground">
                         Loading next match...
                     </div>
                 </div>
 
-                <div
-                    v-else-if="!hasCombination || isCompleted"
-                    class="text-center"
-                >
+                <div v-else-if="!hasCombination || isCompleted" class="text-center">
                     <Card>
                         <CardHeader>
                             <CardTitle>
@@ -434,11 +419,8 @@ const breadcrumbs = [
                         </CardHeader>
                         <CardFooter class="flex justify-center">
                             <Button asChild>
-                                <router-link
-                                    :href="
-                                        route('surveys.public.show', survey.id)
-                                    "
-                                >
+                                <router-link :href="route('surveys.public.show', survey.id)
+                                    ">
                                     {{
                                         isCompleted
                                             ? 'View Results'
@@ -458,59 +440,37 @@ const breadcrumbs = [
                             <CardHeader class="text-center">
                                 <CardTitle>{{
                                     currentCombination.character1.fullname
-                                }}</CardTitle>
-                                <CardDescription
-                                    v-if="
-                                        currentCombination.character1.nickname
-                                    "
-                                >
+                                    }}</CardTitle>
+                                <CardDescription v-if="
+                                    currentCombination.character1.nickname
+                                ">
                                     {{ currentCombination.character1.nickname }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div
-                                    class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                >
-                                    <img
-                                        v-if="
-                                            currentCombination.character1
+                                <div class="relative aspect-square w-full overflow-hidden rounded-lg border">
+                                    <img v-if="
+                                        currentCombination.character1
+                                            .picture_url
+                                    " :src="currentCombination.character1
                                                 .picture_url
-                                        "
-                                        :src="
-                                            currentCombination.character1
-                                                .picture_url
-                                        "
-                                        :alt="
-                                            currentCombination.character1
+                                            " :alt="currentCombination.character1
                                                 .fullname
-                                        "
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <div
-                                        v-else
-                                        class="flex h-full w-full items-center justify-center bg-muted"
-                                    >
-                                        <span class="text-muted-foreground"
-                                            >No image</span
-                                        >
+                                            " class="h-full w-full object-cover" />
+                                    <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                        <span class="text-muted-foreground">No image</span>
                                     </div>
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button
-                                    class="w-full"
-                                    :disabled="voting || loadingNext"
-                                    @click="handleVoteCharacter1"
-                                >
+                                <Button class="w-full" :disabled="voting || loadingNext" @click="handleVoteCharacter1">
                                     <span v-if="voting">Voting...</span>
-                                    <span v-else
-                                        >Vote for
+                                    <span v-else>Vote for
                                         {{
                                             currentCombination.character1
                                                 .fullname
                                         }}
-                                        (1)</span
-                                    >
+                                        (1)</span>
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -520,59 +480,37 @@ const breadcrumbs = [
                             <CardHeader class="text-center">
                                 <CardTitle>{{
                                     currentCombination.character2.fullname
-                                }}</CardTitle>
-                                <CardDescription
-                                    v-if="
-                                        currentCombination.character2.nickname
-                                    "
-                                >
+                                    }}</CardTitle>
+                                <CardDescription v-if="
+                                    currentCombination.character2.nickname
+                                ">
                                     {{ currentCombination.character2.nickname }}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div
-                                    class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                >
-                                    <img
-                                        v-if="
-                                            currentCombination.character2
+                                <div class="relative aspect-square w-full overflow-hidden rounded-lg border">
+                                    <img v-if="
+                                        currentCombination.character2
+                                            .picture_url
+                                    " :src="currentCombination.character2
                                                 .picture_url
-                                        "
-                                        :src="
-                                            currentCombination.character2
-                                                .picture_url
-                                        "
-                                        :alt="
-                                            currentCombination.character2
+                                            " :alt="currentCombination.character2
                                                 .fullname
-                                        "
-                                        class="h-full w-full object-cover"
-                                    />
-                                    <div
-                                        v-else
-                                        class="flex h-full w-full items-center justify-center bg-muted"
-                                    >
-                                        <span class="text-muted-foreground"
-                                            >No image</span
-                                        >
+                                            " class="h-full w-full object-cover" />
+                                    <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                        <span class="text-muted-foreground">No image</span>
                                     </div>
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button
-                                    class="w-full"
-                                    :disabled="voting || loadingNext"
-                                    @click="handleVoteCharacter2"
-                                >
+                                <Button class="w-full" :disabled="voting || loadingNext" @click="handleVoteCharacter2">
                                     <span v-if="voting">Voting...</span>
-                                    <span v-else
-                                        >Vote for
+                                    <span v-else>Vote for
                                         {{
                                             currentCombination.character2
                                                 .fullname
                                         }}
-                                        (2)</span
-                                    >
+                                        (2)</span>
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -580,11 +518,7 @@ const breadcrumbs = [
 
                     <!-- Botón de Empate -->
                     <div class="mt-8 flex justify-center">
-                        <Button
-                            variant="outline"
-                            :disabled="voting || loadingNext"
-                            @click="handleTie"
-                        >
+                        <Button variant="outline" :disabled="voting || loadingNext" @click="handleTie">
                             {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
                         </Button>
                     </div>

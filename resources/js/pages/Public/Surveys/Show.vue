@@ -19,7 +19,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import VotingLayout from '@/layouts/VotingLayout.vue';
+import PublicLayout from '@/layouts/PublicLayout.vue';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -61,7 +61,7 @@ function openModal(character: CharacterResource) {
 
     <Head :title="`Survey: ${survey.title}`" />
 
-    <VotingLayout>
+    <PublicLayout>
         <div class="container mx-auto py-8">
             <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <header class="border-b pb-4">
@@ -243,7 +243,7 @@ function openModal(character: CharacterResource) {
                                 <CardHeader>
                                     <CardTitle>Participants ({{
                                         props.characters.length
-                                    }})</CardTitle>
+                                        }})</CardTitle>
                                     <CardDescription>
                                         Characters competing in this survey.
                                     </CardDescription>
@@ -288,9 +288,9 @@ function openModal(character: CharacterResource) {
                                                             :alt="selectedCharacter?.fullname"
                                                             class="h-64 w-64 rounded-full object-cover" />
                                                         <div>
-                                                            <p class="text-sm text-muted-foreground">{{
+                                                            <p class="text-sm text-muted-foreground line-clamp-3">{{
                                                                 selectedCharacter?.bio
-                                                                }}</p>
+                                                            }}</p>
                                                             <!-- Character Information -->
                                                             <dl class="divide-y divide-gray-100 dark:divide-white/10">
                                                                 <div
@@ -385,7 +385,7 @@ function openModal(character: CharacterResource) {
                 </main>
             </div>
         </div>
-    </VotingLayout>
+    </PublicLayout>
 </template>
 
 <style scoped>

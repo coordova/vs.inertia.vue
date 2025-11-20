@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\SurveyController; // Asegúrate de importar Inert
 use App\Http\Controllers\Admin\UserController; // Controlador para la landing page principal
 use App\Http\Controllers\Api\SurveyController as ApiPublicSurveyController;
 use App\Http\Controllers\PublicCategoryController;
+use App\Http\Controllers\PublicCharacterController;
 use App\Http\Controllers\PublicController; // Controlador para procesar votos
 use App\Http\Controllers\PublicSurveyController; // Controlador para API pública
 // Rutas de administración
@@ -35,6 +36,9 @@ Route::name('public.')->group(function () {
 
     // Vista de detalle de una categoría (pública)
     Route::get('/categories/{category}', [PublicCategoryController::class, 'show'])->name('categories.show');
+
+    // Vista de detalle de un personaje (pública)
+    Route::get('/characters/{character}', [PublicCharacterController::class, 'show'])->name('characters.show');
 
     // Vista de detalle de una encuesta (pública, pero se requiere autenticación para verla completamente o votar)
     // Esta ruta se moverá al grupo 'auth' si requiere login para verla.

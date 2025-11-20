@@ -14,7 +14,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <div class="min-h-screen bg-gradient-to-br from-background to-muted">
+    <div class="min-h-screen">
         <!-- Header de votación -->
         <header class="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
             <div class="container mx-auto flex h-16 items-center justify-between px-4">

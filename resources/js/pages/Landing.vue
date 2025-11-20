@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import VotingLayout from '@/layouts/VotingLayout.vue';
+import VotingLayout from '@/layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
 // Importamos componentes de shadcn/vue
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,7 @@ const props = defineProps<Props>();
 
 <template>
     <VotingLayout>
+
         <Head title="Facematch Ultramoderno" />
 
         <div class="min-h-screen bg-background text-foreground">
@@ -36,22 +37,16 @@ const props = defineProps<Props>();
                         <h1 class="mb-6 text-4xl font-bold md:text-5xl">
                             Descubre quién es más...
                         </h1>
-                        <p
-                            class="mb-8 text-lg text-muted-foreground md:text-xl"
-                        >
+                        <p class="mb-8 text-lg text-muted-foreground md:text-xl">
                             Compara y vota entre los personajes más interesantes
                             en diversas categorías.
                         </p>
-                        <div
-                            class="flex flex-col justify-center gap-4 sm:flex-row"
-                        >
+                        <div class="flex flex-col justify-center gap-4 sm:flex-row">
                             <Link :href="route('public.categories.index')">
-                                <Button size="lg">Explorar Categorías</Button>
+                            <Button size="lg">Explorar Categorías</Button>
                             </Link>
                             <Link :href="route('public.surveys.index')">
-                                <Button variant="outline" size="lg"
-                                    >Ver Encuestas</Button
-                                >
+                            <Button variant="outline" size="lg">Ver Encuestas</Button>
                             </Link>
                         </div>
                     </div>
@@ -67,19 +62,14 @@ const props = defineProps<Props>();
                     <h2 class="mb-12 text-center text-3xl font-bold">
                         Categorías Destacadas
                     </h2>
-                    <div
-                        class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-                    >
-                        <Card
-                            v-for="category in props.featuredCategories"
-                            :key="category.id"
-                            class="flex h-full flex-col"
-                        >
+                    <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        <Card v-for="category in props.featuredCategories" :key="category.id"
+                            class="flex h-full flex-col">
                             <CardHeader>
                                 <CardTitle>{{ category.name }}</CardTitle>
                                 <CardDescription>{{
                                     category.description
-                                }}</CardDescription>
+                                    }}</CardDescription>
                             </CardHeader>
                             <CardContent class="flex-grow">
                                 <!-- Imagen opcional de la categoría -->
@@ -91,27 +81,19 @@ const props = defineProps<Props>();
                             /> -->
                             </CardContent>
                             <CardFooter>
-                                <Link
-                                    :href="
-                                        route(
-                                            'public.categories.show',
-                                            category.id,
-                                        )
-                                    "
-                                    class="w-full"
-                                >
-                                    <Button variant="outline" class="w-full"
-                                        >Ver Encuestas</Button
-                                    >
+                                <Link :href="route(
+                                    'public.categories.show',
+                                    category.id,
+                                )
+                                    " class="w-full">
+                                <Button variant="outline" class="w-full">Ver Encuestas</Button>
                                 </Link>
                             </CardFooter>
                         </Card>
                     </div>
                     <div class="mt-10 text-center">
                         <Link :href="route('public.categories.index')">
-                            <Button variant="link"
-                                >Ver todas las categorías</Button
-                            >
+                        <Button variant="link">Ver todas las categorías</Button>
                         </Link>
                     </div>
                 </div>
@@ -127,35 +109,25 @@ const props = defineProps<Props>();
                         Encuestas Activas
                     </h2>
                     <div class="space-y-6">
-                        <Card
-                            v-for="survey in props.activeSurveys"
-                            :key="survey.id"
-                        >
+                        <Card v-for="survey in props.activeSurveys" :key="survey.id">
                             <CardHeader>
-                                <div
-                                    class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
-                                >
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
                                         <CardTitle>{{
                                             survey.title
-                                        }}</CardTitle>
+                                            }}</CardTitle>
                                         <CardDescription class="mt-1">{{
                                             survey.description
-                                        }}</CardDescription>
-                                        <p
-                                            class="mt-2 text-sm text-muted-foreground"
-                                        >
+                                            }}</CardDescription>
+                                        <p class="mt-2 text-sm text-muted-foreground">
                                             Categoría:
                                             {{ survey.category.name }}
                                         </p>
                                     </div>
-                                    <Badge
-                                        :variant="
-                                            survey.status
-                                                ? 'default'
-                                                : 'secondary'
-                                        "
-                                    >
+                                    <Badge :variant="survey.status
+                                            ? 'default'
+                                            : 'secondary'
+                                        ">
                                         {{
                                             survey.status
                                                 ? 'Activa'
@@ -165,22 +137,16 @@ const props = defineProps<Props>();
                                 </div>
                             </CardHeader>
                             <CardFooter>
-                                <Link
-                                    :href="
-                                        route('public.surveys.show', survey.id)
-                                    "
-                                    class="w-full"
-                                >
-                                    <Button class="w-full">Participar</Button>
+                                <Link :href="route('public.surveys.show', survey.id)
+                                    " class="w-full">
+                                <Button class="w-full">Participar</Button>
                                 </Link>
                             </CardFooter>
                         </Card>
                     </div>
                     <div class="mt-10 text-center">
                         <Link :href="route('public.surveys.index')">
-                            <Button variant="link"
-                                >Ver todas las encuestas</Button
-                            >
+                        <Button variant="link">Ver todas las encuestas</Button>
                         </Link>
                     </div>
                 </div>

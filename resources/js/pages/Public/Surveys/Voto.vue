@@ -289,17 +289,14 @@ onUnmounted(() => {
 });
 </script>
 <template>
+
     <Head :title="`Voting: ${surveyData.title}`" />
     <VotingLayout :survey-title="surveyData.title" :survey-id="surveyData.id">
         <div class="container mx-auto py-8">
-            <div
-                class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-            >
+            <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <!-- Header con información de la encuesta y progreso -->
                 <header class="border-b pb-4">
-                    <div
-                        class="container flex h-16 items-center justify-between px-4"
-                    >
+                    <div class="container flex h-16 items-center justify-between px-4">
                         <h1 class="text-xl font-semibold">
                             {{ surveyData.title }}
                         </h1>
@@ -308,10 +305,7 @@ onUnmounted(() => {
                             <!-- Barra de progreso -->
                             <div class="flex items-center gap-2">
                                 <div class="w-32">
-                                    <Progress
-                                        :model-value="userProgress?.progress"
-                                        :max="100"
-                                    />
+                                    <Progress :model-value="userProgress?.progress" :max="100" />
                                 </div>
                                 <span class="text-sm text-muted-foreground">
                                     {{ userProgress?.progress.toFixed(2) }}%
@@ -323,18 +317,11 @@ onUnmounted(() => {
                                 <!-- {{ userProgress?.total_expected }} -->
                                 {{ totalExpected }}
                             </div>
-                            <Link
-                                as="button"
-                                :href="
-                                    route('public.surveys.show', surveyData.id)
-                                "
-                            >
-                                <Button
-                                    variant="outline"
-                                    class="cursor-pointer"
-                                >
-                                    Back to Survey
-                                </Button>
+                            <Link as="button" :href="route('public.surveys.show', surveyData.id)
+                                ">
+                            <Button variant="outline" class="cursor-pointer">
+                                Back to Survey
+                            </Button>
                             </Link>
                         </div>
                     </div>
@@ -353,20 +340,14 @@ onUnmounted(() => {
                     </Alert>
 
                     <!-- Indicador de Carga (para la primera carga si aplica) -->
-                    <div
-                        v-if="loadingNext && !nextCombination"
-                        class="flex h-96 items-center justify-center"
-                    >
+                    <div v-if="loadingNext && !nextCombination" class="flex h-96 items-center justify-center">
                         <div class="text-muted-foreground">
                             Loading first match...
                         </div>
                     </div>
 
                     <!-- Mensaje de Fin de Encuesta o Sin Combinaciones -->
-                    <div
-                        v-else-if="noMoreCombinations || !nextCombination"
-                        class="text-center"
-                    >
+                    <div v-else-if="noMoreCombinations || !nextCombination" class="text-center">
                         <Card>
                             <CardHeader>
                                 <CardTitle>
@@ -386,19 +367,16 @@ onUnmounted(() => {
                             </CardHeader>
                             <CardFooter class="flex justify-center">
                                 <Button asChild>
-                                    <Link
-                                        :href="
-                                            route(
-                                                'public.surveys.show',
-                                                surveyData.id,
-                                            )
-                                        "
-                                    >
-                                        {{
-                                            isCompleted
-                                                ? 'View Results'
-                                                : 'View Survey'
-                                        }}
+                                    <Link :href="route(
+                                        'public.surveys.show',
+                                        surveyData.id,
+                                    )
+                                        ">
+                                    {{
+                                        isCompleted
+                                            ? 'View Results'
+                                            : 'View Survey'
+                                    }}
                                     </Link>
                                 </Button>
                             </CardFooter>
@@ -414,61 +392,39 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character1.fullname
-                                    }}</CardTitle>
-                                    <CardDescription
-                                        v-if="
-                                            nextCombination.character1.nickname
-                                        "
-                                    >
+                                        }}</CardTitle>
+                                    <CardDescription v-if="
+                                        nextCombination.character1.nickname
+                                    ">
                                         {{
                                             nextCombination.character1.nickname
                                         }}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div
-                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                    >
-                                        <img
-                                            v-if="
-                                                nextCombination.character1
-                                                    .picture_url
-                                            "
-                                            :src="
-                                                nextCombination.character1
-                                                    .picture_url
-                                            "
-                                            :alt="
-                                                nextCombination.character1
-                                                    .fullname
-                                            "
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            v-else
-                                            class="flex h-full w-full items-center justify-center bg-muted"
-                                        >
-                                            <span class="text-muted-foreground"
-                                                >No image</span
-                                            >
+                                    <div class="relative aspect-square w-full overflow-hidden rounded-lg border">
+                                        <img v-if="
+                                            nextCombination.character1
+                                                .picture_url
+                                        " :src="nextCombination.character1
+                                            .picture_url
+                                            " :alt="nextCombination.character1
+                                                .fullname
+                                                " class="h-full w-full object-cover" />
+                                        <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                            <span class="text-muted-foreground">No image</span>
                                         </div>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button
-                                        class="w-full"
-                                        :disabled="voting"
-                                        @click="handleVoteCharacter1"
-                                    >
+                                    <Button class="w-full" :disabled="voting" @click="handleVoteCharacter1">
                                         <span v-if="voting">Voting...</span>
-                                        <span v-else
-                                            >Vote for
+                                        <span v-else>Vote for
                                             {{
                                                 nextCombination.character1
                                                     .fullname
                                             }}
-                                            (1)</span
-                                        >
+                                            (1)</span>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -478,76 +434,47 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character2.fullname
-                                    }}</CardTitle>
-                                    <CardDescription
-                                        v-if="
-                                            nextCombination.character2.nickname
-                                        "
-                                    >
+                                        }}</CardTitle>
+                                    <CardDescription v-if="
+                                        nextCombination.character2.nickname
+                                    ">
                                         {{
                                             nextCombination.character2.nickname
                                         }}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div
-                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                    >
-                                        <img
-                                            v-if="
-                                                nextCombination.character2
-                                                    .picture_url
-                                            "
-                                            :src="
-                                                nextCombination.character2
-                                                    .picture_url
-                                            "
-                                            :alt="
-                                                nextCombination.character2
-                                                    .fullname
-                                            "
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            v-else
-                                            class="flex h-full w-full items-center justify-center bg-muted"
-                                        >
-                                            <span class="text-muted-foreground"
-                                                >No image</span
-                                            >
+                                    <div class="relative aspect-square w-full overflow-hidden rounded-lg border">
+                                        <img v-if="
+                                            nextCombination.character2
+                                                .picture_url
+                                        " :src="nextCombination.character2
+                                            .picture_url
+                                            " :alt="nextCombination.character2
+                                                .fullname
+                                                " class="h-full w-full object-cover" />
+                                        <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                            <span class="text-muted-foreground">No image</span>
                                         </div>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button
-                                        class="w-full"
-                                        :disabled="voting"
-                                        @click="handleVoteCharacter2"
-                                    >
+                                    <Button class="w-full" :disabled="voting" @click="handleVoteCharacter2">
                                         <span v-if="voting">Voting...</span>
-                                        <span v-else
-                                            >Vote for
+                                        <span v-else>Vote for
                                             {{
                                                 nextCombination.character2
                                                     .fullname
                                             }}
-                                            (2)</span
-                                        >
+                                            (2)</span>
                                     </Button>
                                 </CardFooter>
                             </Card>
                         </div>
 
                         <!-- Botón de Empate -->
-                        <div
-                            v-if="surveyData.allow_ties"
-                            class="mt-8 flex justify-center"
-                        >
-                            <Button
-                                variant="outline"
-                                :disabled="voting"
-                                @click="handleTie"
-                            >
+                        <div v-if="surveyData.allow_ties" class="mt-8 flex justify-center">
+                            <Button variant="outline" :disabled="voting" @click="handleTie">
                                 {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
                             </Button>
                         </div>
@@ -587,22 +514,16 @@ onUnmounted(() => {
                         </div>
 
                         <!-- Instrucciones -->
-                        <div
-                            class="mt-8 text-center text-sm text-muted-foreground"
-                        >
+                        <div class="mt-8 text-center text-sm text-muted-foreground">
                             <p>
                                 Press
                                 <kbd class="rounded bg-muted px-2 py-1">1</kbd>
                                 to vote for the first character,
                                 <kbd class="rounded bg-muted px-2 py-1">2</kbd>
                                 for the second character
-                                <span v-if="surveyData.allow_ties"
-                                    >, or
-                                    <kbd class="rounded bg-muted px-2 py-1"
-                                        >3</kbd
-                                    >
-                                    for a tie.</span
-                                >
+                                <span v-if="surveyData.allow_ties">, or
+                                    <kbd class="rounded bg-muted px-2 py-1">3</kbd>
+                                    for a tie.</span>
                             </p>
                         </div>
                     </div>

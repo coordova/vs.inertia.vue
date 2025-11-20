@@ -10,7 +10,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import VotingLayout from '@/layouts/VotingLayout.vue';
+import VotingLayout from '@/layouts/PublicLayout.vue';
 import { SurveyResource } from '@/types/global'; // Asumiendo que SurveyIndexResource está definido y optimizado para esta vista
 import { Head } from '@inertiajs/vue3';
 import { Calendar, Tag } from 'lucide-vue-next'; // Iconos
@@ -48,52 +48,35 @@ const breadcrumbs = [
 </script>
 
 <template>
+
     <Head title="Surveys" />
 
     <VotingLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8">
-            <div
-                class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-            >
+            <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <header class="border-b pb-4">
-                    <div
-                        class="container flex h-16 items-center justify-between px-4"
-                    >
+                    <div class="container flex h-16 items-center justify-between px-4">
                         <h1 class="text-xl font-semibold">Available Surveys</h1>
-                        <span class="text-sm text-muted-foreground"
-                            >Discover and participate in various surveys.</span
-                        >
+                        <span class="text-sm text-muted-foreground">Discover and participate in various surveys.</span>
                     </div>
                 </header>
 
                 <main class="container">
                     <!-- Lista de Encuestas -->
-                    <div
-                        v-if="props.surveys.data.length > 0"
-                        class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-                    >
-                        <Card
-                            v-for="survey in props.surveys.data"
-                            :key="survey.id"
-                            class="flex flex-col"
-                        >
+                    <div v-if="props.surveys.data.length > 0"
+                        class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <Card v-for="survey in props.surveys.data" :key="survey.id" class="flex flex-col">
                             <CardHeader>
                                 <CardTitle class="text-lg">
-                                    <div
-                                        class="flex items-start justify-between"
-                                    >
+                                    <div class="flex items-start justify-between">
                                         <div>
                                             {{ survey.title }}
                                         </div>
                                         <div>
-                                            <Badge
-                                                :variant="
-                                                    survey.status
-                                                        ? 'default'
-                                                        : 'secondary'
-                                                "
-                                                class="ml-2"
-                                            >
+                                            <Badge :variant="survey.status
+                                                    ? 'default'
+                                                    : 'secondary'
+                                                " class="ml-2">
                                                 {{
                                                     survey.status
                                                         ? 'Active'
@@ -103,25 +86,18 @@ const breadcrumbs = [
                                         </div>
                                     </div>
                                 </CardTitle>
-                                <CardDescription
-                                    v-if="survey.description"
-                                    class="truncate"
-                                >
+                                <CardDescription v-if="survey.description" class="truncate">
                                     {{ survey.description }}
                                 </CardDescription>
-                                <div
-                                    v-if="survey.category"
-                                    class="mt-2 flex items-center gap-2 text-sm text-muted-foreground"
-                                >
+                                <div v-if="survey.category"
+                                    class="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                                     <Tag class="h-4 w-4" />
                                     <span>{{ survey.category.name }}</span>
                                 </div>
                             </CardHeader>
                             <CardContent class="flex-grow">
                                 <!-- Estadísticas de la encuesta -->
-                                <div
-                                    class="mt-4 grid grid-cols-3 gap-2 text-center text-sm"
-                                >
+                                <div class="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
                                     <div>
                                         <div class="font-semibold">
                                             {{ survey.duration ?? 'N/A' }} Days
@@ -149,9 +125,7 @@ const breadcrumbs = [
                                 </div>
                             </CardContent>
                             <CardFooter class="flex flex-col items-start gap-2">
-                                <div
-                                    class="flex w-full items-center justify-between text-sm text-muted-foreground"
-                                >
+                                <div class="flex w-full items-center justify-between text-sm text-muted-foreground">
                                     <div class="flex items-center gap-1">
                                         <Calendar class="h-4 w-4" />
                                         <span>
@@ -160,13 +134,10 @@ const breadcrumbs = [
                                             {{ survey.date_end_formatted }}
                                         </span>
                                     </div>
-                                    <Badge
-                                        variant="outline"
-                                        :class="{
-                                            'border-orange-600 text-orange-600':
-                                                survey.is_featured,
-                                        }"
-                                    >
+                                    <Badge variant="outline" :class="{
+                                        'border-orange-600 text-orange-600':
+                                            survey.is_featured,
+                                    }">
                                         {{
                                             survey.is_featured
                                                 ? 'Featured'
@@ -177,37 +148,26 @@ const breadcrumbs = [
                                 <Separator class="my-2 w-full" />
                                 <div class="flex w-full justify-end gap-2">
                                     <Button variant="outline" size="sm" asChild>
-                                        <Link
-                                            :href="
-                                                route(
-                                                    'public.surveys.show',
-                                                    survey.id,
-                                                )
-                                            "
-                                        >
-                                            <!-- O survey.id -->
-                                            View Details
+                                        <Link :href="route(
+                                            'public.surveys.show',
+                                            survey.id,
+                                        )
+                                            ">
+                                        <!-- O survey.id -->
+                                        View Details
                                         </Link>
                                     </Button>
-                                    <Button
-                                        size="sm"
-                                        asChild
-                                        :disabled="
-                                            !survey.status ||
-                                            survey.is_active === false
-                                        "
-                                    >
+                                    <Button size="sm" asChild :disabled="!survey.status ||
+                                        survey.is_active === false
+                                        ">
                                         <!-- Asumiendo is_active calculado en el backend -->
-                                        <Link
-                                            :href="
-                                                route(
-                                                    'public.surveys.vote',
-                                                    survey.id,
-                                                )
-                                            "
-                                        >
-                                            <!-- O survey.id -->
-                                            Participate
+                                        <Link :href="route(
+                                            'public.surveys.vote',
+                                            survey.id,
+                                        )
+                                            ">
+                                        <!-- O survey.id -->
+                                        Participate
                                         </Link>
                                     </Button>
                                 </div>
@@ -233,15 +193,9 @@ const breadcrumbs = [
                         @page-change="goToPage" // Asumiendo una función goToPage que use router.get
                     /> -->
                     <!-- O implementar paginación simple con Inertia Link -->
-                    <div
-                        v-if="props.surveys.links.length > 2"
-                        class="mt-8 flex justify-center"
-                    >
+                    <div v-if="props.surveys.links.length > 2" class="mt-8 flex justify-center">
                         <nav class="flex items-center space-x-1">
-                            <Link
-                                v-for="(link, index) in props.surveys.links"
-                                :key="index"
-                                :href="link.url ?? '#'"
+                            <Link v-for="(link, index) in props.surveys.links" :key="index" :href="link.url ?? '#'"
                                 :class="[
                                     'flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium',
                                     link.active
@@ -250,11 +204,7 @@ const breadcrumbs = [
                                     !link.url
                                         ? 'cursor-not-allowed opacity-50'
                                         : '',
-                                ]"
-                                :aria-disabled="!link.url"
-                                :tabindex="link.url ? 0 : -1"
-                                v-html="link.label"
-                            />
+                                ]" :aria-disabled="!link.url" :tabindex="link.url ? 0 : -1" v-html="link.label" />
                         </nav>
                     </div>
                 </main>

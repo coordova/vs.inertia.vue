@@ -14,7 +14,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/composables/useToast';
-import VotingLayout from '@/layouts/VotingLayout.vue'; // Asumiendo AppLayout como layout principal
+import VotingLayout from '@/layouts/PublicLayout.vue'; // Asumiendo AppLayout como layout principal
 
 // Tipos
 import type { CharacterResource } from '@/types/global'; // Asumiendo que CharacterResource tiene id, fullname, picture, etc.
@@ -248,24 +248,17 @@ onUnmounted(() => {
 </script>
 
 <template>
+
     <Head :title="`Voting: ${surveyData.title}`" />
 
     <!-- ✅ Usar layout especializado para votación -->
-    <VotingLayout
-        :survey-title="survey.title"
-        :survey-id="survey.id"
-        :show-progress="true"
-    >
+    <VotingLayout :survey-title="survey.title" :survey-id="survey.id" :show-progress="true">
         <!-- Asumiendo que AppLayout maneja breadcrumbs si es necesario -->
         <div class="container mx-auto py-8">
-            <div
-                class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-            >
+            <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <!-- Header con progreso -->
                 <header class="border-b pb-4">
-                    <div
-                        class="container flex h-16 items-center justify-between px-4"
-                    >
+                    <div class="container flex h-16 items-center justify-between px-4">
                         <h1 class="text-xl font-semibold">
                             {{ surveyData.title }}
                         </h1>
@@ -274,12 +267,9 @@ onUnmounted(() => {
                             <!-- Barra de progreso -->
                             <div class="flex items-center gap-2">
                                 <div class="h-2 w-32 rounded-full bg-muted">
-                                    <div
-                                        class="h-2 rounded-full bg-primary transition-all duration-300"
-                                        :style="{
-                                            width: progressPercentage + '%',
-                                        }"
-                                    ></div>
+                                    <div class="h-2 rounded-full bg-primary transition-all duration-300" :style="{
+                                        width: progressPercentage + '%',
+                                    }"></div>
                                 </div>
                                 <span class="text-sm text-muted-foreground">
                                     {{ progressPercentage.toFixed(2) }}%
@@ -291,14 +281,11 @@ onUnmounted(() => {
                             </div>
 
                             <Button asChild variant="outline">
-                                <router-link
-                                    :href="
-                                        route(
-                                            'surveys.public.show',
-                                            surveyData.id,
-                                        )
-                                    "
-                                >
+                                <router-link :href="route(
+                                    'surveys.public.show',
+                                    surveyData.id,
+                                )
+                                    ">
                                     Back to Survey
                                 </router-link>
                             </Button>
@@ -308,19 +295,13 @@ onUnmounted(() => {
 
                 <!-- Main content -->
                 <main class="container py-8">
-                    <div
-                        v-if="loading"
-                        class="flex h-96 items-center justify-center"
-                    >
+                    <div v-if="loading" class="flex h-96 items-center justify-center">
                         <div class="text-muted-foreground">
                             Loading next match...
                         </div>
                     </div>
 
-                    <div
-                        v-else-if="!currentCombination || isCompleted"
-                        class="text-center"
-                    >
+                    <div v-else-if="!currentCombination || isCompleted" class="text-center">
                         <Card>
                             <CardHeader>
                                 <CardTitle>
@@ -340,14 +321,11 @@ onUnmounted(() => {
                             </CardHeader>
                             <CardFooter class="flex justify-center">
                                 <Button asChild>
-                                    <router-link
-                                        :href="
-                                            route(
-                                                'surveys.public.show',
-                                                surveyData.id,
-                                            )
-                                        "
-                                    >
+                                    <router-link :href="route(
+                                        'surveys.public.show',
+                                        surveyData.id,
+                                    )
+                                        ">
                                         {{
                                             isCompleted
                                                 ? 'View Results'
@@ -367,13 +345,11 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         currentCombination.character1.fullname
-                                    }}</CardTitle>
-                                    <CardDescription
-                                        v-if="
-                                            currentCombination.character1
-                                                .nickname
-                                        "
-                                    >
+                                        }}</CardTitle>
+                                    <CardDescription v-if="
+                                        currentCombination.character1
+                                            .nickname
+                                    ">
                                         {{
                                             currentCombination.character1
                                                 .nickname
@@ -381,49 +357,29 @@ onUnmounted(() => {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div
-                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                    >
-                                        <img
-                                            v-if="
-                                                currentCombination.character1
+                                    <div class="relative aspect-square w-full overflow-hidden rounded-lg border">
+                                        <img v-if="
+                                            currentCombination.character1
+                                                .picture_url
+                                        " :src="currentCombination.character1
                                                     .picture_url
-                                            "
-                                            :src="
-                                                currentCombination.character1
-                                                    .picture_url
-                                            "
-                                            :alt="
-                                                currentCombination.character1
+                                                " :alt="currentCombination.character1
                                                     .fullname
-                                            "
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            v-else
-                                            class="flex h-full w-full items-center justify-center bg-muted"
-                                        >
-                                            <span class="text-muted-foreground"
-                                                >No image</span
-                                            >
+                                                " class="h-full w-full object-cover" />
+                                        <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                            <span class="text-muted-foreground">No image</span>
                                         </div>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button
-                                        class="w-full"
-                                        :disabled="voting"
-                                        @click="handleVoteCharacter1"
-                                    >
+                                    <Button class="w-full" :disabled="voting" @click="handleVoteCharacter1">
                                         <span v-if="voting">Voting...</span>
-                                        <span v-else
-                                            >Vote for
+                                        <span v-else>Vote for
                                             {{
                                                 currentCombination.character1
                                                     .fullname
                                             }}
-                                            (1)</span
-                                        >
+                                            (1)</span>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -433,13 +389,11 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         currentCombination.character2.fullname
-                                    }}</CardTitle>
-                                    <CardDescription
-                                        v-if="
-                                            currentCombination.character2
-                                                .nickname
-                                        "
-                                    >
+                                        }}</CardTitle>
+                                    <CardDescription v-if="
+                                        currentCombination.character2
+                                            .nickname
+                                    ">
                                         {{
                                             currentCombination.character2
                                                 .nickname
@@ -447,49 +401,29 @@ onUnmounted(() => {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div
-                                        class="relative aspect-square w-full overflow-hidden rounded-lg border"
-                                    >
-                                        <img
-                                            v-if="
-                                                currentCombination.character2
+                                    <div class="relative aspect-square w-full overflow-hidden rounded-lg border">
+                                        <img v-if="
+                                            currentCombination.character2
+                                                .picture_url
+                                        " :src="currentCombination.character2
                                                     .picture_url
-                                            "
-                                            :src="
-                                                currentCombination.character2
-                                                    .picture_url
-                                            "
-                                            :alt="
-                                                currentCombination.character2
+                                                " :alt="currentCombination.character2
                                                     .fullname
-                                            "
-                                            class="h-full w-full object-cover"
-                                        />
-                                        <div
-                                            v-else
-                                            class="flex h-full w-full items-center justify-center bg-muted"
-                                        >
-                                            <span class="text-muted-foreground"
-                                                >No image</span
-                                            >
+                                                " class="h-full w-full object-cover" />
+                                        <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                            <span class="text-muted-foreground">No image</span>
                                         </div>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button
-                                        class="w-full"
-                                        :disabled="voting"
-                                        @click="handleVoteCharacter2"
-                                    >
+                                    <Button class="w-full" :disabled="voting" @click="handleVoteCharacter2">
                                         <span v-if="voting">Voting...</span>
-                                        <span v-else
-                                            >Vote for
+                                        <span v-else>Vote for
                                             {{
                                                 currentCombination.character2
                                                     .fullname
                                             }}
-                                            (2)</span
-                                        >
+                                            (2)</span>
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -497,11 +431,7 @@ onUnmounted(() => {
 
                         <!-- Botón de Empate -->
                         <div class="mt-8 flex justify-center">
-                            <Button
-                                variant="outline"
-                                :disabled="voting"
-                                @click="handleTie"
-                            >
+                            <Button variant="outline" :disabled="voting" @click="handleTie">
                                 {{ voting ? 'Voting...' : "It's a Tie! (3)" }}
                             </Button>
                         </div>
@@ -541,9 +471,7 @@ onUnmounted(() => {
                         </div>
 
                         <!-- Instrucciones -->
-                        <div
-                            class="mt-8 text-center text-sm text-muted-foreground"
-                        >
+                        <div class="mt-8 text-center text-sm text-muted-foreground">
                             <p>
                                 Press
                                 <kbd class="rounded bg-muted px-2 py-1">1</kbd>,
