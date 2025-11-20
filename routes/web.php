@@ -120,4 +120,4 @@ require __DIR__.'/auth.php';
 // --------------------------------------------------------------
 // OTROS REQUIRES (settings, etc.)
 // --------------------------------------------------------------
-// require __DIR__.'/settings.php'; // Descomenta si es necesario
+require __DIR__.'/settings.php'; // Descomenta si es necesario

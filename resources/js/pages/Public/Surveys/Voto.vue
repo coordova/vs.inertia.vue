@@ -392,7 +392,7 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character1.fullname
-                                        }}</CardTitle>
+                                    }}</CardTitle>
                                     <CardDescription v-if="
                                         nextCombination.character1.nickname
                                     ">
@@ -434,7 +434,7 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character2.fullname
-                                        }}</CardTitle>
+                                    }}</CardTitle>
                                     <CardDescription v-if="
                                         nextCombination.character2.nickname
                                     ">

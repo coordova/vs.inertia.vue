@@ -49,13 +49,13 @@ const props = defineProps<{
         </header>
 
         <!-- Contenido principal -->
-        <main>
+        <main class="container mx-auto px-4">
             <slot />
         </main>
 
         <!-- Footer minimalista -->
         <footer class="mt-8 border-t bg-background/50 py-3">
-            <div class="container px-4 text-center text-xs text-muted-foreground">
+            <div class="container mx-auto px-4 text-center text-xs text-muted-foreground">
                 <p>Versus Voting System • Focus Mode</p>
             </div>
         </footer>

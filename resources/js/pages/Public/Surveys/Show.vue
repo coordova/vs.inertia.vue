@@ -252,6 +252,7 @@ function openModal(character: CharacterResource) {
                                     <div class="grid grid-cols-2 gap-4">
                                         <div v-for="character in props.characters" :key="character.id"
                                             class="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent">
+                                            <!-- Modal - Character -->
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <div
@@ -288,9 +289,10 @@ function openModal(character: CharacterResource) {
                                                             :alt="selectedCharacter?.fullname"
                                                             class="h-64 w-64 rounded-full object-cover" />
                                                         <div>
-                                                            <p class="text-sm text-muted-foreground line-clamp-3">{{
-                                                                selectedCharacter?.bio
-                                                            }}</p>
+                                                            <p class="text-sm text-muted-foreground line-clamp-3 mb-4">
+                                                                {{
+                                                                    selectedCharacter?.bio
+                                                                }}</p>
                                                             <!-- Character Information -->
                                                             <dl class="divide-y divide-gray-100 dark:divide-white/10">
                                                                 <div
@@ -337,20 +339,6 @@ function openModal(character: CharacterResource) {
                                                                     class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                                     <dt
                                                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
-                                                                        Nationality
-                                                                    </dt>
-                                                                    <dd
-                                                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
-                                                                        <div class="flex items-center gap-2">
-                                                                            {{ selectedCharacter?.nationality || 'N/A'
-                                                                            }}
-                                                                        </div>
-                                                                    </dd>
-                                                                </div>
-                                                                <div
-                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt
-                                                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
                                                                         Status
                                                                     </dt>
                                                                     <dd
@@ -367,6 +355,12 @@ function openModal(character: CharacterResource) {
                                                         </div>
                                                     </div>
                                                     <DialogFooter>
+                                                        <Link
+                                                            :href="route('public.characters.show', selectedCharacter?.id)">
+                                                        <Button type="button" variant="outline">
+                                                            View Character
+                                                        </Button>
+                                                        </Link>
                                                         <DialogClose as-child>
                                                             <Button type="button" variant="outline">
                                                                 Close
