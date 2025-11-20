@@ -243,7 +243,7 @@ function openModal(character: CharacterResource) {
                                 <CardHeader>
                                     <CardTitle>Participants ({{
                                         props.characters.length
-                                    }})</CardTitle>
+                                        }})</CardTitle>
                                     <CardDescription>
                                         Characters competing in this survey.
                                     </CardDescription>
@@ -290,11 +290,11 @@ function openModal(character: CharacterResource) {
                                                         <div>
                                                             <p class="text-sm text-muted-foreground">{{
                                                                 selectedCharacter?.bio
-                                                                }}</p>
+                                                            }}</p>
                                                             <!-- Character Information -->
                                                             <dl class="divide-y divide-gray-100 dark:divide-white/10">
                                                                 <div
-                                                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                                     <dt
                                                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
                                                                         Gender
@@ -317,7 +317,7 @@ function openModal(character: CharacterResource) {
                                                                     </dd>
                                                                 </div>
                                                                 <div
-                                                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                                     <dt
                                                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
                                                                         DOB
@@ -331,7 +331,7 @@ function openModal(character: CharacterResource) {
                                                                     </dd>
                                                                 </div>
                                                                 <div
-                                                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                                     <dt
                                                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
                                                                         Nationality
@@ -345,7 +345,7 @@ function openModal(character: CharacterResource) {
                                                                     </dd>
                                                                 </div>
                                                                 <div
-                                                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                                     <dt
                                                                         class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
                                                                         Status
