@@ -310,9 +310,9 @@ class SurveyVoteController extends Controller
                         'updated_at' => now(),
                     ]);
 
-                // --- PASO 6: Cargar la siguiente combinación para devolverla ---
+                // --- PASO 6: Cargar la siguiente combinación para devolverla --- NO ES NECESARIO porque la logica para nextCombination se la realiza en Voto.vue
                 // Llamar al servicio para obtener la próxima combinación basada en la estrategia
-                $nextCombination = $this->combinatoricService->getNextCombination($surveyData, $user->id);
+                // $nextCombination = $this->combinatoricService->getNextCombination($surveyData, $user->id);
 
             }); // --- Fin de la transacción ---
 

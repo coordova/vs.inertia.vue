@@ -15,6 +15,17 @@ class SurveyUser extends Model
 
     // protected $primaryKey = ['user_id', 'survey_id'];    // esta produce error, 
 
+    // Especificar la clave primaria compuesta
+    // Laravel asume por defecto una columna 'id' autoincrementable
+    protected $primaryKey = ['user_id', 'survey_id']; // Clave primaria compuesta
+
+    // Desactivar el auto-incremento ya que la clave primaria es compuesta
+    public $incrementing = false;
+
+    // Especificar el tipo de clave primaria
+    protected $keyType = 'array'; // o 'string' si se serializa como string, pero 'array' es más común para compuestas
+
+
     protected $fillable = [
         'user_id',
         'survey_id',

@@ -86,7 +86,7 @@ function openModal(character: CharacterResource) {
                                     survey.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent class="space-y-4">
+                            <CardContent class="space-y-4 text-card-foreground">
                                 <!-- <div
                                     v-if="survey.image_url"
                                     class="relative aspect-video w-full overflow-hidden rounded-lg border"
@@ -123,7 +123,7 @@ function openModal(character: CharacterResource) {
                                         <h3 class="text-sm font-medium text-muted-foreground">
                                             Category
                                         </h3>
-                                        <p class="mt-1 text-sm">
+                                        <p class="mt-1 text-sm ">
                                             {{ survey.category?.name || 'N/A' }}
                                         </p>
                                     </div>
@@ -297,12 +297,11 @@ function openModal(character: CharacterResource) {
                                                             <dl class="divide-y divide-gray-100 dark:divide-white/10">
                                                                 <div
                                                                     class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt
-                                                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                                                    <dt class="text-sm/6 font-medium">
                                                                         Gender
                                                                     </dt>
                                                                     <dd
-                                                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                                                        class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                                                         <div class="flex items-center gap-2">
                                                                             {{
                                                                                 selectedCharacter?.gender === 0
@@ -320,29 +319,28 @@ function openModal(character: CharacterResource) {
                                                                 </div>
                                                                 <div
                                                                     class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt
-                                                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                                                    <dt class="text-sm/6 font-medium">
                                                                         DOB
                                                                     </dt>
-                                                                    <dd
-                                                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
-                                                                        <div class="flex items-center gap-2">
+                                                                    <dd class="mt-1 text-sm/6 sm:col-span-2 sm:mt-0 ">
+                                                                        <div
+                                                                            class="flex items-center gap-2 text-muted-foreground">
                                                                             {{ selectedCharacter?.dob_formatted || 'N/A'
-                                                                            }} <span class="text-xs text-gray-500">({{
-                                                                                selectedCharacter?.dob_for_humans ||
-                                                                                'N/A'
-                                                                            }})</span>
+                                                                            }} <span
+                                                                                class="text-xs text-muted-foreground/70">({{
+                                                                                    selectedCharacter?.dob_for_humans ||
+                                                                                    'N/A'
+                                                                                }})</span>
                                                                         </div>
                                                                     </dd>
                                                                 </div>
                                                                 <div
                                                                     class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt
-                                                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                                                    <dt class="text-sm/6 font-medium">
                                                                         Status
                                                                     </dt>
                                                                     <dd
-                                                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                                                        class="mt-1 text-sm/6 sm:col-span-2 sm:mt-0 text-muted-foreground">
                                                                         {{
                                                                             selectedCharacter?.status === true
                                                                                 ? 'Active'

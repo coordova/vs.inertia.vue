@@ -28,14 +28,28 @@ class SurveyProgressService
             ->first(); // Retorna un stdClass o null
 
         if (! $surveyUserEntry) {
+            // Si no existe, crear el registro en la tabla survey_user y recargar la entrada pivote
+            $this->startSurveySession($survey, $user);
+
+            // Recargar la entrada pivote - puede ser innecesario si la transacción es correcta
+            $surveyUserEntry = DB::table('survey_user')
+                ->where('survey_id', $survey->id)
+                ->where('user_id', $user->id)
+                ->first(); // Retorna un stdClass o null
+            
+
+            if (!$surveyUserEntry) {
+             // Si startSurveySession no creó la entrada, algo falló
+            Log::error("SurveyProgressService: startSurveySession failed to create entry for user {$user->id} and survey {$survey->id}.");
+            // Retornar valores por defecto
             return [
                 'exists' => false,
                 'is_completed' => false,
                 'progress' => 0.0,
                 'total_votes' => 0,
                 'total_expected' => null,
-                // 'pivot_id' => null,
             ];
+        }
         }
 
         // Calcular progreso basado en votos actuales vs esperados
@@ -75,9 +89,28 @@ class SurveyProgressService
         // Calcula C(n, 2)
         $totalCombinationsExpected = $activeCharacterCount > 1 ? ($activeCharacterCount * ($activeCharacterCount - 1)) / 2 : 0;
 
+        // Usamos el MODELO ELOQUENT SurveyUser con updateOrCreate
+        // Esto maneja correctamente la clave primaria compuesta (user_id, survey_id) si está definida en el modelo
+        SurveyUser::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'survey_id' => $survey->id,
+            ],
+            [
+                'progress_percentage' => 0.00,
+                'total_votes' => 0,
+                'total_combinations_expected' => $totalCombinationsExpected,
+                'started_at' => now(),
+                'is_completed' => false,
+                'last_activity_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
         // Usamos DB::table con updateOrCreate para manejar la clave compuesta eficientemente
         // updateOrCreate intenta actualizar si existe, o crear si no existe
-        DB::table('survey_user')->updateOrCreate(
+        /* DB::table('survey_user')->updateOrCreate(
             [
                 'user_id' => $user->id,
                 'survey_id' => $survey->id,
@@ -93,7 +126,7 @@ class SurveyProgressService
                 'created_at' => now(), // Asegurar valores de timestamps
                 'updated_at' => now(),
             ]
-        );
+        ); */
 
         // No devolvemos nada, la entrada pivote debería existir ahora
     }

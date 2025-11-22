@@ -66,10 +66,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <p class="font-semibold">
                                     {{ props.character.fullname }}
                                 </p>
-                                <p class="text-xs text-gray-500 italic">
+                                <p class="text-xs text-muted-foreground italic">
                                     {{ props.character.nickname }}
                                 </p>
-                                <p class="text-xs text-gray-500">
+                                <p class="text-xs text-muted-foreground/70">
                                     {{ props.character.dob_for_humans }}
                                 </p>
                             </div>
@@ -78,21 +78,21 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <!-- Character Data -->
                     <div class="w-full">
                         <div class="px-4 sm:px-0">
-                            <h3 class="text-base/7 font-semibold text-gray-900 dark:text-gray-100">
+                            <h3 class="text-base/7 font-semibold">
                                 {{ props.character.fullname }}
                             </h3>
-                            <p class="mt-1 max-w-2xl text-sm/6 whitespace-pre-line text-gray-500 dark:text-gray-400">
+                            <p class="mt-1 max-w-2xl text-sm/6 whitespace-pre-line text-muted-foreground">
                                 {{ props.character.bio }}
                             </p>
                         </div>
-                        <div class="mt-6 border-t border-gray-100 dark:border-white/10">
+                        <div class="mt-6 border-t border-sidebar-accent">
                             <!-- Character Information -->
-                            <dl class="divide-y divide-gray-100 dark:divide-white/10">
+                            <dl class="divide-y divide-sidebar-accent">
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                    <dt class="text-sm/6 font-medium">
                                         Gender
                                     </dt>
-                                    <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                         <div class="flex items-center gap-2">
                                             {{
                                                 props.character.gender === 0
@@ -112,20 +112,20 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     </dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                    <dt class="text-sm/6 font-medium">
                                         DOB
                                     </dt>
-                                    <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                         <div class="flex items-center gap-2">
                                             {{ props.character.dob_formatted || 'N/A' }}
                                         </div>
                                     </dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                    <dt class="text-sm/6 font-medium">
                                         Nationality
                                     </dt>
-                                    <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                         <div class="flex items-center gap-2">
                                             {{
                                                 props.character.nationality ||
@@ -135,10 +135,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     </dd>
                                 </div>
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                    <dt class="text-sm/6 font-medium">
                                         Status
                                     </dt>
-                                    <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                         {{
                                             props.character.status === true
                                                 ? 'Active'
@@ -149,10 +149,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                                 <!-- Character Categories -->
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                    <dt class="text-sm/6 font-medium">
                                         Categories
                                     </dt>
-                                    <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                         <ul class="flex flex-wrap gap-2">
                                             <li v-for="category in props.categories" :key="category.id">
                                                 <Badge :variant="category.pivot
@@ -171,10 +171,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </div>
                                 <!-- Character Created at -->
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                    <dt class="text-sm/6 font-medium text-gray-900 dark:text-gray-100">
+                                    <dt class="text-sm/6 font-medium">
                                         Created / Updated
                                     </dt>
-                                    <dd class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400">
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                         {{
                                             props.character
                                                 .created_at_formatted +
@@ -188,12 +188,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
                                 >
                                     <dt
-                                        class="text-sm/6 font-medium text-gray-900 dark:text-gray-100"
+                                        class="text-sm/6 font-medium"
                                     >
                                         Updated at
                                     </dt>
                                     <dd
-                                        class="mt-1 text-sm/6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-gray-400"
+                                        class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0"
                                     >
                                         {{
                                             props.character.updated_at_formatted

@@ -392,13 +392,14 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character1.fullname
-                                    }}</CardTitle>
-                                    <CardDescription v-if="
-                                        nextCombination.character1.nickname
-                                    ">
-                                        {{
-                                            nextCombination.character1.nickname
-                                        }}
+                                        }}</CardTitle>
+                                    <CardDescription>
+                                        <span v-if="nextCombination.character1.nickname">
+                                            {{
+                                                (nextCombination.character1.nickname)
+                                            }}
+                                        </span>
+                                        <span v-else>&nbsp;</span>
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -434,13 +435,14 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character2.fullname
-                                    }}</CardTitle>
-                                    <CardDescription v-if="
-                                        nextCombination.character2.nickname
-                                    ">
-                                        {{
-                                            nextCombination.character2.nickname
-                                        }}
+                                        }}</CardTitle>
+                                    <CardDescription>
+                                        <span v-if="nextCombination.character2.nickname">
+                                            {{
+                                                nextCombination.character2.nickname
+                                            }}
+                                        </span>
+                                        <span v-else>&nbsp;</span>
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>

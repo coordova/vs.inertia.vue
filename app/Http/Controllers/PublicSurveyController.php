@@ -187,8 +187,8 @@ class PublicSurveyController extends Controller
 
         // Verificar el estado del progreso del usuario
         $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user);
-
-        if ($progressStatus['is_completed']) {
+        
+        if ($progressStatus['exists'] && $progressStatus['is_completed']) {
             // Si el usuario ya completó la encuesta, no hay más combinaciones
             return response()->json(['combination' => null, 'message' => 'Survey already completed for this user.'], 200);
         }
