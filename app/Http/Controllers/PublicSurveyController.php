@@ -100,7 +100,7 @@ class PublicSurveyController extends Controller
      *
      * @param  Survey  $survey  El modelo de encuesta, inyectado por route model binding.
      */
-    public function vote(Survey $survey): Response
+    /* public function vote4Inertia(Survey $survey): Response
     {
         // 1. Verificar autenticación
         $user = Auth::user();
@@ -136,9 +136,9 @@ class PublicSurveyController extends Controller
             'userProgress' => $progressStatus, // <-- NO ES NECESARIO SI LOS DATOS YA ESTÁN EN 'survey' RESUELTO
             // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, la lista de estrategias si se puede cambiar dinámicamente)
         ]);
-    }
+    } */
 
-    public function voto(Survey $survey): Response
+    public function vote(Survey $survey): Response
     {
         // 1. Verificar autenticación
         $user = Auth::user();
@@ -157,7 +157,7 @@ class PublicSurveyController extends Controller
         // 5. Obtener la próxima combinación para mostrar al usuario
 
         // 6. Renderizar la vista Inertia con los recursos específicos
-        return Inertia::render('Public/Surveys/Voto', [
+        return Inertia::render('Public/Surveys/Vote', [
             // Usar SurveyVoteResource para serializar solo los datos necesarios de la encuesta
             'survey' => SurveyVoteResource::make($survey)->resolve(), // <-- Usar .resolve() para pasar el array directamente
             'userProgress' => $progressStatus,
@@ -167,12 +167,12 @@ class PublicSurveyController extends Controller
 
     /**
      * Obtiene la próxima combinación de personajes para votar en una encuesta específica.
-     * Endpoint para ser llamado vía AJAX desde el frontend (Voto.vue).
+     * Endpoint para ser llamado vía AJAX desde el frontend (Vote.vue antes Voto.vue).
      * Devuelve un JSON estándar, no una respuesta de Inertia.
      *
      * @param  Survey  $survey  El modelo de encuesta, inyectado por route model binding.
      */
-    public function getCombination4Voto(Survey $survey): JsonResponse
+    public function getCombination(Survey $survey): JsonResponse
     {
         $user = Auth::user();
         if (! $user) {
@@ -217,7 +217,7 @@ class PublicSurveyController extends Controller
         // Ese patrón es para respuestas que Inertia.js maneja internamente tras una navegación.
     }
 
-    public function getCombination4Voto2(Survey $survey)
+    /* public function getCombination2(Survey $survey)
     {
         $user = Auth::user();
         // 5. Obtener la próxima combinación para mostrar al usuario
@@ -232,7 +232,7 @@ class PublicSurveyController extends Controller
         // return (new CombinatoricResource($nextCombination))->response()->header('X-Inertia', 'true');
 
         return $combination2;
-    }
+    } */
 
     /**
      * Verifica si una encuesta está activa.

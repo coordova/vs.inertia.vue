@@ -8,6 +8,7 @@ use App\Models\Survey;
 use App\Models\Vote;
 use App\Services\Rating\EloRatingService;
 use App\Services\Survey\CombinatoricService;
+use App\Services\Survey\SurveyProgressService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +18,7 @@ class SurveyVoteController extends Controller
     public function __construct(
         protected CombinatoricService $combinatoricService,
         protected EloRatingService $eloRatingService,
+        protected SurveyProgressService $surveyProgressService,
         // Nota: SurveyProgressService ya no se inyecta aquí si su lógica se mueve al QB en el controlador
     ) {
         // Aplicar middleware de autenticación si es necesario
@@ -143,9 +145,26 @@ class SurveyVoteController extends Controller
                         'last_used_at' => now(),
                     ]);
 
-                // --- PASO 3: Actualizar progreso del usuario (survey_user) ---
+                // --- PASO 3.1: Actualizar el progreso del usuario en `survey_user` usando SurveyProgressService ---
+                // En lugar de cargar el modelo y usar Eloquent para update, usamos el servicio dedicado
+                // que ya maneja Query Builder correctamente.
+                // El servicio se encarga de cargar, incrementar, recalcular y actualizar la entrada survey_user.
+                $updatedProgressData = $this->surveyProgressService->incrementAndRecalculateProgress($user->id, $surveyData->id);
+
+                if (!$updatedProgressData) {
+                    // Si el servicio falla (por ejemplo, si no encuentra la entrada), es un error inesperado
+                    Log::error("SurveyVoteController: Failed to increment and recalculate progress for user {$user->id} and survey {$surveyData->id}.");
+                    // Opcional: Lanzar una excepción para que la transacción falle
+                    throw new \Exception("Failed to update user progress.");
+                }
+
+                // Opcional: Actualizar el objeto $surveyData local con los nuevos valores si se necesitan más adelante en la transacción
+                // $surveyData->progress_percentage = $updatedProgressData['progress_percentage'];
+                // $surveyData->total_votes = $updatedProgressData['total_votes'];
+
+                // --- PASO 3.2: Actualizar progreso del usuario (survey_user) ---
                 // Cargar el pivote para obtener total_combinations_expected y el progreso actual
-                $surveyUserEntry = DB::table('survey_user')
+                /* $surveyUserEntry = DB::table('survey_user')
                     ->where('user_id', $user->id)
                     ->where('survey_id', $surveyData->id)
                     ->lockForUpdate() // Prevenir race conditions
@@ -173,7 +192,7 @@ class SurveyVoteController extends Controller
                     // O, si se permite crear aquí (menos recomendado, debería ser en 'startSurveySession'):
                     // $this->surveyProgressService->startSurveySession($surveyData, $user); // Llama al servicio
                     // return; // O continuar con valores predeterminados
-                }
+                } */
 
                 // --- PASO 4: Calcular y aplicar nuevos ratings ELO ---
                 if ($tie) {

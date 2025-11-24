@@ -216,7 +216,7 @@ function openModal(character: CharacterResource) {
                                 <CardFooter class="flex flex-col gap-4">
                                     <Button asChild class="w-full">
                                         <Link :href="route(
-                                            'public.surveys.voto',
+                                            'public.surveys.vote',
                                             survey.id,
                                         )
                                             ">
@@ -243,7 +243,7 @@ function openModal(character: CharacterResource) {
                                 <CardHeader>
                                     <CardTitle>Participants ({{
                                         props.characters.length
-                                        }})</CardTitle>
+                                    }})</CardTitle>
                                     <CardDescription>
                                         Characters competing in this survey.
                                     </CardDescription>
