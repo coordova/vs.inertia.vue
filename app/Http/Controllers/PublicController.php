@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\CategoryResource;
-use App\Http\Resources\SurveyResource;
+use App\Http\Resources\SurveyIndexResource;
 use App\Models\Category;
 use App\Models\Survey;
 use Illuminate\Http\Request;
@@ -27,17 +27,30 @@ class PublicController extends Controller
 
         // Cargar encuestas activas (status=1) que estén dentro del rango de fechas
         // y opcionalmente ordenar por alguna métrica (destacada, reciente, etc.)
-        $activeSurveys = Survey::where('status', true)
+        $recentSurveys = Survey::where('status', true)
                               ->where('date_start', '<=', now())
                               ->where('date_end', '>=', now())
-                              ->with(['category']) // Cargar la categoría para mostrarla
+                              ->with(['category:id,name,slug,color']) // Cargar la categoría para mostrarla
                               ->orderBy('created_at', 'desc') // Por ejemplo, las más recientes
                               ->limit(6) // O el número que desees mostrar
                               ->get();
 
-        return Inertia::render('Landing', [
+        // Opcional: Cargar encuestas populares o más votadas (requiere joins/stats)
+        // $popularSurveys = DB::table('surveys')
+        //                     ->join('survey_user', 'surveys.id', '=', 'survey_user.survey_id')
+        //                     ->where('surveys.status', true)
+        //                     ->where('surveys.date_start', '<=', now())
+        //                     ->where('surveys.date_end', '>=', now())
+        //                     ->select('surveys.*', DB::raw('SUM(survey_user.total_votes) as total_votes'))
+        //                     ->groupBy('surveys.id')
+        //                     ->orderBy('total_votes', 'desc')
+        //                     ->limit(6)
+        //                     ->get();
+
+        return Inertia::render('LandingPage', [
             'featuredCategories' => CategoryResource::collection($featuredCategories)->resolve(),
-            'activeSurveys' => SurveyResource::collection($activeSurveys)->resolve(),
+            'recentSurveys' => SurveyIndexResource::collection($recentSurveys)->resolve(),
+            // 'popularSurveys' => SurveyIndexResource::collection($popularSurveys)->resolve(), // Si se implementa
         ]);
     }
 }
