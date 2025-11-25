@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Users, Tag } from 'lucide-vue-next';
-import PublicLayout from '@/layouts/PublicLayout.vue'; // Asumiendo que usas AppLayout
+import PublicAppLayout from '@/layouts/PublicAppLayout.vue'; // <-- Importar el nuevo layout
 import { CategoryResource, SurveyResource } from '@/types/global'; // Asumiendo interfaces definidas
 
 // --- Tipos ---
@@ -30,10 +30,10 @@ const breadcrumbs = [
 
     <Head title="Facematch Ultramoderno" />
 
-    <PublicLayout :breadcrumbs="breadcrumbs">
+    <PublicAppLayout :breadcrumbs="breadcrumbs"> <!-- <-- Usar el nuevo layout -->
         <div class="min-h-screen bg-background">
             <!-- Hero Section -->
-            <section class="relative bg-gradient-to-r from-background via-primary to-foreground text-white py-20">
+            <section class="relative bg-gradient-to-r from-background via-primary to-secondary text-white py-20">
                 <div class="absolute inset-0 bg-black opacity-20"></div> <!-- Overlay oscuro opcional -->
                 <div class="container mx-auto px-4 relative z-10">
                     <div class="max-w-3xl mx-auto text-center">
@@ -97,7 +97,7 @@ const breadcrumbs = [
             </section>
 
             <!-- Recent Surveys Section -->
-            <section v-if="props.recentSurveys.length > 0" class="py-16 bg-white">
+            <section v-if="props.recentSurveys.length > 0" class="py-16 bg-background">
                 <div class="container mx-auto px-4">
                     <h2 class="text-3xl font-bold text-center mb-12">Recent Surveys</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -141,12 +141,14 @@ const breadcrumbs = [
                             </CardContent>
                             <CardFooter class="flex flex-col gap-2">
                                 <Separator class="my-2 w-full" />
-                                <div class="flex justify-between gap-2">
+                                <div class="flex justify-between gap-2 w-full">
+                                    <!-- Asegurar que los botones ocupen el ancho -->
                                     <Link :href="route('public.surveys.show', survey.slug)"> <!-- O survey.id -->
-                                    <Button variant="outline" class="w-full">View Details</Button>
+                                    <Button variant="outline" class="flex-grow">View Details</Button>
+                                    <!-- Botón con crecimiento -->
                                     </Link>
                                     <Link :href="route('public.surveys.vote', survey.slug)"> <!-- O survey.id -->
-                                    <Button class="w-full" :disabled="!survey.is_active">
+                                    <Button class="flex-grow" :disabled="!survey.is_active">
                                         <!-- Asumiendo is_active calculado en el backend -->
                                         Participate
                                     </Button>
@@ -184,7 +186,7 @@ const breadcrumbs = [
                 </div>
             </section>
         </div>
-    </PublicLayout>
+    </PublicAppLayout>
 </template>
 
 <style scoped>
