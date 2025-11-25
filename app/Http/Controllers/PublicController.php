@@ -22,7 +22,7 @@ class PublicController extends Controller
                                     ->where('is_featured', true)
                                     ->orderBy('sort_order', 'asc')
                                     ->orderBy('name', 'asc')
-                                    ->limit(6) // O el número que desees mostrar
+                                    ->limit(3) // O el número que desees mostrar
                                     ->get();
 
         // Cargar encuestas activas (status=1) que estén dentro del rango de fechas

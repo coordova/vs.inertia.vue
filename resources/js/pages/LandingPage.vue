@@ -33,7 +33,8 @@ const breadcrumbs = [
     <PublicAppLayout :breadcrumbs="breadcrumbs"> <!-- <-- Usar el nuevo layout -->
         <div class="min-h-screen bg-background">
             <!-- Hero Section -->
-            <section class="relative bg-gradient-to-r from-background via-primary to-secondary text-white py-20">
+            <section
+                class="relative bg-gradient-to-r from-background via-primary to-secondary text-white py-20 md:py-32 lg:py-40">
                 <div class="absolute inset-0 bg-black opacity-20"></div> <!-- Overlay oscuro opcional -->
                 <div class="container mx-auto px-4 relative z-10">
                     <div class="max-w-3xl mx-auto text-center">
@@ -45,15 +46,21 @@ const breadcrumbs = [
                         </p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link :href="route('public.surveys.index')">
-                            <Button size="lg" class="bg-white text-indigo-600 hover:bg-gray-100">
-                                Explore Surveys
-                            </Button>
+                            <button
+                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full h-12 px-8 text-base cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px]">Explore
+                                Surveys
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="lucide lucide-arrow-right ml-2 size-4">
+                                    <path d="M5 12h14"></path>
+                                    <path d="m12 5 7 7-7 7"></path>
+                                </svg>
+                            </button>
                             </Link>
                             <Link :href="route('public.categories.index')">
-                            <Button size="lg" variant="outline"
-                                class="border-white text-white hover:bg-white hover:text-indigo-600">
-                                Browse Categories
-                            </Button>
+                            <button
+                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input shadow-sm hover:bg-accent hover:text-accent-foreground rounded-full bg-transparent h-12 px-8 text-base transition-all duration-300 hover:translate-y-[-2px]">Browse
+                                Categories</button>
                             </Link>
                         </div>
                     </div>
@@ -61,7 +68,7 @@ const breadcrumbs = [
             </section>
 
             <!-- Featured Categories Section -->
-            <section v-if="props.featuredCategories.length > 0" class="py-16 bg-muted">
+            <section v-if="props.featuredCategories.length > 0" class=" py-20 md:py-32 lg:py-40 bg-muted">
                 <div class="container mx-auto px-4">
                     <h2 class="text-3xl font-bold text-center mb-12">Featured Categories</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -97,7 +104,7 @@ const breadcrumbs = [
             </section>
 
             <!-- Recent Surveys Section -->
-            <section v-if="props.recentSurveys.length > 0" class="py-16 bg-background">
+            <section v-if="props.recentSurveys.length > 0" class=" py-20 md:py-32 lg:py-40 bg-background">
                 <div class="container mx-auto px-4">
                     <h2 class="text-3xl font-bold text-center mb-12">Recent Surveys</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -165,23 +172,89 @@ const breadcrumbs = [
                 </div>
             </section>
 
-            <!-- CTA Section -->
-            <section class="py-16 bg-foreground text-white">
+            <!-- How it works -->
+            <section class="py-20 md:py-32 lg:py-40 bg-muted">
                 <div class="container mx-auto px-4 text-center">
-                    <h2 class="text-3xl font-bold mb-4">Ready to Start Voting?</h2>
+                    <h2 class="text-3xl font-bold mb-4">How it works</h2>
                     <p class="text-xl mb-8 max-w-2xl mx-auto">
                         Join thousands of users comparing and ranking characters across different categories.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link :href="route('register')" v-if="!$page.props.auth?.user">
-                        <Button size="lg" variant="secondary">Sign Up</Button>
-                        </Link>
-                        <Link :href="route('login')" v-if="!$page.props.auth?.user">
-                        <Button size="lg">Log In</Button>
-                        </Link>
-                        <Link :href="route('public.surveys.index')" v-else>
-                        <Button size="lg">Explore Surveys</Button>
-                        </Link>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 md:gap-12 relative">
+                    <div class="relative z-10 flex flex-col items-center text-center space-y-4"
+                        style="opacity: 1; transform: none;">
+                        <div
+                            class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xl font-bold shadow-lg relative">
+                            01<div class="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-75"
+                                style="animation-duration: 3s; animation-delay: 0s;"></div>
+                        </div>
+                        <h3 class="text-xl font-bold">Category</h3>
+                        <p class="text-muted-foreground">Choose the category you want to vote on.</p>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center text-center space-y-4"
+                        style="opacity: 1; transform: none;">
+                        <div
+                            class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xl font-bold shadow-lg relative">
+                            02<div class="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-75"
+                                style="animation-duration: 3s; animation-delay: 0.5s;"></div>
+                        </div>
+                        <h3 class="text-xl font-bold">Select Survey</h3>
+                        <p class="text-muted-foreground">Choose the survey you want to vote on.</p>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center text-center space-y-4"
+                        style="opacity: 1; transform: none;">
+                        <div
+                            class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xl font-bold shadow-lg relative">
+                            03<div class="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-75"
+                                style="animation-duration: 3s; animation-delay: 1s;"></div>
+                        </div>
+                        <h3 class="text-xl font-bold">Vote for your favorite</h3>
+                        <p class="text-muted-foreground">Vote for your favorite characters.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <!-- <section class=" py-20 md:py-32 lg:py-40 bg-foreground text-white"> -->
+            <section
+                class="w-full py-20 md:py-32 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground relative overflow-hidden isolate">
+                <div
+                    class="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(from_var(--primary-foreground)_r_g_b_/_0.075)_1px,transparent_1px),linear-gradient(to_bottom,rgba(from_var(--primary-foreground)_r_g_b_/_0.075)_1px,transparent_1px)] bg-[size:4rem_4rem]">
+                </div>
+                <div class="absolute -top-24 -left-24 w-64 h-64 bg-foreground/15 rounded-full blur-3xl animate-pulse">
+                </div>
+                <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-foreground/15 rounded-full blur-3xl animate-pulse"
+                    style="animation-delay: 1.5s;"></div>
+                <div class="">
+                    <div class="container mx-auto px-4 text-center ">
+                        <h2 class="text-3xl font-bold mb-4">Ready to Start Voting?</h2>
+                        <p class="text-xl mb-8 max-w-2xl mx-auto">
+                            Join thousands of users comparing and ranking characters across different categories.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link :href="route('register')" v-if="!$page.props.auth?.user">
+                            <Button size="lg" variant="secondary">Sign Up</Button>
+                            </Link>
+                            <Link :href="route('login')" v-if="!$page.props.auth?.user">
+                            <Button size="lg">Log In</Button>
+                            </Link>
+                            <Link :href="route('public.surveys.index')" v-else>
+                            <button
+                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full h-12 px-8 text-base cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px]">Explore
+                                Surveys<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    class="lucide lucide-arrow-right ml-2 size-4">
+                                    <path d="M5 12h14"></path>
+                                    <path d="m12 5 7 7-7 7"></path>
+                                </svg></button>
+                            </Link>
+                            <Link href="https://github.com/coordova/vs.inertia.vue">
+                            <button
+                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input shadow-sm hover:bg-accent hover:text-accent-foreground rounded-full bg-transparent h-12 px-8 text-base transition-all duration-300 hover:translate-y-[-2px]">View
+                                on GitHub</button>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>

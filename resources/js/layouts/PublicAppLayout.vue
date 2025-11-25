@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import { Toaster } from 'vue-sonner';
 import { BreadcrumbItem } from '@/types'; // Asumiendo que tienes este tipo
 
@@ -14,7 +14,7 @@ defineProps<Props>();
 <template>
     <div class="min-h-screen bg-background">
         <!-- Header Público -->
-        <header class="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
+        <header class="sticky top-0 z-100 border-b bg-background/80 backdrop-blur-sm">
             <div class="container mx-auto flex h-16 items-center justify-between px-4">
                 <!-- Logo/Nombre del Sitio -->
                 <Link :href="route('home')" class="text-xl font-bold text-primary">
@@ -37,18 +37,30 @@ defineProps<Props>();
                 </nav>
 
                 <!-- Navegación Principal -->
-                <div class="flex items-center gap-4">
-                    <Link :href="route('public.surveys.index')">
-                    <Button variant="ghost">Surveys</Button>
+                <div class="hidden items-center gap-4 md:flex lg:gap-8">
+                    <Link :href="route('public.surveys.index')"
+                        class="text-muted-foreground hover:text-foreground group relative text-xs font-medium transition-colors lg:text-sm">
+                    <span>Surveys</span>
+                    <span
+                        class="bg-primary absolute -bottom-1 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full"></span>
                     </Link>
-                    <Link :href="route('public.categories.index')">
-                    <Button variant="ghost">Categories</Button>
+                    <Link :href="route('public.categories.index')"
+                        class="text-muted-foreground hover:text-foreground group relative text-xs font-medium transition-colors lg:text-sm">
+                    <span>Categories</span>
+                    <span
+                        class="bg-primary absolute -bottom-1 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full"></span>
                     </Link>
-                    <Link :href="route('login')" v-if="!$page.props.auth?.user">
-                    <Button variant="outline">Log in</Button>
+                    <Link :href="route('login')" v-if="!$page.props.auth?.user"
+                        class="text-muted-foreground hover:text-foreground group relative text-xs font-medium transition-colors lg:text-sm">
+                    <span>Log in</span>
+                    <span
+                        class="bg-primary absolute -bottom-1 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full"></span>
                     </Link>
-                    <Link :href="route('dashboard')" v-else>
-                    <Button variant="outline">Dashboard</Button>
+                    <Link :href="route('dashboard')" v-else
+                        class="text-muted-foreground hover:text-foreground group relative text-xs font-medium transition-colors lg:text-sm">
+                    <span>Dashboard</span>
+                    <span
+                        class="bg-primary absolute -bottom-1 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full"></span>
                     </Link>
                 </div>
             </div>
