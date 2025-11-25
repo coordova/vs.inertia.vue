@@ -74,8 +74,8 @@ const breadcrumbs = [
                                         </div>
                                         <div>
                                             <Badge :variant="survey.status
-                                                    ? 'default'
-                                                    : 'secondary'
+                                                ? 'default'
+                                                : 'secondary'
                                                 " class="ml-2">
                                                 {{
                                                     survey.status
@@ -204,7 +204,9 @@ const breadcrumbs = [
                                     !link.url
                                         ? 'cursor-not-allowed opacity-50'
                                         : '',
-                                ]" :aria-disabled="!link.url" :tabindex="link.url ? 0 : -1" v-html="link.label" />
+                                ]" :aria-disabled="!link.url" :tabindex="link.url ? 0 : -1">
+                            {{ link.label }}
+                            </Link>
                         </nav>
                     </div>
                 </main>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Users, Tag } from 'lucide-vue-next';
-import AppLayout from '@/layouts/AppLayout.vue'; // Asumiendo que usas AppLayout
+import PublicLayout from '@/layouts/PublicLayout.vue'; // Asumiendo que usas AppLayout
 import { CategoryResource, SurveyResource } from '@/types/global'; // Asumiendo interfaces definidas
 
 // --- Tipos ---
@@ -30,10 +30,10 @@ const breadcrumbs = [
 
     <Head title="Facematch Ultramoderno" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <PublicLayout :breadcrumbs="breadcrumbs">
         <div class="min-h-screen bg-background">
             <!-- Hero Section -->
-            <section class="relative bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white py-20">
+            <section class="relative bg-gradient-to-r from-background via-primary to-foreground text-white py-20">
                 <div class="absolute inset-0 bg-black opacity-20"></div> <!-- Overlay oscuro opcional -->
                 <div class="container mx-auto px-4 relative z-10">
                     <div class="max-w-3xl mx-auto text-center">
@@ -67,13 +67,12 @@ const breadcrumbs = [
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <Card v-for="category in props.featuredCategories" :key="category.id"
                             class="h-full flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg">
-                            <div v-if="category.image" class="h-40 w-full overflow-hidden">
-                                <img :src="category.image_url" // Asumiendo que CategoryResource incluye image_url
-                                    :alt="category.name" class="w-full h-full object-cover" />
+                            <!-- <div v-if="category.image" class="h-40 w-full overflow-hidden">
+                                <img :src="category.image" :alt="category.name" class="w-full h-full object-cover" />
                             </div>
                             <div v-else class="h-40 w-full bg-muted flex items-center justify-center">
                                 <Tag class="h-12 w-12 text-muted-foreground" />
-                            </div>
+                            </div> -->
                             <CardHeader>
                                 <CardTitle class="text-xl">{{ category.name }}</CardTitle>
                                 <CardDescription class="line-clamp-2">{{ category.description }}</CardDescription>
@@ -104,13 +103,12 @@ const breadcrumbs = [
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <Card v-for="survey in props.recentSurveys" :key="survey.id"
                             class="h-full flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg">
-                            <div v-if="survey.image" class="h-40 w-full overflow-hidden">
-                                <img :src="survey.image_url" // Asumiendo que SurveyIndexResource incluye image_url
-                                    :alt="survey.title" class="w-full h-full object-cover" />
+                            <!-- <div v-if="survey.image" class="h-40 w-full overflow-hidden">
+                                <img :src="survey.image" :alt="survey.title" class="w-full h-full object-cover" />
                             </div>
                             <div v-else class="h-40 w-full bg-muted flex items-center justify-center">
                                 <Users class="h-12 w-12 text-muted-foreground" />
-                            </div>
+                            </div> -->
                             <CardHeader>
                                 <div class="flex justify-between items-start">
                                     <div>
@@ -132,25 +130,28 @@ const breadcrumbs = [
                                 <div class="flex items-center justify-between text-sm text-muted-foreground">
                                     <div class="flex items-center gap-1">
                                         <Calendar class="h-4 w-4" />
-                                        <span>{{ new Date(survey.date_start_formatted).toLocaleDateString() }} - {{ new
-                                            Date(survey.date_end_formatted).toLocaleDateString() }}</span>
+                                        <span>{{ survey.date_start_formatted }} - {{ survey.date_end_formatted }}</span>
                                     </div>
-                                    <div>
+                                    <div class="flex items-center gap-1">
                                         <!-- Opcional: Mostrar número de personajes o combinaciones -->
-                                        <!-- <span>{{ survey.character_count }} chars</span> -->
+                                        <Users class="h-4 w-4" />
+                                        <span>{{ survey.character_count }} chars</span>
                                     </div>
                                 </div>
                             </CardContent>
                             <CardFooter class="flex flex-col gap-2">
-                                <Link :href="route('public.surveys.show', survey.slug)"> <!-- O survey.id -->
-                                <Button variant="outline" class="w-full">View Details</Button>
-                                </Link>
-                                <Link :href="route('public.surveys.vote', survey.slug)"> <!-- O survey.id -->
-                                <Button class="w-full" :disabled="!survey.is_active">
-                                    <!-- Asumiendo is_active calculado en el backend -->
-                                    Participate
-                                </Button>
-                                </Link>
+                                <Separator class="my-2 w-full" />
+                                <div class="flex justify-between gap-2">
+                                    <Link :href="route('public.surveys.show', survey.slug)"> <!-- O survey.id -->
+                                    <Button variant="outline" class="w-full">View Details</Button>
+                                    </Link>
+                                    <Link :href="route('public.surveys.vote', survey.slug)"> <!-- O survey.id -->
+                                    <Button class="w-full" :disabled="!survey.is_active">
+                                        <!-- Asumiendo is_active calculado en el backend -->
+                                        Participate
+                                    </Button>
+                                    </Link>
+                                </div>
                             </CardFooter>
                         </Card>
                     </div>
@@ -163,7 +164,7 @@ const breadcrumbs = [
             </section>
 
             <!-- CTA Section -->
-            <section class="py-16 bg-indigo-600 text-white">
+            <section class="py-16 bg-foreground text-white">
                 <div class="container mx-auto px-4 text-center">
                     <h2 class="text-3xl font-bold mb-4">Ready to Start Voting?</h2>
                     <p class="text-xl mb-8 max-w-2xl mx-auto">
@@ -183,7 +184,7 @@ const breadcrumbs = [
                 </div>
             </section>
         </div>
-    </AppLayout>
+    </PublicLayout>
 </template>
 
 <style scoped>
