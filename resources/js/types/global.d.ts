@@ -72,6 +72,7 @@ export interface CategoryResource { // Renombrado para claridad
     created_at_formatted: string; // O created_at si se formatea en el frontend
     updated_at_formatted: string; // O updated_at si se formatea en el frontend
     // Añadir otros campos devueltos por CategoryResource
+    surveys_count: number;
 }
 
 export interface CategoriesData { // Para la colección paginada
