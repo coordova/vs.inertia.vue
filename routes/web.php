@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\SurveyController as ApiPublicSurveyController;
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\PublicCharacterController;
 use App\Http\Controllers\PublicController; // Controlador para procesar votos
+use App\Http\Controllers\PublicStatisticsController; // Controlador para estadísticas públicas
 use App\Http\Controllers\PublicSurveyController; // Controlador para API pública
 // Rutas de administración
 use App\Http\Controllers\SurveyVoteController;
@@ -55,6 +56,11 @@ Route::middleware(['auth'])->group(function () {
 
         // Vista de ranking de una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/ranking', [PublicSurveyController::class, 'ranking'])->name('surveys.ranking');   // <-- Asegúrate de que RankingController existe
+
+        // Rutas para Estadísticas Públicas
+        // Vista de ranking por categoría
+        Route::get('/statistics/categories/{category}/rankings', [PublicStatisticsController::class, 'categoryRankings'])
+             ->name('statistics.category.rankings');
 
         // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Vote - utilizando axios
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');

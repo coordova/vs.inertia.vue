@@ -9,7 +9,7 @@ use App\Http\Resources\CharacterResource; // O CharacterIndexResource
 use App\Models\Survey;
 use App\Models\Category;
 use App\Models\Character;
-// use App\Services\Ranking\RankingService; // Asumiendo que ya tienes este servicio o lo crearemos
+use App\Services\Ranking\RankingService; // Asumiendo que ya tienes este servicio o lo crearemos
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,7 +28,7 @@ class PublicStatisticsController extends Controller
      * @param RankingService $rankingService Servicio para cálculos de ranking.
      */
     public function __construct(
-        // protected RankingService $rankingService, // <-- Inyectar si se usa RankingService
+        protected RankingService $rankingService, // <-- Inyectar si se usa RankingService
     ) {
         // Aplicar middleware de autenticación si es necesario para todas las acciones
         // $this->middleware('auth'); // Si se requiere login para ver estadísticas
@@ -108,11 +108,42 @@ class PublicStatisticsController extends Controller
     /**
      * Muestra el ranking de personajes para una categoría específica.
      *
-     * @param Category $category Categoría específica.
+     * @param Category $category La categoría para la cual mostrar rankings.
      * @param Request $request
      * @return Response
      */
     public function categoryRankings(Category $category, Request $request): Response
+    {
+        // Verificar si la categoría está activa
+        if (!$category->status) {
+            abort(404, 'Category not found or not active.');
+        }
+
+        // Cargar la categoría con datos básicos si no están ya cargados
+        $category->loadMissing(['characters']); // Cargar personajes si es necesario para otros fines (aunque no para el ranking directo)
+
+        // --- Cargar Rankings ---
+        // El servicio RankingService se encargará de obtener los datos de la base de datos
+        // y calcular el ranking basado en el ELO o métrica elegida.
+        // Asumiendo que el servicio puede recibir la categoría y aplicar filtros/paginación si es necesario.
+        $rankingData = $this->rankingService->getCategoryRanking($category, $request->all());
+
+        // --- Renderizar la vista Inertia ---
+        return Inertia::render('Public/Statistics/CategoryRankings', [
+            'category' => new CategoryResource($category), // Pasar datos de la categoría
+            'ranking' => $rankingData, // Pasar los datos del ranking (colección o paginada)
+            'filters' => $request->only(['search', 'sort', 'per_page', 'page']), // Opcional: pasar filtros para UI
+        ]);
+    }
+
+    /**
+     * Muestra el ranking de personajes para una categoría específica.
+     *
+     * @param Category $category Categoría específica.
+     * @param Request $request
+     * @return Response
+     */
+    public function categoryRankings_wo_ranking_service(Category $category, Request $request): Response
     {
         // Verificar si la categoría está activa
         if (!$category->status) {

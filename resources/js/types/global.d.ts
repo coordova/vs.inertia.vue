@@ -270,7 +270,52 @@ export interface CombinatoricResource {
     character2: CharacterResource;
     // Añadir otros campos si son necesarios
 }
+/*--------------------------------------------------------------------------*/
+// --- Interfaces para Rankings ---
+// Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
+// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character'
+export interface CategoryCharacterResource {
+    // Campos de la tabla pivote 'category_character'
+    category_id: number;
+    character_id: number;
+    elo_rating: number;
+    matches_played: number;
+    wins: number;
+    losses: number;
+    ties: number; // <-- Nuevo campo
+    win_rate: number; // Porcentaje
+    highest_rating: number;
+    lowest_rating: number;
+    rating_deviation: number; // Si se usa Glicko
+    last_match_at: string | null; // Formato ISO
+    is_featured: boolean;
+    sort_order: number;
+    status: boolean;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
 
+    // Relación con el modelo 'Character'
+    character: CharacterResource; // Incluye fullname, picture_url, etc.
+
+    // Campo calculado: posición en el ranking (añadido por el servicio RankingService o calculado en el frontend)
+    position?: number; // <-- Campo opcional calculado
+}
+
+// Interfaz para la respuesta paginada de rankings
+export interface CategoryRankingData {
+    data: CategoryCharacterResource[]; // Array de entradas de ranking
+    meta: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        path: string;
+        per_page: number;
+        to: number;
+        total: number;
+    };
+    links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
+}
+/*--------------------------------------------------------------------------*/
 // Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
 // export interface SurveyResource { ... }
 // export interface CharacterResource { ... }
