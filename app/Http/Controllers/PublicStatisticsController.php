@@ -179,12 +179,94 @@ class PublicStatisticsController extends Controller
     }
 
     /**
+     * Muestra los resultados y ranking final (o actual) de una encuesta específica.
+     * Calcula el ranking basado en las estadísticas de la tabla character_survey.
+     *
+     * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
+     * @return Response
+     */
+    public function surveyResults(Survey $survey): Response
+    {
+        // Verificar si la encuesta está activa o ha finalizado (opcionalmente, solo mostrar resultados si ha finalizado)
+        // if (!$this->isSurveyActive($survey) && $survey->date_end >= now()) {
+        //    abort(404, 'Survey not found or not active yet.');
+        // }
+
+        // Verificar si la encuesta está activa o ha finalizado
+        if (!$survey->status || ($survey->date_start > now() || $survey->date_end < now())) {
+            // Permitir ver resultados incluso si la encuesta ya no está activa (ha finalizado)
+            // Opcional: Mostrar un mensaje diferente si está activa o inactiva
+        }
+
+        // Cargar datos de la encuesta
+        $survey->loadMissing(['category']); // Cargar categoría si no está cargada
+
+        // --- OPCIÓN A: Calcular ranking desde character_survey ---
+        // Este enfoque asume que character_survey se actualiza correctamente con cada voto
+        // y que esos datos representan el estado actual/resumen de la encuesta para cada personaje.
+        // Es más directo si la lógica de actualización en character_survey está bien implementada.
+        $surveyRanking = CharacterSurvey::where('survey_id', $survey->id)
+                                        ->with(['character:id,fullname,nickname,picture']) // Cargar datos básicos del personaje
+                                        ->where('is_active', true) // Solo personajes activos en la encuesta
+                                        ->orderBy('survey_wins', 'desc') // Ordenar por wins
+                                        ->orderBy('survey_ties', 'desc') // Luego por ties
+                                        ->orderBy('survey_losses', 'asc') // Luego por losses (menos pérdidas es mejor)
+                                        ->orderBy('survey_matches', 'desc') // Empates por matches jugados
+                                        ->get(); // <-- Carga la colección
+
+        // Calcular posición manualmente basado en el orden
+        $position = 1;
+        $previousWins = null;
+        $previousTies = null;
+        $previousLosses = null;
+        $previousMatches = null;
+
+        $rankingWithPositions = $surveyRanking->map(function ($characterSurveyPivot) use (&$position, &$previousWins, &$previousTies, &$previousLosses, &$previousMatches) {
+            $currentWins = $characterSurveyPivot->pivot->survey_wins;
+            $currentTies = $characterSurveyPivot->pivot->survey_ties;
+            $currentLosses = $characterSurveyPivot->pivot->survey_losses;
+            $currentMatches = $characterSurveyPivot->pivot->survey_matches;
+
+            // Verificar si hay empate con el personaje anterior (misma cantidad de wins, ties, losses, matches)
+            if ($previousWins === $currentWins && $previousTies === $currentTies && $previousLosses === $currentLosses && $previousMatches === $currentMatches) {
+                // Mantener la misma posición (empate técnico)
+                $characterSurveyPivot->pivot->setAttribute('survey_position', $position - 1); // La posición no cambia
+            } else {
+                // Actualizar la posición
+                $characterSurveyPivot->pivot->setAttribute('survey_position', $position);
+                // Actualizar valores anteriores
+                $previousWins = $currentWins;
+                $previousTies = $currentTies;
+                $previousLosses = $currentLosses;
+                $previousMatches = $currentMatches;
+            }
+
+            $position++;
+            return $characterSurveyPivot;
+        });
+
+        // --- OPCIÓN B (Alternativa): Usar RankingService para ranking final de encuesta ---
+        // Si se implementa un servicio dedicado que calcula el ranking de la encuesta basado en votos
+        // o en una tabla intermedia como `rank_positions` (como se ve en codebase4ask2ai.txt),
+        // se usaría aquí.
+        // $surveyRanking = $this->rankingService->getSurveyFinalRanking($survey);
+        // En este caso, RankingService devolvería una colección de objetos con la posición ya calculada y el personaje relacionado.
+
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/SurveyResults', [
+            'survey' => SurveyResource::make($survey)->resolve(), // <-- Resolver el recurso de la encuesta
+            'ranking' => CharacterSurveyResource::collection($rankingWithPositions)->resolve(), // <-- Resolver la colección de ranking
+            // Puedes pasar otros datos auxiliares si es necesario (estadísticas generales de la encuesta)
+        ]);
+    }
+
+    /**
      * Muestra los resultados y ranking de una encuesta específica.
      *
      * @param Survey $survey Encuesta específica.
      * @return Response
      */
-    public function surveyResults(Survey $survey): Response
+    public function surveyResults_wo_(Survey $survey): Response
     {
         // Verificar si la encuesta está activa o ha finalizado
         if (!$survey->status || ($survey->date_end < now() && $survey->date_start > now())) {
