@@ -43,7 +43,7 @@ const perPage = ref(parseInt(props.filters?.per_page || '50'));
 // Calcula la posición inicial de los resultados mostrados en la página actual
 // (Ya no es necesario si el servicio lo calcula y lo incluye en el objeto CategoryCharacter)
 // const startingPosition = computed(() => {
-//     return (props.ranking.meta.current_page - 1) * props.ranking.meta.per_page + 1;
+//     return (props.ranking.current_page - 1) * props.ranking.per_page + 1;
 // });
 
 // --- Funciones ---
@@ -161,8 +161,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <div class="overflow-x-auto rounded-lg border">
                             <Table>
                                 <TableCaption>
-                                    Showing {{ props.ranking.meta.from }} to {{ props.ranking.meta.to }} of {{
-                                        props.ranking.meta.total }} characters.
+                                    Showing {{ props.ranking.from }} to {{ props.ranking.to }} of {{
+                                        props.ranking.total }} characters.
                                 </TableCaption>
                                 <TableHeader>
                                     <TableRow>
@@ -190,8 +190,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                                         <TableCell>
                                             <div class="flex items-center gap-3">
-                                                <img v-if="characterRating.character.picture_url"
-                                                    :src="characterRating.character.picture_url"
+                                                <img v-if="characterRating.character.picture"
+                                                    :src="'/storage/' + characterRating.character.picture"
                                                     :alt="characterRating.character.fullname"
                                                     class="h-10 w-10 rounded-full object-cover" />
                                                 <div v-else
@@ -213,7 +213,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableCell>{{ characterRating.wins }}</TableCell>
                                         <TableCell>{{ characterRating.losses }}</TableCell>
                                         <TableCell>{{ characterRating.ties }}</TableCell> <!-- Mostrar ties -->
-                                        <TableCell>{{ characterRating.win_rate ? characterRating.win_rate.toFixed(2) +
+                                        <TableCell>{{ characterRating.win_rate ?
+                                            parseFloat(characterRating.win_rate).toFixed(2) +
                                             '%' : '0.00%' }}</TableCell>
                                         <TableCell>{{ characterRating.last_match_at ? new
                                             Date(characterRating.last_match_at).toLocaleDateString() : 'Never' }}
@@ -225,16 +226,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                         <!-- Paginación -->
                         <div v-if="props.ranking.links.length > 2" class="mt-6 flex items-center justify-between">
-                            <Button variant="outline" :disabled="props.ranking.meta.current_page <= 1"
-                                @click="goToPage(props.ranking.meta.current_page - 1)">
+                            <Button variant="outline" :disabled="props.ranking.current_page <= 1"
+                                @click="goToPage(props.ranking.current_page - 1)">
                                 Previous
                             </Button>
                             <div class="text-sm text-muted-foreground">
-                                Page {{ props.ranking.meta.current_page }} of {{ props.ranking.meta.last_page }}
+                                Page {{ props.ranking.current_page }} of {{ props.ranking.last_page }}
                             </div>
-                            <Button variant="outline"
-                                :disabled="props.ranking.meta.current_page >= props.ranking.meta.last_page"
-                                @click="goToPage(props.ranking.meta.current_page + 1)">
+                            <Button variant="outline" :disabled="props.ranking.current_page >= props.ranking.last_page"
+                                @click="goToPage(props.ranking.current_page + 1)">
                                 Next
                             </Button>
                         </div>

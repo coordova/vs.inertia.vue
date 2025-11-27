@@ -276,8 +276,8 @@ export interface CombinatoricResource {
 // Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character'
 // --- Interfaces para Rankings ---
 // Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
-// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character'
-// Asumiendo que CategoryCharacterResource extiende de un modelo o se construye manualmente para incluir 'character'
+// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character' (resuelta como objeto plano)
+// Asumiendo que el objeto que llega es la serialización directa de CategoryCharacter::with('character')->first()
 export interface CategoryCharacterRankingResource {
     // Campos de la tabla pivote 'category_character'
     category_id: number;
@@ -286,8 +286,8 @@ export interface CategoryCharacterRankingResource {
     matches_played: number;
     wins: number;
     losses: number;
-    ties: number; // <-- Asumiendo que el servicio lo incluye
-    win_rate: number; // Porcentaje
+    ties: number; // Nueva columna
+    win_rate: number | float; // Porcentaje
     highest_rating: number;
     lowest_rating: number;
     rating_deviation: number; // Si se usa Glicko
@@ -299,26 +299,50 @@ export interface CategoryCharacterRankingResource {
     updated_at: string; // Formato ISO
     // deleted_at: string | null; // Si se maneja soft delete y se envía
 
-    // Relación con el modelo 'Character' (cargada en el servicio)
-    character: CharacterResource; // Incluye fullname, picture_url, etc.
+    // Relación con el modelo 'Character' (cargada como objeto plano, no como CharacterResource)
+    // Asumiendo que el objeto 'character' contiene los campos devueltos por el modelo Character o su toArray si se usa
+    character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        slug: string;
+        bio: string | null;
+        dob: string | null; // Formato ISO
+        gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+        nationality: string | null;
+        occupation: string | null;
+        picture: string | null; // Ruta relativa, como se define en el modelo
+        status: boolean;
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        // deleted_at: string | null; // Si se maneja soft delete
+    };
 
     // Campo calculado: posición en el ranking (añadido por el servicio RankingService)
-    position?: number; // <-- Campo calculado en el servicio
+    position?: number; // Campo opcional calculado
 }
 
-// Interfaz para la respuesta paginada de rankings (como la devuelve Inertia de una colección paginada)
+// --- CORRECCIÓN: Interfaz para la respuesta paginada de rankings ---
+// La estructura que Inertia devuelve para un objeto Paginator de Laravel es un objeto plano
+// con los campos de paginación en el nivel raíz, NO anidados en 'meta'.
 export interface CategoryRankingData {
     data: CategoryCharacterRankingResource[]; // Array de entradas de ranking
-    meta: {
-        current_page: number;
-        from: number;
-        last_page: number;
-        path: string;
-        per_page: number;
-        to: number;
-        total: number;
-    };
+    // Campos de paginación en el nivel raíz (como los devuelve Inertia de un Paginator)
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+    first_page_url: string | null;
+    last_page_url: string | null;
+    next_page_url: string | null;
+    prev_page_url: string | null;
     links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
+    // No hay propiedad 'meta'
 }
 /*--------------------------------------------------------------------------*/
 // Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
