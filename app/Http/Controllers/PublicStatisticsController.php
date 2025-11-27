@@ -120,7 +120,7 @@ class PublicStatisticsController extends Controller
         }
 
         // Cargar la categoría con datos básicos si no están ya cargados
-        $category->loadMissing(['characters']); // Cargar personajes si es necesario para otros fines (aunque no para el ranking directo)
+        // $category->loadMissing(['characters']); // Cargar personajes si es necesario para otros fines (aunque no para el ranking directo)
 
         // --- Cargar Rankings ---
         // El servicio RankingService se encargará de obtener los datos de la base de datos
@@ -130,9 +130,9 @@ class PublicStatisticsController extends Controller
 
         // --- Renderizar la vista Inertia ---
         return Inertia::render('Public/Statistics/CategoryRankings', [
-            'category' => new CategoryResource($category), // Pasar datos de la categoría
-            'ranking' => $rankingData, // Pasar los datos del ranking (colección o paginada)
-            'filters' => $request->only(['search', 'sort', 'per_page', 'page']), // Opcional: pasar filtros para UI
+            'category' => CategoryResource::make($category)->resolve(), // <-- Resolver el recurso de la categoría
+            'ranking' => $rankingData, // <-- Pasar el objeto Paginator directamente
+            'filters' => $request->only(['search', 'sort', 'direction', 'per_page', 'page']), // Pasar filtros aplicados
         ]);
     }
 

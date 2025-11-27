@@ -4,34 +4,30 @@ import { onMounted, ref, watch } from 'vue';
 import { useToast } from '@/composables/useToast';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CategoryResource, CategoryCharacterResource } from '@/types/global'; // Asumiendo interfaces
+// Importar recursos de shadcn-vue
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // <-- Añadir Select
 import { debounce } from 'lodash';
-import { Search } from 'lucide-vue-next';
+import { Search } from 'lucide-vue-next'; // <-- Añadir Search icon
 
+// Importar tipos
+import { CategoryResource, CategoryRankingData } from '@/types/global'; // <-- Importar las interfaces correctas
+
+// --- Props ---
 interface Props {
     category: CategoryResource; // Datos de la categoría
-    ranking: { // Tipo para la colección paginada resuelta
-        data: CategoryCharacterResource[]; // Array de objetos con character, elo_rating, etc.
-        meta: {
-            current_page: number;
-            from: number;
-            last_page: number;
-            path: string;
-            per_page: number;
-            to: number;
-            total: number;
-        };
-        links: { url: string | null; label: string; active: boolean }[];
-    };
+    ranking: CategoryRankingData; // Ranking paginado (con data, meta, links)
     filters?: Record<string, any>; // Filtros aplicados (search, sort, per_page, page)
 }
 
 const props = defineProps<Props>();
+
+console.log(props);
 
 // --- Composables ---
 const { success, error } = useToast();
@@ -40,12 +36,15 @@ const { success, error } = useToast();
 const search = ref(props.filters?.search || '');
 const page = ref(props.filters?.page || 1);
 const perPage = ref(parseInt(props.filters?.per_page || '50'));
+// const sort = ref(props.filters?.sort || 'elo_rating'); // Opcional: manejar sort localmente si se desea
+// const direction = ref(props.filters?.direction || 'desc'); // Opcional: manejar direction localmente
 
 // --- Computed Properties ---
 // Calcula la posición inicial de los resultados mostrados en la página actual
-const startingPosition = computed(() => {
-    return (props.ranking.meta.current_page - 1) * props.ranking.meta.per_page + 1;
-});
+// (Ya no es necesario si el servicio lo calcula y lo incluye en el objeto CategoryCharacter)
+// const startingPosition = computed(() => {
+//     return (props.ranking.meta.current_page - 1) * props.ranking.meta.per_page + 1;
+// });
 
 // --- Funciones ---
 
@@ -55,11 +54,12 @@ const startingPosition = computed(() => {
  */
 const goToPage = (pageNum: number) => {
     router.get(
-        route('public.statistics.category.rankings', props.category.id), // Asumiendo nombre de ruta
+        route('public.statistics.category.rankings', props.category.id),
         {
             page: pageNum,
             search: search.value, // Mantener búsqueda
-            sort: props.filters?.sort, // Mantener orden
+            sort: props.filters?.sort, // Mantener ordenamiento
+            direction: props.filters?.direction, // Mantener dirección
             per_page: perPage.value, // Mantener paginación
         },
         { preserveState: true, preserveScroll: true }
@@ -172,7 +172,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableHead>Matches</TableHead>
                                         <TableHead>Wins</TableHead>
                                         <TableHead>Losses</TableHead>
-                                        <TableHead>Ties</TableHead>
+                                        <TableHead>Ties</TableHead> <!-- Nueva columna -->
                                         <TableHead>Win Rate</TableHead>
                                         <TableHead>Last Match</TableHead>
                                     </TableRow>
@@ -185,9 +185,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     </TableRow>
                                     <TableRow v-else v-for="(characterRating, index) in props.ranking.data"
                                         :key="characterRating.character_id">
-                                        <!-- Posición (calcularla en el frontend si no se pasa desde el backend) -->
-                                        <!-- <TableCell>{{ startingPosition + index }}</TableCell> -->
-                                        <!-- O usar la posición si se pasa desde el backend (como se hace en RankingService) -->
+                                        <!-- Acceder a la posición calculada por el servicio -->
                                         <TableCell class="font-medium">{{ characterRating.position }}</TableCell>
 
                                         <TableCell>
@@ -214,7 +212,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableCell>{{ characterRating.matches_played }}</TableCell>
                                         <TableCell>{{ characterRating.wins }}</TableCell>
                                         <TableCell>{{ characterRating.losses }}</TableCell>
-                                        <TableCell>{{ characterRating.ties }}</TableCell> <!-- Nueva columna -->
+                                        <TableCell>{{ characterRating.ties }}</TableCell> <!-- Mostrar ties -->
                                         <TableCell>{{ characterRating.win_rate ? characterRating.win_rate.toFixed(2) +
                                             '%' : '0.00%' }}</TableCell>
                                         <TableCell>{{ characterRating.last_match_at ? new

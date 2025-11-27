@@ -274,7 +274,11 @@ export interface CombinatoricResource {
 // --- Interfaces para Rankings ---
 // Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
 // Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character'
-export interface CategoryCharacterResource {
+// --- Interfaces para Rankings ---
+// Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
+// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character'
+// Asumiendo que CategoryCharacterResource extiende de un modelo o se construye manualmente para incluir 'character'
+export interface CategoryCharacterRankingResource {
     // Campos de la tabla pivote 'category_character'
     category_id: number;
     character_id: number;
@@ -282,7 +286,7 @@ export interface CategoryCharacterResource {
     matches_played: number;
     wins: number;
     losses: number;
-    ties: number; // <-- Nuevo campo
+    ties: number; // <-- Asumiendo que el servicio lo incluye
     win_rate: number; // Porcentaje
     highest_rating: number;
     lowest_rating: number;
@@ -293,17 +297,18 @@ export interface CategoryCharacterResource {
     status: boolean;
     created_at: string; // Formato ISO
     updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete y se envía
 
-    // Relación con el modelo 'Character'
+    // Relación con el modelo 'Character' (cargada en el servicio)
     character: CharacterResource; // Incluye fullname, picture_url, etc.
 
-    // Campo calculado: posición en el ranking (añadido por el servicio RankingService o calculado en el frontend)
-    position?: number; // <-- Campo opcional calculado
+    // Campo calculado: posición en el ranking (añadido por el servicio RankingService)
+    position?: number; // <-- Campo calculado en el servicio
 }
 
-// Interfaz para la respuesta paginada de rankings
+// Interfaz para la respuesta paginada de rankings (como la devuelve Inertia de una colección paginada)
 export interface CategoryRankingData {
-    data: CategoryCharacterResource[]; // Array de entradas de ranking
+    data: CategoryCharacterRankingResource[]; // Array de entradas de ranking
     meta: {
         current_page: number;
         from: number;

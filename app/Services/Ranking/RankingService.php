@@ -28,7 +28,7 @@ class RankingService
     public function getCategoryRanking(Category $category, array $filters = [])
     {
         $query = CategoryCharacter::where('category_id', $category->id)
-                                 ->with(['character:id,fullname,nickname,picture']) // Cargar datos básicos del personaje
+                                 ->with(['character:id,fullname,nickname,picture,slug']) // Cargar datos básicos del personaje
                                  ->where('status', true); // Solo personajes activos en la categoría
 
         // --- Aplicar Filtros Opcionales ---
@@ -80,9 +80,10 @@ class RankingService
 
         // Volver a colocar la colección modificada en el objeto Paginator
         $paginatedRanking->setCollection($rankingWithPositions);
-        dd($paginatedRanking);
 
-        return $rankingWithPositions; // Devolver la colección paginada con posiciones
+        // Devolver el objeto Paginator *con* la colección modificada
+        // Inertia lo entenderá y lo serializará como { data: [...], meta: {...}, links: [...] }
+        return $paginatedRanking; // <-- Devolver el objeto Paginator
     }
 
     /**
