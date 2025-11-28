@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
         // Vista de ranking de una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/ranking', [PublicSurveyController::class, 'ranking'])->name('surveys.ranking');   // <-- Asegúrate de que RankingController existe
 
+        /*------------------------------------*/
         // Rutas para Estadísticas Públicas
         // Vista de ranking por categoría
         Route::get('/statistics/categories/{category}/rankings', [PublicStatisticsController::class, 'categoryRankings'])
@@ -65,6 +66,11 @@ Route::middleware(['auth'])->group(function () {
         // Vista de resultados de una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/results', [PublicStatisticsController::class, 'surveyResults'])
              ->name('surveys.results');
+
+        // Vista de estadísticas de un personaje (requiere autenticación)
+        Route::get('/characters/{character}/stats', [PublicStatisticsController::class, 'characterStats'])->name('public.characters.stats');
+
+        /*------------------------------------*/
 
         // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Vote - utilizando axios
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
