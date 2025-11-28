@@ -362,9 +362,28 @@ export interface CharacterSurveyRankingResource {
     // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
     survey_position: number; // <-- Campo calculado y añadido por RankingService
 
+    // Campos del rating ELO en la categoría de la encuesta (desde category_character)
+    elo_rating_in_category: number; // <-- Campo del rating ELO
+    matches_played_in_category: number; // Opcional
+    wins_in_category: number;         // Opcional
+    losses_in_category: number;       // Opcional
+    ties_in_category: number;         // Opcional
+    win_rate_in_category: number;     // Opcional
+
+    // Relación con el modelo 'Character' (datos del personaje, incluyendo picture_url)
+    character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        picture: string | null; // Ruta relativa
+        picture_url: string | null; // URL generada por Storage::url
+        slug: string;
+        // Añadir otros campos necesarios del personaje si se usan en la UI
+    };
+
     // Relación con el modelo 'Character' (cargada como objeto plano o CharacterResource)
     // Asumiendo que CharacterSurveyResource incluye 'character' como un objeto con campos específicos
-    character: {
+    /* character: {
         id: number;
         fullname: string;
         nickname: string | null;
@@ -382,7 +401,7 @@ export interface CharacterSurveyRankingResource {
         created_at: string; // Formato ISO
         updated_at: string; // Formato ISO
         // deleted_at: string | null; // Si se maneja
-    };
+    }; */
     // character: CharacterResource; // Incluye fullname, picture_url, etc.
 }
 
