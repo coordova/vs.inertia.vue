@@ -174,20 +174,20 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             <TableCell class="font-medium">{{ rankItem.survey_position }}</TableCell>
                                             <TableCell>
                                                 <div class="flex items-center gap-3">
-                                                    <img v-if="rankItem.character.data.picture_url"
-                                                        :src="rankItem.character.data.picture_url"
-                                                        :alt="rankItem.character.data.fullname"
+                                                    <img v-if="rankItem.character.picture_url"
+                                                        :src="rankItem.character.picture_url"
+                                                        :alt="rankItem.character.fullname"
                                                         class="h-10 w-10 rounded-full object-cover" />
                                                     <div v-else
                                                         class="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
                                                         <span class="text-muted-foreground text-xs">N/A</span>
                                                     </div>
                                                     <div>
-                                                        <div class="font-medium">{{ rankItem.character.data.fullname }}
+                                                        <div class="font-medium">{{ rankItem.character.fullname }}
                                                         </div>
-                                                        <div v-if="rankItem.character.data.nickname"
+                                                        <div v-if="rankItem.character.nickname"
                                                             class="text-sm text-muted-foreground">{{
-                                                                rankItem.character.data.nickname }}</div>
+                                                                rankItem.character.nickname }}</div>
                                                     </div>
                                                 </div>
                                             </TableCell>

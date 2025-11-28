@@ -200,7 +200,7 @@ class RankingService
         // Volver a colocar la colección modificada en el objeto Paginator
         $paginatedRanking->setCollection($rankingWithPositions);
 
-        dd($paginatedRanking);
+        // dd($paginatedRanking);
 
         // Devolver el objeto Paginator *con* la colección modificada que incluye la posición
         // Inertia lo entenderá y lo serializará como {  [...], meta: {...}, links: [...] }
