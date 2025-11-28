@@ -11,6 +11,8 @@ use App\Models\Survey;
 use App\Models\Category;
 use App\Models\Character;
 use App\Models\CharacterSurvey; // <-- Importar el modelo pivote character_survey
+use App\Services\Survey\SurveyProgressService; // Asegúrate de importar SurveyProgressService
+use App\Services\Survey\CombinatoricService; // Asegúrate de importar CombinatoricService
 use App\Services\Ranking\RankingService; // Asumiendo que ya tienes este servicio o lo crearemos
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -30,7 +32,9 @@ class PublicStatisticsController extends Controller
      * @param RankingService $rankingService Servicio para cálculos de ranking.
      */
     public function __construct(
-        protected RankingService $rankingService, // <-- Inyectar si se usa RankingService
+        protected SurveyProgressService $surveyProgressService,
+        protected CombinatoricService $combinatoricService,
+        protected RankingService $rankingService, // <-- Inyectar RankingService
     ) {
         // Aplicar middleware de autenticación si es necesario para todas las acciones
         // $this->middleware('auth'); // Si se requiere login para ver estadísticas
@@ -139,6 +143,38 @@ class PublicStatisticsController extends Controller
     }
 
     /**
+     * Muestra los resultados y ranking final (o actual) de una encuesta específica.
+     * Calcula el ranking basado en las estadísticas de la tabla character_survey.
+     *
+     * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
+     * @return Response
+     */
+    public function surveyResults(Survey $survey): Response
+    {
+        // Verificar si la encuesta está activa o ha finalizado
+        // Permitir ver resultados incluso si la encuesta ya no está activa (ha finalizado)
+        // if (!$this->isSurveyActive($survey)) {
+        //    abort(404, 'Survey not found or not active.');
+        // }
+
+        // Cargar datos de la encuesta
+        $survey->loadMissing(['category']); // Cargar categoría si no está cargada
+
+        // --- OPCIÓN B (CORRECTA): Usar RankingService para ranking de encuesta ---
+        // Cargar el ranking de la encuesta específica usando el servicio dedicado
+        // Se puede pasar $request->all() si el servicio maneja filtros/paginación
+        $surveyRanking = $this->rankingService->getSurveyRanking($survey, request()->only(['search', 'sort', 'direction', 'per_page'])); // <-- Usar el servicio
+
+        // dd(CharacterSurveyResource::collection($surveyRanking)->resolve());
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/SurveyResults', [
+            'survey' => SurveyResource::make($survey)->resolve(), // <-- Resolver el recurso de la encuesta
+            'ranking' => CharacterSurveyResource::collection($surveyRanking)->resolve(), // <-- Resolver la colección paginada de ranking
+            // 'filters' => $request->only(['search', 'sort', 'direction', 'per_page']), // Opcional: pasar filtros para UI
+        ]);
+    }
+
+    /**
      * Muestra el ranking de personajes para una categoría específica.
      *
      * @param Category $category Categoría específica.
@@ -187,7 +223,7 @@ class PublicStatisticsController extends Controller
      * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
      * @return Response
      */
-    public function surveyResults(Survey $survey): Response
+    public function surveyResults_wo_ranking_service(Survey $survey): Response
     {
         // Verificar si la encuesta está activa o ha finalizado (opcionalmente, solo mostrar resultados si ha finalizado)
         // if (!$this->isSurveyActive($survey) && $survey->date_end >= now()) {

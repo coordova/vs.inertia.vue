@@ -273,9 +273,6 @@ export interface CombinatoricResource {
 /*--------------------------------------------------------------------------*/
 // --- Interfaces para Rankings ---
 // Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
-// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character'
-// --- Interfaces para Rankings ---
-// Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
 // Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character' (resuelta como objeto plano)
 // Asumiendo que el objeto que llega es la serialización directa de CategoryCharacter::with('character')->first()
 export interface CategoryCharacterRankingResource {
@@ -346,7 +343,8 @@ export interface CategoryRankingData {
 }
 
 // Interfaz para un registro de ranking de personaje en una encuesta específica (fila de la tabla)
-// Esta interfaz representa un objeto de la tabla pivote 'character_survey' + la relación 'character'
+// Esta interfaz representa un objeto de la tabla pivote 'character_survey' + la relación 'character'(resuelta como objeto plano)
+// Incluye la posición calculada por el servicio RankingService
 export interface CharacterSurveyRankingResource {
     // Campos de la tabla pivote 'character_survey'
     character_id: number;
@@ -359,21 +357,58 @@ export interface CharacterSurveyRankingResource {
     sort_order: number;
     pivot_created_at: string; // Formato ISO
     pivot_updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete y se envía
 
-    // Campo calculado: posición en el ranking de la encuesta (añadido por el controlador)
-    survey_position?: number;
+    // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
+    survey_position: number; // <-- Campo calculado y añadido por RankingService
 
     // Relación con el modelo 'Character' (cargada como objeto plano o CharacterResource)
-    character: CharacterResource; // Incluye fullname, picture_url, etc.
+    // Asumiendo que CharacterSurveyResource incluye 'character' como un objeto con campos específicos
+    character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        slug: string;
+        bio: string | null;
+        dob: string | null; // Formato ISO
+        gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+        nationality: string | null;
+        occupation: string | null;
+        picture: string | null; // Ruta relativa
+        picture_url: string | null; // URL generada por Storage::url (si se incluye en CharacterSurveyResource)
+        status: boolean;
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        // deleted_at: string | null; // Si se maneja
+    };
+    // character: CharacterResource; // Incluye fullname, picture_url, etc.
+}
+
+// Interfaz para la respuesta paginada de rankings de encuesta
+// La estructura que Inertia devuelve para una colección paginada de CharacterSurveyResource
+export interface SurveyResultsData {
+    data: CharacterSurveyRankingResource[]; // Array de entradas de ranking
+    meta: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        path: string;
+        per_page: number;
+        to: number;
+        total: number;
+    };
+    links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
 }
 
 // Interfaz para la respuesta de resultados de encuesta
-export interface SurveyResultsData {
+/* export interface SurveyResultsData {
     survey: SurveyResource; // Datos de la encuesta
     ranking: CharacterSurveyRankingResource[]; // Ranking de personajes en la encuesta
     // Puedes añadir otras estadísticas generales de la encuesta aquí si se pasan
     // general_stats?: { total_votes: number, total_participants: number, ... }
-}
+} */
 /*--------------------------------------------------------------------------*/
 // Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
 // export interface SurveyResource { ... }

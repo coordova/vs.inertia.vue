@@ -227,7 +227,7 @@ function openModal(character: CharacterResource) {
                                     <!-- Opcional: Botón para ver ranking si está disponible -->
                                     <Button asChild variant="outline" class="w-full">
                                         <Link :href="route(
-                                            'public.surveys.ranking',
+                                            'public.surveys.results',
                                             survey.id,
                                         )
                                             ">
@@ -243,7 +243,7 @@ function openModal(character: CharacterResource) {
                                 <CardHeader>
                                     <CardTitle>Participants ({{
                                         props.characters.length
-                                    }})</CardTitle>
+                                        }})</CardTitle>
                                     <CardDescription>
                                         Characters competing in this survey.
                                     </CardDescription>
