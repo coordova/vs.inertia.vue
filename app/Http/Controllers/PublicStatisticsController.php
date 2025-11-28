@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SurveyResource; // O SurveyIndexResource si se usa para listados
 use App\Http\Resources\CategoryResource; // O CategoryIndexResource
 use App\Http\Resources\CharacterResource; // O CharacterIndexResource
+use App\Http\Resources\CharacterSurveyResource; // <-- Importar el resource CharacterSurveyResource
 use App\Models\Survey;
 use App\Models\Category;
 use App\Models\Character;
+use App\Models\CharacterSurvey; // <-- Importar el modelo pivote character_survey
 use App\Services\Ranking\RankingService; // Asumiendo que ya tienes este servicio o lo crearemos
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -206,15 +208,13 @@ class PublicStatisticsController extends Controller
         // y que esos datos representan el estado actual/resumen de la encuesta para cada personaje.
         // Es más directo si la lógica de actualización en character_survey está bien implementada.
         $surveyRanking = CharacterSurvey::where('survey_id', $survey->id)
-                                        ->with(['character:id,fullname,nickname,picture']) // Cargar datos básicos del personaje
+                                        ->with(['character:id,fullname,nickname,picture']) // Cargar datos del personaje relacionado
                                         ->where('is_active', true) // Solo personajes activos en la encuesta
-                                        ->orderBy('survey_wins', 'desc') // Ordenar por wins
-                                        ->orderBy('survey_ties', 'desc') // Luego por ties
-                                        ->orderBy('survey_losses', 'asc') // Luego por losses (menos pérdidas es mejor)
-                                        ->orderBy('survey_matches', 'desc') // Empates por matches jugados
-                                        ->get(); // <-- Carga la colección
+                                        // ->orderByRaw('survey_wins DESC, survey_ties DESC, survey_losses ASC, survey_matches DESC') // Opción 1: Ordenar en BD
+                                        ->get(); // <-- Carga la colección de CharacterSurvey
 
-        // Calcular posición manualmente basado en el orden
+        // Calcular posición manualmente basado en el orden definido por PHP (o BD si usas orderByRaw)
+        // Asumiendo que la ordenación en BD ya se hizo arriba (Opción 1)
         $position = 1;
         $previousWins = null;
         $previousTies = null;
@@ -222,18 +222,20 @@ class PublicStatisticsController extends Controller
         $previousMatches = null;
 
         $rankingWithPositions = $surveyRanking->map(function ($characterSurveyPivot) use (&$position, &$previousWins, &$previousTies, &$previousLosses, &$previousMatches) {
-            $currentWins = $characterSurveyPivot->pivot->survey_wins;
-            $currentTies = $characterSurveyPivot->pivot->survey_ties;
-            $currentLosses = $characterSurveyPivot->pivot->survey_losses;
-            $currentMatches = $characterSurveyPivot->pivot->survey_matches;
+            // --- CORRECCIÓN: Acceder a campos directos del modelo CharacterSurvey ---
+            $currentWins = $characterSurveyPivot->survey_wins; // <-- CORRECTO: Campo directo del modelo CharacterSurvey
+            $currentTies = $characterSurveyPivot->survey_ties; // <-- CORRECTO
+            $currentLosses = $characterSurveyPivot->survey_losses; // <-- CORRECTO
+            $currentMatches = $characterSurveyPivot->survey_matches; // <-- CORRECTO
+            // --- FIN CORRECCIÓN ---
 
             // Verificar si hay empate con el personaje anterior (misma cantidad de wins, ties, losses, matches)
             if ($previousWins === $currentWins && $previousTies === $currentTies && $previousLosses === $currentLosses && $previousMatches === $currentMatches) {
                 // Mantener la misma posición (empate técnico)
-                $characterSurveyPivot->pivot->setAttribute('survey_position', $position - 1); // La posición no cambia
+                $characterSurveyPivot->setAttribute('survey_position', $position - 1); // La posición no cambia
             } else {
                 // Actualizar la posición
-                $characterSurveyPivot->pivot->setAttribute('survey_position', $position);
+                $characterSurveyPivot->setAttribute('survey_position', $position);
                 // Actualizar valores anteriores
                 $previousWins = $currentWins;
                 $previousTies = $currentTies;
@@ -242,8 +244,10 @@ class PublicStatisticsController extends Controller
             }
 
             $position++;
-            return $characterSurveyPivot;
+            return $characterSurveyPivot; // Devolver el modelo CharacterSurvey modificado
         });
+
+        dd($rankingWithPositions);
 
         // --- OPCIÓN B (Alternativa): Usar RankingService para ranking final de encuesta ---
         // Si se implementa un servicio dedicado que calcula el ranking de la encuesta basado en votos
@@ -252,10 +256,13 @@ class PublicStatisticsController extends Controller
         // $surveyRanking = $this->rankingService->getSurveyFinalRanking($survey);
         // En este caso, RankingService devolvería una colección de objetos con la posición ya calculada y el personaje relacionado.
 
+
         // Devolver la vista Inertia con los recursos específicos
         return Inertia::render('Public/Statistics/SurveyResults', [
             'survey' => SurveyResource::make($survey)->resolve(), // <-- Resolver el recurso de la encuesta
-            'ranking' => CharacterSurveyResource::collection($rankingWithPositions)->resolve(), // <-- Resolver la colección de ranking
+            // --- CORRECCIÓN: Usar CharacterSurveyResource para la colección ---
+            'ranking' => CharacterSurveyResource::collection($rankingWithPositions)->resolve(), // <-- Resolver la colección de ranking (instancia de CharacterSurvey con posición añadida)
+            // --- FIN CORRECCIÓN ---
             // Puedes pasar otros datos auxiliares si es necesario (estadísticas generales de la encuesta)
         ]);
     }

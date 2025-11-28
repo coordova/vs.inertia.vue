@@ -344,6 +344,36 @@ export interface CategoryRankingData {
     links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
     // No hay propiedad 'meta'
 }
+
+// Interfaz para un registro de ranking de personaje en una encuesta específica (fila de la tabla)
+// Esta interfaz representa un objeto de la tabla pivote 'character_survey' + la relación 'character'
+export interface CharacterSurveyRankingResource {
+    // Campos de la tabla pivote 'character_survey'
+    character_id: number;
+    survey_id: number;
+    survey_matches: number;
+    survey_wins: number;
+    survey_losses: number;
+    survey_ties: number; // Nueva columna
+    is_active: boolean;
+    sort_order: number;
+    pivot_created_at: string; // Formato ISO
+    pivot_updated_at: string; // Formato ISO
+
+    // Campo calculado: posición en el ranking de la encuesta (añadido por el controlador)
+    survey_position?: number;
+
+    // Relación con el modelo 'Character' (cargada como objeto plano o CharacterResource)
+    character: CharacterResource; // Incluye fullname, picture_url, etc.
+}
+
+// Interfaz para la respuesta de resultados de encuesta
+export interface SurveyResultsData {
+    survey: SurveyResource; // Datos de la encuesta
+    ranking: CharacterSurveyRankingResource[]; // Ranking de personajes en la encuesta
+    // Puedes añadir otras estadísticas generales de la encuesta aquí si se pasan
+    // general_stats?: { total_votes: number, total_participants: number, ... }
+}
 /*--------------------------------------------------------------------------*/
 // Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
 // export interface SurveyResource { ... }

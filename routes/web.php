@@ -62,6 +62,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/statistics/categories/{category}/rankings', [PublicStatisticsController::class, 'categoryRankings'])
              ->name('statistics.category.rankings');
 
+        // Vista de resultados de una encuesta (requiere autenticación)
+        Route::get('/surveys/{survey}/results', [PublicStatisticsController::class, 'surveyResults'])
+             ->name('surveys.results');
+
         // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Vote - utilizando axios
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
         // Vista para obtener la próxima combinación para votar - llamada AJAX con axios desde la vista vote.vue (antes voto.vue)
