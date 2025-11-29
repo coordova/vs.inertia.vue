@@ -1,4 +1,3 @@
-// app/Http/Resources/CategoryCharacterResource.php (Ejemplo)
 <?php
 
 namespace App\Http\Resources;

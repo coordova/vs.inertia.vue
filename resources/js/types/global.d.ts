@@ -421,6 +421,60 @@ export interface SurveyResultsData {
     links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
 }
 
+// --- Interfaces para Characters ---
+
+// Interfaz para un registro de relación personaje-categoría (tabla pivote category_character)
+export interface CategoryCharacterStatResource {
+    category_id: number;
+    character_id: number;
+    elo_rating: number;
+    matches_played: number;
+    wins: number;
+    losses: number;
+    ties: number; // Nueva columna
+    win_rate: number; // Porcentaje
+    highest_rating: number;
+    lowest_rating: number;
+    rating_deviation: number; // Si se usa Glicko
+    last_match_at: string | null; // Formato ISO
+    is_featured: boolean;
+    sort_order: number;
+    status: boolean;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete
+
+    // Relación con la categoría (opcional, si se carga en CharacterStatsResource)
+    category?: CategoryResource; // <-- Asumiendo que CategoryResource existe
+}
+
+// Interfaz para un registro de relación personaje-encuesta (tabla pivote character_survey)
+export interface CharacterSurveyParticipationResource {
+    character_id: number;
+    survey_id: number;
+    survey_matches: number;
+    survey_wins: number;
+    survey_losses: number;
+    survey_ties: number; // Nueva columna
+    is_active: boolean;
+    sort_order: number;
+    pivot_created_at: string; // Formato ISO (created_at de character_survey)
+    pivot_updated_at: string; // Formato ISO (updated_at de character_survey)
+
+    // Relación con la encuesta (opcional, si se carga en CharacterStatsResource)
+    survey?: SurveyResource; // <-- Asumiendo que SurveyResource existe
+}
+
+// Interfaz para el recurso de estadísticas del personaje (detalle de personaje + estadísticas)
+export interface CharacterStatsResource extends CharacterResource { // Extiende de CharacterResource
+    // No añadimos campos propios aquí, solo relaciones
+    // Relación con categorías (estadísticas por categoría)
+    categories_stats?: CategoryCharacterStatResource[];
+
+    // Relación con encuestas (participación y estadísticas por encuesta)
+    surveys_participation?: CharacterSurveyParticipationResource[];
+}
+
 // Interfaz para la respuesta de resultados de encuesta
 /* export interface SurveyResultsData {
     survey: SurveyResource; // Datos de la encuesta

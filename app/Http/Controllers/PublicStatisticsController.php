@@ -391,7 +391,7 @@ class PublicStatisticsController extends Controller
         // Opcional: Si se necesita información más detallada de la encuesta en la vista de stats,
         // cargar también la categoría de la encuesta.
         // $character->loadMissing(['surveys.category']);
-
+dd(CharacterStatsResource::make($character)->resolve());
         // Devolver la vista Inertia con los recursos específicos
         return Inertia::render('Public/Statistics/CharacterStats', [
             // 'character' => CharacterResource::make($character)->resolve(), // <-- Serializar el personaje con sus relaciones
