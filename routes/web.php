@@ -67,8 +67,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/surveys/{survey}/results', [PublicStatisticsController::class, 'surveyResults'])
              ->name('surveys.results');
 
-        // Vista de estadísticas de un personaje (requiere autenticación)
-        Route::get('/characters/{character}/stats', [PublicStatisticsController::class, 'characterStats'])->name('public.characters.stats');
+        // Vista de estadísticas publicas de un personaje (requiere autenticación)
+        Route::get('/characters/{character}/stats', [PublicStatisticsController::class, 'characterStats'])->name('characters.stats');
 
         /*------------------------------------*/
 

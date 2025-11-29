@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SurveyResource; // O SurveyIndexResource si se usa para listados
 use App\Http\Resources\CategoryResource; // O CategoryIndexResource
 use App\Http\Resources\CharacterResource; // O CharacterIndexResource
+use App\Http\Resources\CategoryCharacterResource; // <-- Nuevo recurso para estadísticas por categoría
 use App\Http\Resources\CharacterSurveyResource; // <-- Importar el resource CharacterSurveyResource
+use App\Http\Resources\CharacterStatsResource; // <-- Importar el resource CharacterStatsResource
 use App\Models\Survey;
 use App\Models\Category;
 use App\Models\Character;
@@ -344,12 +346,70 @@ class PublicStatisticsController extends Controller
 
     /**
      * Muestra las estadísticas detalladas de un personaje específico.
-     * Incluye estadísticas generales (ELO global por categoría) y específicas de encuestas.
+     * Incluye estadísticas generales (ELO por categoría) y específicas de encuestas.
      *
      * @param Character $character El modelo del personaje, inyectado por route model binding.
      * @return Response
      */
     public function characterStats(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
+        // Cargar datos del personaje
+        // $character->loadMissing(['categories', 'surveys']); // Cargar relaciones con categorías y encuestas
+
+        // Cargar datos del personaje con sus relaciones y estadísticas pivote
+        // Cargamos categories con datos pivote de category_character
+        // y surveys con datos pivote de character_survey
+        $character->loadMissing([
+            'categories:id,name,slug,color,icon', // Cargar datos básicos de la categoría
+            'surveys:id,title,slug,date_start,date_end,status', // Cargar datos básicos de la encuesta
+        ]);
+
+        // --- Cargar Estadísticas por Categoría ---
+        // Usamos la relación 'categories' ya cargada, pero accedemos a los datos pivote (category_character)
+        // Asumiendo que CharacterResource ya serializa 'categories' con sus datos pivote.
+        // Si no, se puede hacer una consulta específica aquí si se quiere un recurso más detallado solo para stats.
+        // $characterStatsByCategory = CategoryCharacter::where('character_id', $character->id)->with('category')->get();
+        // $characterStatsByCategoryResource = CategoryCharacterResource::collection($characterStatsByCategory);
+
+        // --- Cargar Historial de Participación en Encuestas ---
+        // La relación 'surveys' ya debería cargar encuestas con datos pivote de character_survey
+        // Asumiendo que CharacterResource ya serializa 'surveys' con sus datos pivote.
+        // Si no, se puede hacer una consulta específica aquí.
+        // $surveyParticipationHistory = CharacterSurvey::where('character_id', $character->id)->with('survey')->get();
+        // $surveyParticipationHistoryResource = CharacterSurveyResource::collection($surveyParticipationHistory);
+
+        // --- Cargar Ranking Histórico (ELO a lo largo del tiempo) ---
+        // Esto podría requerir una tabla adicional o cálculos si no se almacena explícitamente.
+        // Por ahora, asumiremos que el ELO actual en cada categoría es lo principal.
+        // Si se implementa un historial, se cargaría aquí.
+
+        // Opcional: Si se necesita información más detallada de la encuesta en la vista de stats,
+        // cargar también la categoría de la encuesta.
+        // $character->loadMissing(['surveys.category']);
+
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            // 'character' => CharacterResource::make($character)->resolve(), // <-- Serializar el personaje con sus relaciones
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- Usar CharacterStatsResource y .resolve()
+            // 'characterStatsByCategory' => $characterStatsByCategoryResource->resolve(), // <-- Opcional: si no se incluye en CharacterResource
+            // 'surveyParticipationHistory' => $surveyParticipationHistoryResource->resolve(), // <-- Opcional: si no se incluye en CharacterResource
+            // 'eloHistory' => [...], // Datos para gráfico de ELO histórico (futuro)
+        ]);
+    }
+
+    /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO global por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats2(Character $character): Response
     {
         // Verificar si el personaje está activo
         if (!$character->status) {
