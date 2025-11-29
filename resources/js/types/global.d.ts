@@ -427,7 +427,7 @@ export interface SurveyResultsData {
 export interface CategoryCharacterStatResource {
     category_id: number;
     character_id: number;
-    elo_rating: number;
+    elo_rating: number | float;
     matches_played: number;
     wins: number;
     losses: number;
@@ -449,6 +449,7 @@ export interface CategoryCharacterStatResource {
 }
 
 // Interfaz para un registro de relación personaje-encuesta (tabla pivote character_survey)
+// Devuelto por CharacterSurveyResource
 export interface CharacterSurveyParticipationResource {
     character_id: number;
     survey_id: number;
@@ -461,8 +462,11 @@ export interface CharacterSurveyParticipationResource {
     pivot_created_at: string; // Formato ISO (created_at de character_survey)
     pivot_updated_at: string; // Formato ISO (updated_at de character_survey)
 
-    // Relación con la encuesta (opcional, si se carga en CharacterStatsResource)
-    survey?: SurveyResource; // <-- Asumiendo que SurveyResource existe
+    // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
+    survey_position?: number; // <-- Campo calculado y añadido por RankingService
+
+    // Relación con la encuesta (asumiendo que CharacterSurveyResource incluye 'survey')
+    survey: SurveyResource; // <-- Asumiendo que SurveyResource existe
 }
 
 // Interfaz para el recurso de estadísticas del personaje (detalle de personaje + estadísticas)

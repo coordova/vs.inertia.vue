@@ -45,16 +45,29 @@ class Character extends Model
     ];
 
     // --- Relaciones ---
+
+    /**
+     * Categorías en las que participa el personaje.
+     * La tabla pivote es 'category_character'.
+     * Incluye datos pivote como elo_rating, matches_played, wins, losses, etc.
+     * Incluye la relación con el modelo 'Category'.
+     */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 'category_character')
+        return $this->belongsToMany(Category::class, 'category_character', 'character_id', 'category_id')
                     ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'ties', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
                     ->withTimestamps();
     }
 
+    /**
+     * Encuestas en las que participa el personaje.
+     * La tabla pivote es 'character_survey'.
+     * Incluye datos pivote como survey_matches, survey_wins, survey_losses, etc.
+     * Incluye la relación con el modelo 'Survey'.
+     */
     public function surveys(): BelongsToMany
     {
-        return $this->belongsToMany(Survey::class, 'character_survey')
+        return $this->belongsToMany(Survey::class, 'character_survey', 'character_id', 'survey_id')
                     ->withPivot(['survey_matches', 'survey_wins', 'survey_losses', 'survey_ties', 'is_active', 'sort_order'])
                     ->withTimestamps();
     }
