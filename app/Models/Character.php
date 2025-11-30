@@ -55,8 +55,25 @@ class Character extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'category_character', 'character_id', 'category_id')
-                    ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'ties', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
-                    ->withTimestamps();
+                    ->using(CategoryCharacter::class) // Asumiendo que CategoryCharacter es el modelo pivote
+                    ->withPivot([
+                        'elo_rating',
+                        'matches_played',
+                        'wins',
+                        'losses',
+                        'ties', // Asegurar que 'ties' esté incluido
+                        'win_rate',
+                        'highest_rating',
+                        'lowest_rating',
+                        'rating_deviation',
+                        'last_match_at',
+                        'is_featured',
+                        'sort_order',
+                        'status',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->withTimestamps(); // Asumiendo que la tabla pivote tiene created_at, updated_at
     }
 
     /**
@@ -68,8 +85,22 @@ class Character extends Model
     public function surveys(): BelongsToMany
     {
         return $this->belongsToMany(Survey::class, 'character_survey', 'character_id', 'survey_id')
-                    ->withPivot(['survey_matches', 'survey_wins', 'survey_losses', 'survey_ties', 'is_active', 'sort_order'])
-                    ->withTimestamps();
+                    ->using(CharacterSurvey::class) // Asumiendo que CharacterSurvey es el modelo pivote
+                    ->withPivot([
+                        'survey_matches',
+                        'survey_wins',
+                        'survey_losses',
+                        'survey_ties', // Asegurar que 'survey_ties' esté incluido
+                        'is_active',
+                        'sort_order',
+                        'created_at', // pivot_created_at
+                        'updated_at', // pivot_updated_at
+                        // 'survey_position' -> Este campo probablemente no se almacene directamente en character_survey,
+                        // sino que se calcula dinámicamente o se almacena en otra tabla (como en RankingService).
+                        // Si se almacena en character_survey, incluirlo aquí.
+                        // 'survey_position',
+                    ])
+                    ->withTimestamps(); // Asumiendo que la tabla pivote tiene created_at, updated_at
     }
 
     public function votesAsWinner(): HasMany

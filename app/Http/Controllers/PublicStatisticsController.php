@@ -358,6 +358,47 @@ class PublicStatisticsController extends Controller
             abort(404, 'Character not found or not active.');
         }
 
+        // Obtener el usuario autenticado (opcional, dependiendo de la lógica de negocio)
+        // $user = Auth::user();
+        // if (!$user) {
+        //     abort(401, 'Authentication required to view character stats.');
+        // }
+
+        // Cargar datos del personaje con sus relaciones y datos pivote
+        // Cargamos 'categories' con sus datos pivote y la relación 'category'
+        // y 'surveys' con sus datos pivote y la relación 'survey' (que a su vez puede cargar 'category')
+        $character->loadMissing([
+            'categories:id,name,slug,color,icon', // Cargar datos básicos de la categoría
+            'surveys:id,title,slug,date_start,date_end,status,category_id', // Cargar datos básicos de la encuesta
+            'surveys.category', // Cargar la categoría asociada a cada encuesta cargada
+        ]);
+
+        // Opcional: Si se necesita más profundidad en las relaciones (por ejemplo, datos de encuesta en CharacterSurveyResource),
+        // se puede usar ->with() en la consulta del modelo o en el controlador.
+        // $character->loadMissing(['surveys.category', 'surveys.userVotes', ...]);
+
+        // Devolver la vista Inertia con el recurso específico para estadísticas
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- Usar CharacterStatsResource y .resolve()
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, el historial de ELO si se implementa)
+            // 'eloHistory' => [...],
+        ]);
+    }
+
+    /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats_v0(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
         // Cargar datos del personaje
         // $character->loadMissing(['categories', 'surveys']); // Cargar relaciones con categorías y encuestas
 

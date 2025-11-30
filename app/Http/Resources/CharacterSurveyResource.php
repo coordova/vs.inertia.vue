@@ -31,14 +31,17 @@ class CharacterSurveyResource extends JsonResource
             'survey_matches' => $this->resource->survey_matches,
             'survey_wins' => $this->resource->survey_wins,
             'survey_losses' => $this->resource->survey_losses,
-            'survey_ties' => $this->resource->survey_ties, // Nueva columna
+            'survey_ties' => $this->resource->survey_ties, // Asegurar que se serialice
             'is_active' => $this->resource->is_active,
             'sort_order' => $this->resource->sort_order,
             'pivot_created_at' => $this->resource->created_at, // created_at de character_survey
             'pivot_updated_at' => $this->resource->updated_at, // updated_at de character_survey
 
             // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
-            'survey_position' => $this->resource->survey_position, // <-- Tomado del stdClass modificado por RankingService
+            // 'survey_position' => $this->resource->survey_position, // <-- Tomado del stdClass modificado por RankingService
+
+            // Relación con la encuesta (cargada por la relación belongsToMany en Character)
+            'survey' => $this->whenLoaded('survey', fn() => new SurveyResource($this->resource->survey)),
 
             // Campos del rating ELO en la categoría de la encuesta (desde category_character)
             'elo_rating_in_category' => $this->resource->elo_rating, // <-- Tomado del stdClass
