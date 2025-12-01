@@ -1,39 +1,28 @@
 <?php
 
+// app/Models/CategoryCharacter.php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot; // <-- EXTENDER Pivot, no Model
+// use Illuminate\Database\Eloquent\Model; // <-- COMENTAR ESTO
 
-class CategoryCharacter extends Model
+class CategoryCharacter extends Pivot // <-- EXTENDER Pivot
 {
-    // use HasFactory;
+    // use HasFactory; // <-- COMENTAR ESTO: Las tablas pivote no suelen tener factories directas
 
-    // No usamos $fillable ni $guarded aquí, ya que es una tabla pivote con campos propios
-    // Se maneja comúnmente a través de belongsToMany con ->withPivot()
+    protected $table = 'category_character'; // <-- Asegurar el nombre de la tabla pivote
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'category_character';
-
-    /**
-     * Indicates if the model should be timestamped.
-     *
-     * @var bool
-     */
-    public $timestamps = true; // Asumiendo que tiene timestamps
-
-    // protected $primaryKey = ['category_id', 'character_id'];
+    public $timestamps = true; // <-- Asumiendo que tiene timestamps (created_at, updated_at)
 
     protected $fillable = [
+        'category_id',
+        'character_id',
         'elo_rating',
         'matches_played',
         'wins',
         'losses',
-        'ties',
+        'ties', // Asegurar que 'ties' esté incluido
         'win_rate',
         'highest_rating',
         'lowest_rating',
@@ -44,17 +33,12 @@ class CategoryCharacter extends Model
         'status',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'elo_rating' => 'integer',
         'matches_played' => 'integer',
         'wins' => 'integer',
         'losses' => 'integer',
-        'ties' => 'integer',
+        'ties' => 'integer', // Asegurar que 'ties' esté correctamente tipado
         'win_rate' => 'decimal:2',
         'highest_rating' => 'integer',
         'lowest_rating' => 'integer',
@@ -63,16 +47,19 @@ class CategoryCharacter extends Model
         'is_featured' => 'boolean',
         'sort_order' => 'integer',
         'status' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    // --- Relaciones ---
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
+    // Opcional: Definir claves foráneas explícitamente si no se deducen correctamente
+    // o si se usan nombres no convencionales. Generalmente no es necesario si los nombres son estándar.
+    // protected $foreignKey = 'character_id'; // <-- Clave foránea hacia Character (en la tabla pivote)
+    // protected $relatedKey = 'category_id'; // <-- Clave foránea hacia Category (en la tabla pivote)
 
-    public function character(): BelongsTo
-    {
-        return $this->belongsTo(Character::class);
-    }
+    // --- Relaciones desde el pivote (Opcional, pero útil para acceso directo si se carga el pivote como modelo independiente) ---
+    // public function character(): BelongsTo { ... }
+    // public function category(): BelongsTo { ... }
+
+    // --- Métodos o Accesores/Modificadores (Opcional) ---
+    // public function getSomeCustomAttributeAttribute() { ... }
 }

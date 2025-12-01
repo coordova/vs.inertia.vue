@@ -150,11 +150,11 @@ const breadcrumbs = [
                                 <Separator class="my-2 w-full" />
                                 <div class="flex justify-between gap-2 w-full">
                                     <!-- Asegurar que los botones ocupen el ancho -->
-                                    <Link :href="route('public.surveys.show', survey.slug)"> <!-- O survey.id -->
+                                    <Link :href="route('public.surveys.show', survey.id)"> <!-- O survey.id -->
                                     <Button variant="outline" class="flex-grow">View Details</Button>
                                     <!-- Botón con crecimiento -->
                                     </Link>
-                                    <Link :href="route('public.surveys.vote', survey.slug)"> <!-- O survey.id -->
+                                    <Link :href="route('public.surveys.vote', survey.id)"> <!-- O survey.id -->
                                     <Button class="flex-grow" :disabled="!survey.is_active">
                                         <!-- Asumiendo is_active calculado en el backend -->
                                         Participate

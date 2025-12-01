@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\CategoryCharacter; // Importar el modelo pivote personalizado
+use App\Models\CharacterSurvey; // Importar el modelo pivote personalizado
 
 class Character extends Model
 {
@@ -55,7 +57,7 @@ class Character extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'category_character', 'character_id', 'category_id')
-                    ->using(CategoryCharacter::class) // Asumiendo que CategoryCharacter es el modelo pivote
+                    ->using(CategoryCharacter::class) // <-- Asegurar el uso del modelo pivote personalizado
                     ->withPivot([
                         'elo_rating',
                         'matches_played',
@@ -85,7 +87,7 @@ class Character extends Model
     public function surveys(): BelongsToMany
     {
         return $this->belongsToMany(Survey::class, 'character_survey', 'character_id', 'survey_id')
-                    ->using(CharacterSurvey::class) // Asumiendo que CharacterSurvey es el modelo pivote
+                    ->using(CharacterSurvey::class) // <-- Asegurar el uso del modelo pivote personalizado
                     ->withPivot([
                         'survey_matches',
                         'survey_wins',
