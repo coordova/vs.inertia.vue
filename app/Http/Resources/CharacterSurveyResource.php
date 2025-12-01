@@ -1,66 +1,45 @@
 <?php
 
+// app/Http/Resources/CharacterSurveyResource.php
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\CharacterResource; // Asumiendo que CharacterResource existe
-use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\SurveyResource; // Recurso para la encuesta relacionada
 
 /**
- * Resource para representar la estadística de un personaje en una encuesta específica (fila del ranking).
- * Se usa para mostrar rankings de encuesta.
- * Ahora recibe un stdClass con campos de character_survey, category_character y character (JOINs).
+ * Resource para representar la relación character-survey (estadísticas de un personaje en una encuesta específica).
+ * Se usa para mostrar participación en encuestas en CharacterStats o en SurveyResults.
+ * Este recurso maneja un *objeto modelo relacionado* (Survey) *con* su pivote adjunto (CharacterSurvey).
+ * $this->resource es un modelo Survey con $this->resource->pivot como CharacterSurvey.
  */
 class CharacterSurveyResource extends JsonResource
 {
-    /**
-     * Transform the resource (stdClass) into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        // Asumiendo que $this->resource es un stdClass resultado de la consulta JOIN
-        // y contiene: survey_matches, survey_wins, survey_losses, survey_ties, elo_rating, fullname, nickname, picture, etc.
+        // Acceder a los campos del modelo pivote
+        $pivot = $this->resource->pivot; // <-- Guardar referencia al pivote
 
         return [
-            // Campos de la tabla pivote character_survey
-            'character_id' => $this->resource->character_id,
-            'survey_id' => $this->resource->survey_id,
-            'survey_matches' => $this->resource->survey_matches,
-            'survey_wins' => $this->resource->survey_wins,
-            'survey_losses' => $this->resource->survey_losses,
-            'survey_ties' => $this->resource->survey_ties, // Asegurar que se serialice
-            'is_active' => $this->resource->is_active,
-            'sort_order' => $this->resource->sort_order,
-            'pivot_created_at' => $this->resource->created_at, // created_at de character_survey
-            'pivot_updated_at' => $this->resource->updated_at, // updated_at de character_survey
+            // Campos del pivote 'character_survey'
+            'character_id' => $pivot->character_id,
+            'survey_id' => $pivot->survey_id,
+            'survey_matches' => $pivot->survey_matches,
+            'survey_wins' => $pivot->survey_wins,
+            'survey_losses' => $pivot->survey_losses,
+            'survey_ties' => $pivot->survey_ties, // Nueva columna
+            'is_active' => $pivot->is_active,
+            'sort_order' => $pivot->sort_order,
+            'pivot_created_at' => $pivot->created_at,
+            'pivot_updated_at' => $pivot->updated_at,
 
-            // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
-            // 'survey_position' => $this->resource->survey_position, // <-- Tomado del stdClass modificado por RankingService
+            // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService o calculado aquí si se implementa)
+            // 'survey_position' => $pivot->survey_position, // Incluir si se almacena en character_survey o se calcula
 
-            // Relación con la encuesta (cargada por la relación belongsToMany en Character)
-            'survey' => $this->whenLoaded('survey', fn() => new SurveyResource($this->resource->survey)),
-
-            // Campos del rating ELO en la categoría de la encuesta (desde category_character)
-            'elo_rating_in_category' => $this->resource->elo_rating, // <-- Tomado del stdClass
-            'matches_played_in_category' => $this->resource->matches_played, // Opcional
-            'wins_in_category' => $this->resource->wins,             // Opcional
-            'losses_in_category' => $this->resource->losses,         // Opcional
-            'ties_in_category' => $this->resource->ties,             // Opcional
-            'win_rate_in_category' => $this->resource->win_rate,     // Opcional
-
-            // Relación con el modelo 'Character' (datos del personaje, tomados del stdClass)
-            'character' => [
-                'id' => $this->resource->character_id, // Tomado del stdClass
-                'fullname' => $this->resource->fullname, // Tomado del stdClass
-                'nickname' => $this->resource->nickname, // Tomado del stdClass
-                'picture' => $this->resource->picture,   // Tomado del stdClass (ruta relativa)
-                'picture_url' => $this->resource->picture ? Storage::url($this->resource->picture) : null, // Generar URL si existe
-                'slug' => $this->resource->slug,       // Tomado del stdClass
-                // Añadir otros campos necesarios del personaje si se usan en la UI
-            ],
+            // Relación con el modelo 'Survey' (ya cargada en $this->resource)
+            // Asumiendo que SurveyResource ya incluye la categoría si es necesaria
+            'survey' => new SurveyResource($this->resource), // <-- $this->resource es el modelo Survey con sus datos y relaciones (como 'category') ya cargadas
         ];
     }
 }

@@ -1,0 +1,1641 @@
+/*--------------------------------------------------------------*/
+1. app\Models\Character.php
+/*--------------------------------------------------------------*/
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\CategoryCharacter; // Importar el modelo pivote personalizado
+use App\Models\CharacterSurvey; // Importar el modelo pivote personalizado
+
+class Character extends Model
+{
+    /** @use HasFactory<\Database\Factories\CharacterFactory> */
+    use HasFactory, SoftDeletes; // Añadido SoftDeletes
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'fullname',
+        'nickname',
+        'slug',
+        'bio',
+        'dob',
+        'gender',
+        'nationality',
+        'occupation',
+        'picture',
+        'status',
+        'meta_title',
+        'meta_description',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'dob' => 'date',
+        'gender' => 'integer',
+        'status' => 'boolean',
+    ];
+
+    // --- Relaciones ---
+
+    /**
+     * Categorías en las que participa el personaje.
+     * La tabla pivote es 'category_character'.
+     * Incluye datos pivote como elo_rating, matches_played, wins, losses, etc.
+     * Incluye la relación con el modelo 'Category'.
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_character', 'character_id', 'category_id')
+                    ->using(CategoryCharacter::class) // <-- Asegurar el uso del modelo pivote personalizado
+                    ->withPivot([
+                        'elo_rating',
+                        'matches_played',
+                        'wins',
+                        'losses',
+                        'ties', // Asegurar que 'ties' esté incluido
+                        'win_rate',
+                        'highest_rating',
+                        'lowest_rating',
+                        'rating_deviation',
+                        'last_match_at',
+                        'is_featured',
+                        'sort_order',
+                        'status',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->withTimestamps(); // Asumiendo que la tabla pivote tiene created_at, updated_at
+    }
+
+    /**
+     * Encuestas en las que participa el personaje.
+     * La tabla pivote es 'character_survey'.
+     * Incluye datos pivote como survey_matches, survey_wins, survey_losses, etc.
+     * Incluye la relación con el modelo 'Survey'.
+     */
+    public function surveys(): BelongsToMany
+    {
+        return $this->belongsToMany(Survey::class, 'character_survey', 'character_id', 'survey_id')
+                    ->using(CharacterSurvey::class) // <-- Asegurar el uso del modelo pivote personalizado
+                    ->withPivot([
+                        'survey_matches',
+                        'survey_wins',
+                        'survey_losses',
+                        'survey_ties', // Asegurar que 'survey_ties' esté incluido
+                        'is_active',
+                        'sort_order',
+                        'created_at', // pivot_created_at
+                        'updated_at', // pivot_updated_at
+                        // 'survey_position' -> Este campo probablemente no se almacene directamente en character_survey,
+                        // sino que se calcula dinámicamente o se almacena en otra tabla (como en RankingService).
+                        // Si se almacena en character_survey, incluirlo aquí.
+                        // 'survey_position',
+                    ])
+                    ->withTimestamps(); // Asumiendo que la tabla pivote tiene created_at, updated_at
+    }
+
+    public function votesAsWinner(): HasMany
+    {
+        return $this->hasMany(Vote::class, 'winner_id');
+    }
+
+    public function votesAsLoser(): HasMany
+    {
+        return $this->hasMany(Vote::class, 'loser_id');
+    }
+
+    public function combinatoricsAsCharacter1(): HasMany
+    {
+        return $this->hasMany(Combinatoric::class, 'character1_id');
+    }
+
+    public function combinatoricsAsCharacter2(): HasMany
+    {
+        return $this->hasMany(Combinatoric::class, 'character2_id');
+    }
+}
+
+/*--------------------------------------------------------------*/
+2. app\Http\Resources\CharacterStatsResource.php
+/*--------------------------------------------------------------*/
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\CategoryCharacterResource; // Recurso para datos pivote categoría-personaje
+use App\Http\Resources\CharacterSurveyResource; // Recurso para datos pivote personaje-encuesta
+
+/**
+ * Resource para representar las estadísticas detalladas de un personaje.
+ * Incluye datos básicos del personaje, sus estadísticas por categoría (ELO, partidas, etc.)
+ * y su historial de participación en encuestas con resultados específicos.
+ * Extiende CharacterResource para reutilizar sus campos básicos.
+ */
+class CharacterStatsResource extends CharacterResource // Extender de CharacterResource para reutilizar campos básicos
+{
+    /**
+     * Transform the resource into an array.
+     * Incluye datos del personaje, estadísticas por categoría y participación en encuestas.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        // Obtener los campos básicos del personaje desde CharacterResource
+        $basicData = parent::toArray($request);
+
+        // Agregar datos específicos de estadísticas
+        $extendedData = [
+            // --- CORRECCIÓN: Asegurar que las colecciones se resuelvan aquí también ---
+            'categories_stats' => CategoryCharacterResource::collection($this->whenLoaded('categories'))->resolve(), // <-- .resolve() aquí
+            'surveys_participation' => CharacterSurveyResource::collection($this->whenLoaded('surveys'))->resolve(), // <-- .resolve() aquí
+            // --- FIN CORRECCIÓN ---
+        ];
+
+        // Combinar datos básicos y extendidos
+        return array_merge($basicData, $extendedData);
+    }
+}
+/*--------------------------------------------------------------*/
+3. app\Http\Resources\CategoryCharacterResource.php
+/*--------------------------------------------------------------*/
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\CategoryResource; // Recurso para la categoría relacionada
+
+class CategoryCharacterResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        // Asumiendo que $this->resource es una instancia del modelo pivote CategoryCharacter
+        // y que la relación 'category' está cargada (gracias a withPivot y possibly ->with() en el controlador)
+
+        return [
+            // Campos de la tabla pivote 'category_character'
+            'category_id' => $this->resource->category_id,
+            'character_id' => $this->resource->character_id,
+            'elo_rating' => $this->resource->elo_rating,
+            'matches_played' => $this->resource->matches_played,
+            'wins' => $this->resource->wins,
+            'losses' => $this->resource->losses,
+            'ties' => $this->resource->ties, // Asegurar que se serialice
+            'win_rate' => $this->resource->win_rate,
+            'highest_rating' => $this->resource->highest_rating,
+            'lowest_rating' => $this->resource->lowest_rating,
+            'rating_deviation' => $this->resource->rating_deviation,
+            'last_match_at' => $this->resource->last_match_at,
+            'is_featured' => $this->resource->is_featured,
+            'sort_order' => $this->resource->sort_order,
+            'status' => $this->resource->status,
+            'created_at' => $this->resource->created_at,
+            'updated_at' => $this->resource->updated_at,
+
+            // Relación con la categoría (cargada por la relación belongsToMany en Character)
+            'category' => $this->whenLoaded('category', fn() => new CategoryResource($this->resource->category)),
+        ];
+    }
+}
+/*--------------------------------------------------------------*/
+4. app\Http\Resources\CharacterSurveyResource.php
+/*--------------------------------------------------------------*/
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\CharacterResource; // Asumiendo que CharacterResource existe
+use Illuminate\Support\Facades\Storage;
+
+/**
+ * Resource para representar la estadística de un personaje en una encuesta específica (fila del ranking).
+ * Se usa para mostrar rankings de encuesta.
+ * Ahora recibe un stdClass con campos de character_survey, category_character y character (JOINs).
+ */
+class CharacterSurveyResource extends JsonResource
+{
+    /**
+     * Transform the resource (stdClass) into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        // Asumiendo que $this->resource es un stdClass resultado de la consulta JOIN
+        // y contiene: survey_matches, survey_wins, survey_losses, survey_ties, elo_rating, fullname, nickname, picture, etc.
+
+        return [
+            // Campos de la tabla pivote character_survey
+            'character_id' => $this->resource->character_id,
+            'survey_id' => $this->resource->survey_id,
+            'survey_matches' => $this->resource->survey_matches,
+            'survey_wins' => $this->resource->survey_wins,
+            'survey_losses' => $this->resource->survey_losses,
+            'survey_ties' => $this->resource->survey_ties, // Asegurar que se serialice
+            'is_active' => $this->resource->is_active,
+            'sort_order' => $this->resource->sort_order,
+            'pivot_created_at' => $this->resource->created_at, // created_at de character_survey
+            'pivot_updated_at' => $this->resource->updated_at, // updated_at de character_survey
+
+            // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
+            // 'survey_position' => $this->resource->survey_position, // <-- Tomado del stdClass modificado por RankingService
+
+            // Relación con la encuesta (cargada por la relación belongsToMany en Character)
+            'survey' => $this->whenLoaded('survey', fn() => new SurveyResource($this->resource->survey)),
+
+            // Campos del rating ELO en la categoría de la encuesta (desde category_character)
+            'elo_rating_in_category' => $this->resource->elo_rating, // <-- Tomado del stdClass
+            'matches_played_in_category' => $this->resource->matches_played, // Opcional
+            'wins_in_category' => $this->resource->wins,             // Opcional
+            'losses_in_category' => $this->resource->losses,         // Opcional
+            'ties_in_category' => $this->resource->ties,             // Opcional
+            'win_rate_in_category' => $this->resource->win_rate,     // Opcional
+
+            // Relación con el modelo 'Character' (datos del personaje, tomados del stdClass)
+            'character' => [
+                'id' => $this->resource->character_id, // Tomado del stdClass
+                'fullname' => $this->resource->fullname, // Tomado del stdClass
+                'nickname' => $this->resource->nickname, // Tomado del stdClass
+                'picture' => $this->resource->picture,   // Tomado del stdClass (ruta relativa)
+                'picture_url' => $this->resource->picture ? Storage::url($this->resource->picture) : null, // Generar URL si existe
+                'slug' => $this->resource->slug,       // Tomado del stdClass
+                // Añadir otros campos necesarios del personaje si se usan en la UI
+            ],
+        ];
+    }
+}
+/*--------------------------------------------------------------*/
+5. app\Http\Controllers\PublicStatisticsController.php
+/*--------------------------------------------------------------*/
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\SurveyResource; // O SurveyIndexResource si se usa para listados
+use App\Http\Resources\CategoryResource; // O CategoryIndexResource
+use App\Http\Resources\CharacterResource; // O CharacterIndexResource
+use App\Http\Resources\CategoryCharacterResource; // <-- Nuevo recurso para estadísticas por categoría
+use App\Http\Resources\CharacterSurveyResource; // <-- Importar el resource CharacterSurveyResource
+use App\Http\Resources\CharacterStatsResource; // <-- Importar el resource CharacterStatsResource
+use App\Models\Survey;
+use App\Models\Category;
+use App\Models\Character;
+use App\Models\CharacterSurvey; // <-- Importar el modelo pivote character_survey
+use App\Services\Survey\SurveyProgressService; // Asegúrate de importar SurveyProgressService
+use App\Services\Survey\CombinatoricService; // Asegúrate de importar CombinatoricService
+use App\Services\Ranking\RankingService; // Asumiendo que ya tienes este servicio o lo crearemos
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+/**
+ * Controlador para mostrar estadísticas y rankings públicos del sistema.
+ * Gestiona vistas generales y específicas de resultados.
+ *
+ * @package App\Http\Controllers
+ */
+class PublicStatisticsController extends Controller
+{
+    /**
+     * Constructor para inyectar dependencias si es necesario.
+     *
+     * @param RankingService $rankingService Servicio para cálculos de ranking.
+     */
+    public function __construct(
+        protected SurveyProgressService $surveyProgressService,
+        protected CombinatoricService $combinatoricService,
+        protected RankingService $rankingService, // <-- Inyectar RankingService
+    ) {
+        // Aplicar middleware de autenticación si es necesario para todas las acciones
+        // $this->middleware('auth'); // Si se requiere login para ver estadísticas
+        // Opcional: Aplicar middleware para vistas públicas si no se requiere login
+        // $this->middleware('auth')->except(['index', 'categoryRankings']);
+    }
+
+    /**
+     * Muestra la página principal de estadísticas.
+     * Incluye rankings generales, categorías activas, encuestas recientes, etc.
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function index(Request $request): Response
+    {
+        // --- Cargar datos generales para la vista principal de estadísticas ---
+        // 1. Cargar encuestas activas recientes (últimas creadas o más votadas)
+        $recentSurveys = Survey::where('status', true)
+                               ->where('date_start', '<=', now())
+                               ->where('date_end', '>=', now())
+                               ->with(['category:id,name,slug,color'])
+                               ->orderBy('created_at', 'desc')
+                               ->limit(5) // Ajustar número según diseño
+                               ->get();
+
+        // 2. Cargar categorías con mayor actividad (encuestas activas o cantidad de votos)
+        // Ejemplo: Contar encuestas activas por categoría
+        $activeCategories = Category::where('status', true)
+                                    ->withCount(['surveys' => function($q) {
+                                        $q->where('status', true)
+                                          ->where('date_start', '<=', now())
+                                          ->where('date_end', '>=', now());
+                                    }])
+                                    ->whereHas('surveys', function($q) {
+                                         $q->where('status', true)
+                                           ->where('date_start', '<=', now())
+                                           ->where('date_end', '>=', now());
+                                    })
+                                    ->orderByDesc('surveys_count') // Ordenar por conteo de encuestas activas
+                                    ->limit(5) // Ajustar número según diseño
+                                    ->get();
+
+        // 3. Cargar rankings generales (Top personajes globales por categoría)
+        // Esto podría ser costoso, así que se podría cachear o usar una estrategia de carga por demanda
+        // Por ahora, asumimos que se cargan rankings para las categorías activas recientes o más populares
+        // Opcional: Crear un endpoint API para rankings dinámicos (como hicimos para la próxima combinación)
+        // y llamarlo desde el frontend con axios para evitar cargar grandes cantidades de datos en el SSR.
+
+        // --- Opciones para rankings ---
+        // Opción A: Cargar rankings aquí (puede ser pesado)
+        // $topGlobalCharacters = $this->rankingService->getTopGlobalRankings(); // <-- Si se implementa RankingService
+
+        // Opción B: Cargar rankings de categorías específicas (más manejable)
+        // $topCharactersByCategory = [];
+        // foreach ($activeCategories as $category) {
+        //     // Asumiendo un método en RankingService o en el modelo Category
+        //     $topCharactersByCategory[$category->id] = $this->rankingService->getTopRankingsForCategory($category->id, 5); // Top 5
+        // }
+
+        // Opción C (Recomendada para index): No cargar rankings aquí, sino mostrar enlaces
+        // para ver rankings por categoría o encuesta, y cargar los rankings específicos en sus propias páginas/shows.
+
+        // Para esta vista principal (index), cargamos datos generales y enlaces a vistas específicas
+        // No incluimos grandes colecciones de rankings aquí.
+
+        // --- Renderizar la vista Inertia ---
+        return Inertia::render('Public/Statistics/Index', [
+            'recentSurveys' => SurveyResource::collection($recentSurveys)->resolve(),
+            'activeCategories' => CategoryResource::collection($activeCategories)->resolve(),
+            // 'topGlobalCharacters' => $topGlobalCharacters, // <-- Opción A (evitar en index si es costoso)
+            // 'topCharactersByCategory' => $topCharactersByCategory, // <-- Opción B (evitar en index si es costoso)
+            // 'filters' => $request->only(['search', 'category', 'period']), // Ejemplo de filtros para estadísticas
+        ]);
+    }
+
+    /**
+     * Muestra el ranking de personajes para una categoría específica.
+     *
+     * @param Category $category La categoría para la cual mostrar rankings.
+     * @param Request $request
+     * @return Response
+     */
+    public function categoryRankings(Category $category, Request $request): Response
+    {
+        // Verificar si la categoría está activa
+        if (!$category->status) {
+            abort(404, 'Category not found or not active.');
+        }
+
+        // Cargar la categoría con datos básicos si no están ya cargados
+        // $category->loadMissing(['characters']); // Cargar personajes si es necesario para otros fines (aunque no para el ranking directo)
+
+        // --- Cargar Rankings ---
+        // El servicio RankingService se encargará de obtener los datos de la base de datos
+        // y calcular el ranking basado en el ELO o métrica elegida.
+        // Asumiendo que el servicio puede recibir la categoría y aplicar filtros/paginación si es necesario.
+        $rankingData = $this->rankingService->getCategoryRanking($category, $request->all());
+
+        // --- Renderizar la vista Inertia ---
+        return Inertia::render('Public/Statistics/CategoryRankings', [
+            'category' => CategoryResource::make($category)->resolve(), // <-- Resolver el recurso de la categoría
+            'ranking' => $rankingData, // <-- Pasar el objeto Paginator directamente
+            'filters' => $request->only(['search', 'sort', 'direction', 'per_page', 'page']), // Pasar filtros aplicados
+        ]);
+    }
+
+    /**
+     * Muestra los resultados y ranking final (o actual) de una encuesta específica.
+     * Calcula el ranking basado en las estadísticas de la tabla character_survey.
+     *
+     * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
+     * @return Response
+     */
+    public function surveyResults(Survey $survey): Response
+    {
+        // Verificar si la encuesta está activa o ha finalizado
+        // Permitir ver resultados incluso si la encuesta ya no está activa (ha finalizado)
+        // if (!$this->isSurveyActive($survey)) {
+        //    abort(404, 'Survey not found or not active.');
+        // }
+
+        // Cargar datos de la encuesta
+        $survey->loadMissing(['category']); // Cargar categoría si no está cargada
+
+        // --- OPCIÓN B (CORRECTA): Usar RankingService para ranking de encuesta ---
+        // Cargar el ranking de la encuesta específica usando el servicio dedicado
+        // Se puede pasar $request->all() si el servicio maneja filtros/paginación
+        $surveyRanking = $this->rankingService->getSurveyRanking($survey, request()->only(['search', 'sort', 'direction', 'per_page'])); // <-- Usar el servicio
+
+        // dd(CharacterSurveyResource::collection($surveyRanking)->resolve());
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/SurveyResults', [
+            'survey' => SurveyResource::make($survey)->resolve(), // <-- Resolver el recurso de la encuesta
+            'ranking' => CharacterSurveyResource::collection($surveyRanking)->resolve(), // <-- Resolver la colección paginada de ranking
+            // 'filters' => $request->only(['search', 'sort', 'direction', 'per_page']), // Opcional: pasar filtros para UI
+        ]);
+    }
+
+    /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
+        // Obtener el usuario autenticado
+        /* $user = Auth::user();
+        if (!$user) {
+            abort(401, 'Authentication required to view character stats.');
+        } */
+
+        // Cargar datos del personaje con sus relaciones y datos pivote
+        // Cargamos 'categories' (con datos pivote de category_character y la relación 'category')
+        // y 'surveys' (con datos pivote de character_survey y la relación 'survey').
+        $character->loadMissing([
+            'categories:id,name,slug,color,icon', // Cargar datos básicos de la categoría (opcional, si se necesita en CharacterStatsResource)
+            'surveys:id,title,slug,date_start,date_end,status,category_id', // Cargar datos básicos de la encuesta
+            'surveys.category:id,name,slug,color,icon', // Cargar la categoría de cada encuesta
+        ]);
+
+        // Cargar datos pivote adicionales si es necesario (aunque `withPivot` en el modelo debería cubrirlo)
+        // $character->loadMissing(['categories', 'surveys']);
+
+        // Devolver la vista Inertia con el recurso específico para estadísticas
+        // Asegurar que el recurso se resuelva a un array plano antes de pasarlo a Inertia
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- CORREGIDO: Usar .resolve() aquí
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, el historial de ELO si se implementa)
+            // 'eloHistory' => [...],
+        ]);
+    }
+
+    /**
+     * Muestra el ranking de personajes para una categoría específica.
+     *
+     * @param Category $category Categoría específica.
+     * @param Request $request
+     * @return Response
+     */
+    public function categoryRankings_wo_ranking_service(Category $category, Request $request): Response
+    {
+        // Verificar si la categoría está activa
+        if (!$category->status) {
+            abort(404, 'Category not found or not active.');
+        }
+
+        // Opcional: Verificar si hay encuestas activas en esta categoría para mostrar rankings
+
+        // Cargar ranking de personajes en esta categoría
+        // Esto probablemente se haría con un servicio专门izado
+        // Asumiendo un servicio RankingService que maneja rankings
+        // $rankingService = app(RankingService::class); // O inyectar en el constructor
+        // $topCharacters = $rankingService->getTopRankingsForCategory($category->id);
+
+        // O directamente desde el modelo Category o Character con joins a category_character
+        // Asumiendo que CategoryCharacter tiene un modelo y relaciones
+        $topCharacters = $category->characters()
+                                  ->wherePivot('status', true) // Solo personajes activos en la categoría
+                                  ->orderByPivot('elo_rating', 'desc') // Ordenar por rating ELO descendente
+                                  ->orderByPivot('matches_played', 'desc') // Empates por partidas jugadas
+                                  ->limit($request->get('limit', 50)) // Paginar o limitar resultados
+                                  ->get(['characters.*', 'category_character.elo_rating', 'category_character.matches_played', 'category_character.wins', 'category_character.losses', 'category_character.ties', 'category_character.win_rate']); // Seleccionar campos del personaje y del pivote
+
+        // Usar un recurso específico para el ranking si es necesario
+        // Asumiendo que CharacterResource ya incluye los campos necesarios o se crea un CharacterRankingResource
+        // $topCharactersResource = CharacterRankingResource::collection($topCharacters);
+
+        return Inertia::render('Public/Statistics/CategoryRankings', [
+            'category' => new CategoryResource($category),
+            'topCharacters' => $topCharacters, // Pasar directamente la colección o usar un recurso específico
+            // 'filters' => $request->only(['limit', 'sort']),
+        ]);
+    }
+
+    /**
+     * Muestra los resultados y ranking final (o actual) de una encuesta específica.
+     * Calcula el ranking basado en las estadísticas de la tabla character_survey.
+     *
+     * @param Survey $survey El modelo de encuesta, inyectado por route model binding.
+     * @return Response
+     */
+    public function surveyResults_wo_ranking_service(Survey $survey): Response
+    {
+        // Verificar si la encuesta está activa o ha finalizado (opcionalmente, solo mostrar resultados si ha finalizado)
+        // if (!$this->isSurveyActive($survey) && $survey->date_end >= now()) {
+        //    abort(404, 'Survey not found or not active yet.');
+        // }
+
+        // Verificar si la encuesta está activa o ha finalizado
+        if (!$survey->status || ($survey->date_start > now() || $survey->date_end < now())) {
+            // Permitir ver resultados incluso si la encuesta ya no está activa (ha finalizado)
+            // Opcional: Mostrar un mensaje diferente si está activa o inactiva
+        }
+
+        // Cargar datos de la encuesta
+        $survey->loadMissing(['category']); // Cargar categoría si no está cargada
+
+        // --- OPCIÓN A: Calcular ranking desde character_survey ---
+        // Este enfoque asume que character_survey se actualiza correctamente con cada voto
+        // y que esos datos representan el estado actual/resumen de la encuesta para cada personaje.
+        // Es más directo si la lógica de actualización en character_survey está bien implementada.
+        $surveyRanking = CharacterSurvey::where('survey_id', $survey->id)
+                                        ->with(['character:id,fullname,nickname,picture']) // Cargar datos del personaje relacionado
+                                        ->where('is_active', true) // Solo personajes activos en la encuesta
+                                        // ->orderByRaw('survey_wins DESC, survey_ties DESC, survey_losses ASC, survey_matches DESC') // Opción 1: Ordenar en BD
+                                        ->get(); // <-- Carga la colección de CharacterSurvey
+
+        // Calcular posición manualmente basado en el orden definido por PHP (o BD si usas orderByRaw)
+        // Asumiendo que la ordenación en BD ya se hizo arriba (Opción 1)
+        $position = 1;
+        $previousWins = null;
+        $previousTies = null;
+        $previousLosses = null;
+        $previousMatches = null;
+
+        $rankingWithPositions = $surveyRanking->map(function ($characterSurveyPivot) use (&$position, &$previousWins, &$previousTies, &$previousLosses, &$previousMatches) {
+            // --- CORRECCIÓN: Acceder a campos directos del modelo CharacterSurvey ---
+            $currentWins = $characterSurveyPivot->survey_wins; // <-- CORRECTO: Campo directo del modelo CharacterSurvey
+            $currentTies = $characterSurveyPivot->survey_ties; // <-- CORRECTO
+            $currentLosses = $characterSurveyPivot->survey_losses; // <-- CORRECTO
+            $currentMatches = $characterSurveyPivot->survey_matches; // <-- CORRECTO
+            // --- FIN CORRECCIÓN ---
+
+            // Verificar si hay empate con el personaje anterior (misma cantidad de wins, ties, losses, matches)
+            if ($previousWins === $currentWins && $previousTies === $currentTies && $previousLosses === $currentLosses && $previousMatches === $currentMatches) {
+                // Mantener la misma posición (empate técnico)
+                $characterSurveyPivot->setAttribute('survey_position', $position - 1); // La posición no cambia
+            } else {
+                // Actualizar la posición
+                $characterSurveyPivot->setAttribute('survey_position', $position);
+                // Actualizar valores anteriores
+                $previousWins = $currentWins;
+                $previousTies = $currentTies;
+                $previousLosses = $currentLosses;
+                $previousMatches = $currentMatches;
+            }
+
+            $position++;
+            return $characterSurveyPivot; // Devolver el modelo CharacterSurvey modificado
+        });
+
+        dd($rankingWithPositions);
+
+        // --- OPCIÓN B (Alternativa): Usar RankingService para ranking final de encuesta ---
+        // Si se implementa un servicio dedicado que calcula el ranking de la encuesta basado en votos
+        // o en una tabla intermedia como `rank_positions` (como se ve en codebase4ask2ai.txt),
+        // se usaría aquí.
+        // $surveyRanking = $this->rankingService->getSurveyFinalRanking($survey);
+        // En este caso, RankingService devolvería una colección de objetos con la posición ya calculada y el personaje relacionado.
+
+
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/SurveyResults', [
+            'survey' => SurveyResource::make($survey)->resolve(), // <-- Resolver el recurso de la encuesta
+            // --- CORRECCIÓN: Usar CharacterSurveyResource para la colección ---
+            'ranking' => CharacterSurveyResource::collection($rankingWithPositions)->resolve(), // <-- Resolver la colección de ranking (instancia de CharacterSurvey con posición añadida)
+            // --- FIN CORRECCIÓN ---
+            // Puedes pasar otros datos auxiliares si es necesario (estadísticas generales de la encuesta)
+        ]);
+    }
+
+    /**
+     * Muestra los resultados y ranking de una encuesta específica.
+     *
+     * @param Survey $survey Encuesta específica.
+     * @return Response
+     */
+    public function surveyResults_wo_(Survey $survey): Response
+    {
+        // Verificar si la encuesta está activa o ha finalizado
+        if (!$survey->status || ($survey->date_end < now() && $survey->date_start > now())) {
+            abort(404, 'Survey not found or not active.');
+        }
+
+        // Cargar datos de la encuesta
+        $survey->loadMissing(['category', 'characters']); // Cargar categoría y personajes participantes
+
+        // Calcular o cargar ranking final de la encuesta
+        // Asumiendo un servicio RankingService o lógica específica
+        // $surveyRanking = $this->rankingService->getSurveyFinalRanking($survey);
+
+        // O, si los datos se calculan dinámicamente o se almacenan en una tabla de resultados
+        // Se podría tener un modelo SurveyResult o una vista/materialized view
+        // $surveyRanking = SurveyResult::where('survey_id', $survey->id)->orderBy('final_position')->get();
+
+        // Por ahora, simulamos que no hay un cálculo específico de ranking final de encuesta
+        // y mostramos los personajes ordenados por su ELO en la categoría al final de la encuesta
+        // o por estadísticas acumuladas en character_survey para esta encuesta específica.
+        // La mejor práctica es tener un cálculo de ranking final específico guardado al finalizar la encuesta.
+        // Por simplicidad temporal, ordenamos por elo_rating en category_character para esta categoría
+        $surveyRanking = $survey->characters()
+                                ->orderByPivot('elo_rating', 'desc')
+                                ->get(['characters.*', 'character_survey.survey_matches', 'character_survey.survey_wins', 'character_survey.survey_losses', 'character_survey.survey_ties']); // Seleccionar campos relevantes
+
+        return Inertia::render('Public/Statistics/SurveyResults', [
+            'survey' => new SurveyResource($survey),
+            'ranking' => $surveyRanking, // Pasar colección o recurso
+        ]);
+    }
+
+    /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats_v1(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
+        // Obtener el usuario autenticado (opcional, dependiendo de la lógica de negocio)
+        // $user = Auth::user();
+        // if (!$user) {
+        //     abort(401, 'Authentication required to view character stats.');
+        // }
+
+        // Cargar datos del personaje con sus relaciones y datos pivote
+        // Cargamos 'categories' con sus datos pivote y la relación 'category'
+        // y 'surveys' con sus datos pivote y la relación 'survey' (que a su vez puede cargar 'category')
+        $character->loadMissing([
+            'categories:id,name,slug,color,icon', // Cargar datos básicos de la categoría
+            'surveys:id,title,slug,date_start,date_end,status,category_id', // Cargar datos básicos de la encuesta
+            'surveys.category', // Cargar la categoría asociada a cada encuesta cargada
+        ]);
+
+        // Opcional: Si se necesita más profundidad en las relaciones (por ejemplo, datos de encuesta en CharacterSurveyResource),
+        // se puede usar ->with() en la consulta del modelo o en el controlador.
+        // $character->loadMissing(['surveys.category', 'surveys.userVotes', ...]);
+
+        // Devolver la vista Inertia con el recurso específico para estadísticas
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- Usar CharacterStatsResource y .resolve()
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, el historial de ELO si se implementa)
+            // 'eloHistory' => [...],
+        ]);
+    }
+
+    /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats_v0(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
+        // Cargar datos del personaje
+        // $character->loadMissing(['categories', 'surveys']); // Cargar relaciones con categorías y encuestas
+
+        // Cargar datos del personaje con sus relaciones y estadísticas pivote
+        // Cargamos categories con datos pivote de category_character
+        // y surveys con datos pivote de character_survey
+        $character->loadMissing([
+            'categories:id,name,slug,color,icon', // Cargar datos básicos de la categoría
+            'surveys:id,title,slug,date_start,date_end,status', // Cargar datos básicos de la encuesta
+        ]);
+
+        // --- Cargar Estadísticas por Categoría ---
+        // Usamos la relación 'categories' ya cargada, pero accedemos a los datos pivote (category_character)
+        // Asumiendo que CharacterResource ya serializa 'categories' con sus datos pivote.
+        // Si no, se puede hacer una consulta específica aquí si se quiere un recurso más detallado solo para stats.
+        // $characterStatsByCategory = CategoryCharacter::where('character_id', $character->id)->with('category')->get();
+        // $characterStatsByCategoryResource = CategoryCharacterResource::collection($characterStatsByCategory);
+
+        // --- Cargar Historial de Participación en Encuestas ---
+        // La relación 'surveys' ya debería cargar encuestas con datos pivote de character_survey
+        // Asumiendo que CharacterResource ya serializa 'surveys' con sus datos pivote.
+        // Si no, se puede hacer una consulta específica aquí.
+        // $surveyParticipationHistory = CharacterSurvey::where('character_id', $character->id)->with('survey')->get();
+        // $surveyParticipationHistoryResource = CharacterSurveyResource::collection($surveyParticipationHistory);
+
+        // --- Cargar Ranking Histórico (ELO a lo largo del tiempo) ---
+        // Esto podría requerir una tabla adicional o cálculos si no se almacena explícitamente.
+        // Por ahora, asumiremos que el ELO actual en cada categoría es lo principal.
+        // Si se implementa un historial, se cargaría aquí.
+
+        // Opcional: Si se necesita información más detallada de la encuesta en la vista de stats,
+        // cargar también la categoría de la encuesta.
+        // $character->loadMissing(['surveys.category']);
+
+// dd(CharacterStatsResource::make($character)->resolve());
+
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            // 'character' => CharacterResource::make($character)->resolve(), // <-- Serializar el personaje con sus relaciones
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- Usar CharacterStatsResource y .resolve()
+            // 'characterStatsByCategory' => $characterStatsByCategoryResource->resolve(), // <-- Opcional: si no se incluye en CharacterResource
+            // 'surveyParticipationHistory' => $surveyParticipationHistoryResource->resolve(), // <-- Opcional: si no se incluye en CharacterResource
+            // 'eloHistory' => [...], // Datos para gráfico de ELO histórico (futuro)
+        ]);
+    }
+
+    /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO global por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats2(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
+        // Cargar datos del personaje
+        $character->loadMissing(['categories', 'surveys']); // Cargar categorías y encuestas en las que participa
+
+        // --- Cargar Estadísticas por Categoría (ELO global, etc.) ---
+        // La relación 'categories' ya debería cargar los datos pivote de category_character
+        // como elo_rating, matches_played, wins, losses, etc.
+        // Asumiendo que CharacterResource ya incluye esto si 'categories' está cargada.
+        // Si no, se podría hacer una consulta específica aquí si se quiere un recurso más detallado para stats.
+        // $characterStatsByCategory = CategoryCharacter::where('character_id', $character->id)->with('category')->get();
+
+        // --- Cargar Historial de Participación en Encuestas ---
+        // La relación 'surveys' debería cargar encuestas con datos pivote de character_survey
+        // como survey_matches, survey_wins, survey_losses, survey_ties, is_active, etc.
+        // Asumiendo que CharacterResource ya incluye esto si 'surveys' está cargada.
+        // Si no, se podría hacer una consulta específica aquí.
+        // $surveyParticipationHistory = CharacterSurvey::where('character_id', $character->id)->with('survey')->get();
+
+        // Opcional: Cargar encuestas completadas o activas por separado
+        // $completedSurveys = $character->surveys()->wherePivot('is_active', true)->get(); // Asumiendo que is_active en character_survey indica participación activa
+        // $activeSurveys = $character->surveys()->wherePivot('is_active', false)->get(); // o un campo diferente
+
+        // --- Cargar Ranking Histórico (ELO por encuesta o categoría a lo largo del tiempo) ---
+        // Esto podría ser más complejo y requerir una tabla de historial de ratings o cálculos dinámicos.
+        // Por ahora, asumiremos que el ELO actual en cada categoría es lo principal.
+        // Si se implementa un historial de ELO, se cargaría aquí.
+
+        // Devolver la vista Inertia con los recursos específicos
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            'character' => new CharacterResource($character), // <-- Usar CharacterResource o CharacterStatsResource
+            // 'characterStatsByCategory' => $characterStatsByCategory, // Si se carga por separado
+            // 'surveyParticipationHistory' => $surveyParticipationHistory, // Si se carga por separado
+            // 'completedSurveys' => SurveyResource::collection($completedSurveys), // Si se carga por separado
+            // 'eloHistory' => [...], // Datos para gráfico de ELO histórico (futuro)
+        ]);
+    }
+
+    // Otros métodos específicos de estadísticas pueden añadirse aquí
+    // public function getGlobalRankings() { ... }
+    // public function getSurveyComparisonGraph($surveyId) { ... }
+    // public function getCharacterHistory($characterId) { ... }
+}
+/*--------------------------------------------------------------*/
+6. resources\js\pages\Public\Statistics\CharacterStats.vue
+/*--------------------------------------------------------------*/
+<script setup lang="ts">
+import { Head, Link } from '@inertiajs/vue3';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/composables/useToast';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { CharacterStatsResource/* , CategoryCharacterStatResource, CharacterSurveyParticipationResource */ } from '@/types/global'; // Tipos actualizados
+import { Pencil, Trash, Eye } from 'lucide-vue-next'; // Iconos
+import { ref, computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación de encuestas)
+
+// --- Tipos ---
+interface Props {
+    character: CharacterStatsResource; // El personaje con sus estadísticas por categoría y encuesta
+}
+
+const props = defineProps<Props>();
+
+console.log(props);
+// console.log(props.character.surveys_participation);
+
+// --- Composables ---
+const { success, error } = useToast();
+
+// --- Computed Properties ---
+// Calcular win rate total (promedio ponderado o simple, dependiendo de la lógica de negocio deseada)
+// Por ejemplo, un win rate simple basado en todas las categorías donde ha jugado
+// const totalWins = computed(() => props.character.categories_stats?.reduce((sum, stat) => sum + stat.wins, 0) ?? 0);
+// const totalLosses = computed(() => props.character.categories_stats?.reduce((sum, stat) => sum + stat.losses, 0) ?? 0);
+// const totalTies = computed(() => props.character.categories_stats?.reduce((sum, stat) => sum + stat.ties, 0) ?? 0);
+// const totalMatches = computed(() => totalWins.value + totalLosses.value + totalTies.value);
+// const overallWinRate = computed(() => totalMatches.value > 0 ? (totalWins.value / totalMatches.value) * 100 : 0);
+
+// --- Computed Properties para estadísticas generales ---
+// Calcular win rate total (promedio simple basado en todas las categorías donde ha jugado)
+const totalWins = computed(() => {
+    const stats = props.character.categories_stats;
+    return Array.isArray(stats) ? stats.reduce((sum, stat) => sum + stat.wins, 0) : 0; // <-- CORRECCIÓN: Verificar isArray
+});
+
+const totalLosses = computed(() => {
+    const stats = props.character.categories_stats;
+    return Array.isArray(stats) ? stats.reduce((sum, stat) => sum + stat.losses, 0) : 0; // <-- CORRECCIÓN: Verificar isArray
+});
+
+const totalTies = computed(() => {
+    const stats = props.character.categories_stats;
+    return Array.isArray(stats) ? stats.reduce((sum, stat) => sum + stat.ties, 0) : 0; // <-- CORRECCIÓN: Verificar isArray
+});
+
+const totalMatches = computed(() => totalWins.value + totalLosses.value + totalTies.value);
+const overallWinRate = computed(() => totalMatches.value > 0 ? (totalWins.value / totalMatches.value) * 100 : 0);
+
+
+// --- Breadcrumbs ---
+const breadcrumbs: BreadcrumbItem[] = [
+    /* {
+        title: 'Characters',
+        href: route('public.characters.index'), // Asumiendo una ruta de listado público
+    },
+    {
+        title: props.character.fullname, // Nombre dinámico del personaje
+        href: route('public.characters.show', props.character.slug), // Asumiendo una ruta de vista pública
+    },
+    {
+        title: 'Stats',
+        href: route('public.characters.stats', props.character.slug), // Ruta actual
+    }, */
+];
+</script>
+
+<template>
+
+    <Head :title="`Stats: ${character.fullname}`" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="container mx-auto py-8">
+            <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <header class="border-b pb-4">
+                    <div class="container flex h-16 items-center justify-between px-4">
+                        <h1 class="text-xl font-semibold">{{ character.fullname }}</h1>
+                        <Badge :variant="character.status ? 'default' : 'secondary'">
+                            {{ character.status ? 'Active' : 'Inactive' }}
+                        </Badge>
+                    </div>
+                </header>
+
+                <main class="container py-8">
+                    <!-- Información Principal del Personaje -->
+                    <Card class="mb-8">
+                        <CardHeader>
+                            <CardTitle>Character Information</CardTitle>
+                            <CardDescription>
+                                Basic details about {{ character.fullname }}.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent class="space-y-4">
+                            <div class="flex items-start gap-6">
+                                <div class="relative aspect-square w-32 overflow-hidden rounded-full border">
+                                    <img v-if="character.picture_url" :src="character.picture_url"
+                                        :alt="character.fullname" class="h-full w-full object-cover" />
+                                    <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                                        <span class="text-muted-foreground">No image</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <h2 class="text-2xl font-bold">{{ character.fullname }}</h2>
+                                    <p v-if="character.nickname" class="text-lg text-muted-foreground">{{
+                                        character.nickname }}</p>
+                                    <p v-if="character.bio" class="mt-2 text-sm">{{ character.bio }}</p>
+                                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <h4 class="font-medium text-muted-foreground">Date of Birth</h4>
+                                            <p>{{ character.dob_formatted || 'N/A' }}</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-muted-foreground">Gender</h4>
+                                            <p>
+                                                {{
+                                                    character.gender === 0 ? 'Other' :
+                                                        character.gender === 1 ? 'Male' :
+                                                            character.gender === 2 ? 'Female' :
+                                                                character.gender === 3 ? 'Non-binary' : 'Unknown'
+                                                }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-muted-foreground">Nationality</h4>
+                                            <p>{{ character.nationality || 'N/A' }}</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-muted-foreground">Occupation</h4>
+                                            <p>{{ character.occupation || 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Estadísticas Generales (Resumen por Categorías) -->
+                    <Card class="mb-8">
+                        <CardHeader>
+                            <CardTitle>Overall Statistics</CardTitle>
+                            <CardDescription>
+                                Summary of performance across all categories.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">{{ totalMatches }}</div>
+                                    <div class="text-sm text-muted-foreground">Total Matches</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">{{ totalWins }}</div>
+                                    <div class="text-sm text-muted-foreground">Wins</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">{{ totalLosses }}</div>
+                                    <div class="text-sm text-muted-foreground">Losses</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold">{{ totalTies }}</div>
+                                    <div class="text-sm text-muted-foreground">Ties</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <div class="text-xl font-semibold">{{ overallWinRate.toFixed(2) }}%</div>
+                                <div class="text-sm text-muted-foreground">Overall Win Rate</div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Estadísticas por Categoría -->
+                    <Card class="mb-8">
+                        <CardHeader>
+                            <CardTitle>Statistics by Category</CardTitle>
+                            <CardDescription>
+                                Performance details within each category.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="overflow-x-auto rounded-lg border">
+                                <Table>
+                                    <TableCaption>Rating history and performance metrics per category.</TableCaption>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>ELO Rating</TableHead>
+                                            <TableHead>Matches Played</TableHead>
+                                            <TableHead>Wins</TableHead>
+                                            <TableHead>Losses</TableHead>
+                                            <TableHead>Ties</TableHead>
+                                            <TableHead>Win Rate</TableHead>
+                                            <TableHead>Peak Rating</TableHead>
+                                            <TableHead>Last Match</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <TableRow
+                                            v-if="!props.character.categories_stats || props.character.categories_stats.length === 0">
+                                            <TableCell :colSpan="9" class="h-24 text-center">
+                                                No category participation records found.
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow v-else v-for="stat in props.character.categories_stats"
+                                            :key="`${stat.category_id}-${stat.character_id}`">
+                                            <TableCell class="font-medium">{{ stat.category?.name || `Category
+                                                ${stat.category_id}` }}</TableCell>
+                                            <TableCell>{{ stat.elo_rating/* .toFixed(2) */ }}</TableCell>
+                                            <TableCell>{{ stat.matches_played }}</TableCell>
+                                            <TableCell>{{ stat.wins }}</TableCell>
+                                            <TableCell>{{ stat.losses }}</TableCell>
+                                            <TableCell>{{ stat.ties }}</TableCell> <!-- Mostrar empates -->
+                                            <TableCell>{{ stat.win_rate/* .toFixed(2) */ }}%</TableCell>
+                                            <TableCell>{{ stat.highest_rating }}</TableCell>
+                                            <TableCell>{{ stat.last_match_at ? new
+                                                Date(stat.last_match_at).toLocaleDateString() : 'Never' }}</TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Participación en Encuestas -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Survey Participation</CardTitle>
+                            <CardDescription>
+                                History of participation and results in specific surveys.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="overflow-x-auto rounded-lg border">
+                                <Table>
+                                    <TableCaption>Performance details within each survey participated.</TableCaption>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Survey</TableHead>
+                                            <TableHead>Category</TableHead>
+                                            <TableHead>Survey Matches</TableHead>
+                                            <TableHead>Survey Wins</TableHead>
+                                            <TableHead>Survey Losses</TableHead>
+                                            <TableHead>Survey Ties</TableHead>
+                                            <TableHead>Survey Position</TableHead>
+                                            <TableHead class="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <TableRow
+                                            v-if="!props.character.surveys_participation || props.character.surveys_participation.length === 0">
+                                            <TableCell :colSpan="8" class="h-24 text-center">
+                                                No survey participation records found.
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow v-else v-for="participation in props.character.surveys_participation"
+                                            :key="`${participation.character_id}-${participation.survey_id}`">
+                                            <TableCell class="font-medium">
+                                                <Link :href="route('public.surveys.show', participation.survey.id)"
+                                                    class="text-indigo-600 hover:text-indigo-900">
+                                                {{ participation.survey.title }}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>{{ participation.survey.category.name }}</TableCell>
+                                            <!-- Acceder a la categoría de la encuesta -->
+                                            <TableCell>{{ participation.survey_matches }}</TableCell>
+                                            <TableCell>{{ participation.survey_wins }}</TableCell>
+                                            <TableCell>{{ participation.survey_losses }}</TableCell>
+                                            <TableCell>{{ participation.survey_ties }}</TableCell>
+                                            <!-- Mostrar empates en encuesta -->
+                                            <TableCell>{{ participation.survey_position || 'N/A' }}</TableCell>
+                                            <!-- Posición en la encuesta -->
+                                            <TableCell class="text-right">
+                                                <Button asChild variant="outline" size="sm">
+                                                    <Link
+                                                        :href="route('public.surveys.results', participation.survey.id)">
+                                                    <!-- Asumiendo una ruta de resultados -->
+                                                    <Eye class="mr-2 h-4 w-4" />
+                                                    View Results
+                                                    </Link>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </main>
+            </div>
+        </div>
+    </AppLayout>
+</template>
+
+<style scoped>
+/* Estilos específicos si es necesario */
+</style>
+/*--------------------------------------------------------------*/
+7. resources/js/types/global.d.ts
+/*--------------------------------------------------------------*/
+// resources/js/types/global.d.ts
+
+// Importaciones (si se necesitan para otros tipos, pero no para extender PageProps aquí)
+// import { ... } from '...';
+
+// Extender la interfaz PageProps de Inertia para incluir nuestras propiedades globales
+declare module '@inertiajs/core' {
+    /* interface PageProps {
+        // Añadir aquí propiedades que *siempre* estarán presentes en todas las páginas
+        // Por ejemplo, si defines auth globalmente en HandleInertiaRequests:
+        // auth?: {
+        //     user: { id: number; name: string; email: string } | null;
+        // };
+
+        // Añadir aquí propiedades que *podrían* estar presentes en *algunas* páginas
+        // Nota: Esto las hace *opcionales* en todas las páginas, lo cual puede no ser ideal
+        // para props específicas de una página. Se prefiere usar `defineProps` en el componente.
+        // flash?: { success?: string; error?: string }; // Ejemplo de flash global
+    } */
+}
+
+// Definir interfaces para las entidades que se pasan como props específicas
+// Estas se usarán en defineProps de los componentes Vue
+interface Pagination {
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+}
+
+interface PaginationLinks {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface UserResource { // Interfaz para el recurso individual resuelto
+    id: number;
+    name: string;
+    email: string;
+    avatar: string;
+    timezone: string;
+    locale: string;
+    type: string;
+    status: boolean;
+    last_login_at: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    created_at_formatted: string;
+    updated_at_formatted: string;
+    // Añadir otros campos devueltos por UserResource si es necesario
+}
+
+export interface UsersData { // Para la colección paginada
+    data: UserResource[]; // Array de UserResource
+    meta: Pagination;
+    links: PaginationLinks[]; // Simplificado
+}
+
+export interface CategoryResource { // Renombrado para claridad
+    id: number;
+    name: string;
+    description: string;
+    image: string | null;
+    status: boolean;
+    is_featured: boolean;
+    slug: string;
+    created_at_formatted: string; // O created_at si se formatea en el frontend
+    updated_at_formatted: string; // O updated_at si se formatea en el frontend
+    // Añadir otros campos devueltos por CategoryResource
+    surveys_count: number;
+}
+
+export interface CategoriesData { // Para la colección paginada
+    data: CategoryResource[]; // Array de CategoryResource
+    meta: Pagination;
+    links: PaginationLinks[]; // Simplificado
+}
+
+// --- Interfaces para otras entidades ---
+// --- Interfaces para Characters ---
+export interface CharacterResource { // Interfaz para el recurso individual resuelto
+    id: number;
+    fullname: string;
+    nickname: string;
+    slug: string;
+    bio: string;
+    dob: string | null; // Puede ser null si no tiene fecha de nacimiento
+    dob_for_humans: string | null; // Puede ser null si no tiene fecha de nacimiento
+    dob_formatted: string | null; // Puede ser null si no tiene fecha de nacimiento
+    gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+    nationality: string;
+    occupation: string;
+    picture: File | null; // URL o path
+    picture_url: string | undefined;
+    thumbnail_url: string;
+    status: boolean;
+    meta_title: string | null;
+    meta_description: string | null;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // Añadir otros campos devueltos por CharacterResource si es necesario
+    created_at_formatted: string;
+    updated_at_formatted: string;
+    category_ids: number[];
+}
+
+export interface CharacterResourceForm { // Interfaz para el recurso individual resuelto
+    id: number;
+    fullname: string;
+    nickname: string;
+    slug: string;
+    bio: string;
+    dob: string | null; // Puede ser null si no tiene fecha de nacimiento
+    gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+    nationality: string;
+    occupation: string;
+    picture: File | null; // URL o path
+    picture_url: string | undefined;
+    status: boolean;
+    meta_title: string | null;
+    meta_description: string | null;
+    // Añadir otros campos devueltos por CharacterResource si es necesario
+    category_ids: number[];
+}
+
+
+
+export interface CharactersData { // Para la colección paginada resuelta
+    data: CharacterResource[]; // Array de objetos CharacterResource directos
+    meta: Pagination;
+    links: PaginationLinks[];
+}
+
+
+// --- Interfaces para Surveys ---
+export interface SurveyResource { // Interfaz para el recurso individual resuelto
+    id: number;
+    category_id: number; // ID de la categoría
+    category: CategoryData; // Objeto de la categoría relacionada (resuelto)
+    category: CategoryResource;
+    title: string;
+    slug: string;
+    description: string;
+    image: string | null; // URL o path
+    type: number; // 0=pública, 1=privada
+    status: boolean;
+    reverse: boolean; // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
+    date_start: string; // Formato ISO
+    date_end: string; // Formato ISO
+    selection_strategy: string; // Nombre de la estrategia
+    max_votes_per_user: number | null; // 0=ilimitado
+    allow_ties: boolean;
+    tie_weight: number; // Decimal
+    is_featured: boolean;
+    is_active: boolean;
+    sort_order: number;
+    counter: number;
+    meta_title: string | null;
+    meta_description: string | null;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Incluido si se maneja soft delete y se envía
+
+    date_start_formatted: string;
+    date_end_formatted: string;
+    duration: number;
+    /* selection_strategy_info: {
+        name: string;
+        description: string;
+        metadata: {
+            [key: string]: any;
+        };
+    }; */
+    character_count: number;
+    combinations_count: number;
+    combinatorics_count: number;
+    user_votes_count: number;
+    progress_percentage: number;
+    is_completed: boolean;
+    created_at_formatted: string;
+    updated_at_formatted: string;
+    characters: CharacterResource[];
+    strategy: string;
+    // votes: VoteResource[];
+
+    total_combinations_expected: number;
+    total_combinations: number;
+    total_votes: number;
+}
+
+export interface SurveyResourceForm { // Interfaz para el recurso individual resuelto
+    // id: number;
+    category_id: string | number | null; // ID de la categoría
+    // category: CategoryResource; // Objeto de la categoría relacionada (resuelto)
+    title: string;
+    // slug: string;
+    description: string;
+    // image: string | null; // URL o path
+    type: number; // 0=pública, 1=privada
+    status: boolean;
+    reverse: boolean; // 0 : orden 'cual es mejor' (default) | 1 : orden 'cual es peor'
+    date_start: string; // Formato ISO
+    date_end: string; // Formato ISO
+    selection_strategy: string; // Nombre de la estrategia
+    // max_votes_per_user: number | null; // 0=ilimitado
+    // allow_ties: boolean;
+    // tie_weight: number; // Decimal
+    is_featured: boolean;
+    is_active: boolean;
+    // sort_order: number;
+    // counter: number;
+    // meta_title: string | null;
+    // meta_description: string | null;
+    // created_at: string; // Formato ISO
+    // updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Incluido si se maneja soft delete y se envía
+    characters: number[];
+}
+
+export interface SurveysData {
+    data: SurveyResource[];
+    meta: Pagination;
+    links: PaginationLinks[];
+}
+
+/*--------------------------------------------------------------------------*/
+// --- Interfaces para el Progreso del Usuario en una Encuesta ---
+export interface UserSurveyProgress {
+    exists: boolean;
+    is_completed: boolean;
+    progress: number; // Porcentaje de progreso
+    total_votes: number;
+    total_expected: number | null; // Total de combinaciones esperadas
+    pivot: SurveyUser | null; // El objeto pivote completo, si es necesario
+}
+
+// Asumiendo que SurveyUser es la estructura del modelo pivote
+export interface SurveyUser {
+    user_id: number;
+    survey_id: number;
+    progress_percentage: number;
+    total_votes: number;
+    total_combinations_expected: number | null; // Campo añadido
+    completed_at: string | null;
+    started_at: string;
+    last_activity_at: string;
+    is_completed: boolean;
+    completion_time: number | null;
+}
+
+export interface CombinatoricResource_ {
+    id: number;
+    survey_id: number;
+    character1_id: number;
+    character2_id: number;
+    character1: CharacterResource;
+    character2: CharacterResource;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CombinatoricResource {
+    id: number;
+    character1: CharacterResource;
+    character2: CharacterResource;
+    // Añadir otros campos si son necesarios
+}
+/*--------------------------------------------------------------------------*/
+// --- Interfaces para Rankings ---
+// Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
+// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character' (resuelta como objeto plano)
+// Asumiendo que el objeto que llega es la serialización directa de CategoryCharacter::with('character')->first()
+export interface CategoryCharacterRankingResource {
+    // Campos de la tabla pivote 'category_character'
+    category_id: number;
+    character_id: number;
+    elo_rating: number;
+    matches_played: number;
+    wins: number;
+    losses: number;
+    ties: number; // Nueva columna
+    win_rate: number | float; // Porcentaje
+    highest_rating: number;
+    lowest_rating: number;
+    rating_deviation: number; // Si se usa Glicko
+    last_match_at: string | null; // Formato ISO
+    is_featured: boolean;
+    sort_order: number;
+    status: boolean;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete y se envía
+
+    // Relación con el modelo 'Character' (cargada como objeto plano, no como CharacterResource)
+    // Asumiendo que el objeto 'character' contiene los campos devueltos por el modelo Character o su toArray si se usa
+    character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        slug: string;
+        bio: string | null;
+        dob: string | null; // Formato ISO
+        gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+        nationality: string | null;
+        occupation: string | null;
+        picture: string | null; // Ruta relativa, como se define en el modelo
+        status: boolean;
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        // deleted_at: string | null; // Si se maneja soft delete
+    };
+
+    // Campo calculado: posición en el ranking (añadido por el servicio RankingService)
+    position?: number; // Campo opcional calculado
+}
+
+// --- CORRECCIÓN: Interfaz para la respuesta paginada de rankings ---
+// La estructura que Inertia devuelve para un objeto Paginator de Laravel es un objeto plano
+// con los campos de paginación en el nivel raíz, NO anidados en 'meta'.
+export interface CategoryRankingData {
+    data: CategoryCharacterRankingResource[]; // Array de entradas de ranking
+    // Campos de paginación en el nivel raíz (como los devuelve Inertia de un Paginator)
+    current_page: number;
+    from: number;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+    first_page_url: string | null;
+    last_page_url: string | null;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
+    // No hay propiedad 'meta'
+}
+
+// Interfaz para un registro de ranking de personaje en una encuesta específica (fila de la tabla)
+// Esta interfaz representa un objeto de la tabla pivote 'character_survey' + la relación 'character'(resuelta como objeto plano)
+// Incluye la posición calculada por el servicio RankingService
+export interface CharacterSurveyRankingResource {
+    // Campos de la tabla pivote 'character_survey'
+    character_id: number;
+    survey_id: number;
+    survey_matches: number;
+    survey_wins: number;
+    survey_losses: number;
+    survey_ties: number; // Nueva columna
+    is_active: boolean;
+    sort_order: number;
+    pivot_created_at: string; // Formato ISO
+    pivot_updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete y se envía
+
+    // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
+    survey_position: number; // <-- Campo calculado y añadido por RankingService
+
+    // Campos del rating ELO en la categoría de la encuesta (desde category_character)
+    elo_rating_in_category: number; // <-- Campo del rating ELO
+    matches_played_in_category: number; // Opcional
+    wins_in_category: number;         // Opcional
+    losses_in_category: number;       // Opcional
+    ties_in_category: number;         // Opcional
+    win_rate_in_category: number;     // Opcional
+
+    // Relación con el modelo 'Character' (datos del personaje, incluyendo picture_url)
+    character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        picture: string | null; // Ruta relativa
+        picture_url: string | null; // URL generada por Storage::url
+        slug: string;
+        // Añadir otros campos necesarios del personaje si se usan en la UI
+    };
+
+    // Relación con el modelo 'Character' (cargada como objeto plano o CharacterResource)
+    // Asumiendo que CharacterSurveyResource incluye 'character' como un objeto con campos específicos
+    /* character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        slug: string;
+        bio: string | null;
+        dob: string | null; // Formato ISO
+        gender: number; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
+        nationality: string | null;
+        occupation: string | null;
+        picture: string | null; // Ruta relativa
+        picture_url: string | null; // URL generada por Storage::url (si se incluye en CharacterSurveyResource)
+        status: boolean;
+        meta_title: string | null;
+        meta_description: string | null;
+        created_at: string; // Formato ISO
+        updated_at: string; // Formato ISO
+        // deleted_at: string | null; // Si se maneja
+    }; */
+    // character: CharacterResource; // Incluye fullname, picture_url, etc.
+}
+
+// Interfaz para la respuesta paginada de rankings de encuesta
+// La estructura que Inertia devuelve para una colección paginada de CharacterSurveyResource
+export interface SurveyResultsData {
+    data: CharacterSurveyRankingResource[]; // Array de entradas de ranking
+    meta: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        path: string;
+        per_page: number;
+        to: number;
+        total: number;
+    };
+    links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
+}
+
+// --- Interfaces para Characters ---
+
+// Interfaz para un registro de relación personaje-categoría (tabla pivote category_character)
+export interface CategoryCharacterStatResource {
+    category_id: number;
+    character_id: number;
+    elo_rating: number | float;
+    matches_played: number;
+    wins: number;
+    losses: number;
+    ties: number; // Nueva columna
+    win_rate: number; // Porcentaje
+    highest_rating: number;
+    lowest_rating: number;
+    rating_deviation: number; // Si se usa Glicko
+    last_match_at: string | null; // Formato ISO
+    is_featured: boolean;
+    sort_order: number;
+    status: boolean;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete
+
+    // Relación con la categoría (opcional, si se carga en CharacterStatsResource)
+    category?: CategoryResource; // <-- Asumiendo que CategoryResource existe
+}
+
+// Interfaz para un registro de relación personaje-encuesta (tabla pivote character_survey)
+// Devuelto por CharacterSurveyResource
+export interface CharacterSurveyParticipationResource {
+    character_id: number;
+    survey_id: number;
+    survey_matches: number;
+    survey_wins: number;
+    survey_losses: number;
+    survey_ties: number; // Nueva columna
+    is_active: boolean;
+    sort_order: number;
+    pivot_created_at: string; // Formato ISO (created_at de character_survey)
+    pivot_updated_at: string; // Formato ISO (updated_at de character_survey)
+
+    // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService)
+    survey_position?: number; // <-- Campo calculado y añadido por RankingService
+
+    // Relación con la encuesta (asumiendo que CharacterSurveyResource incluye 'survey')
+    survey: SurveyResource; // <-- Asumiendo que SurveyResource existe
+}
+
+// Interfaz para el recurso de estadísticas del personaje (detalle de personaje + estadísticas)
+// Extiende de CharacterResource para reutilizar campos básicos
+export interface CharacterStatsResource extends CharacterResource { // Extiende de CharacterResource
+    // No añadimos campos propios aquí, solo relaciones
+    // Relación con categorías (estadísticas por categoría)
+    categories_stats?: CategoryCharacterStatResource[]; // <-- Array directo, no { data: [...] }
+
+    // Relación con encuestas (participación y estadísticas por encuesta)
+    surveys_participation?: CharacterSurveyParticipationResource[]; // <-- Array directo, no { data: [...] }
+}
+
+// Interfaz para la respuesta de resultados de encuesta
+/* export interface SurveyResultsData {
+    survey: SurveyResource; // Datos de la encuesta
+    ranking: CharacterSurveyRankingResource[]; // Ranking de personajes en la encuesta
+    // Puedes añadir otras estadísticas generales de la encuesta aquí si se pasan
+    // general_stats?: { total_votes: number, total_participants: number, ... }
+} */
+/*--------------------------------------------------------------------------*/
+// Asegurarse de que SurveyResource y CharacterResource estén definidos o importados si se usan aquí
+// export interface SurveyResource { ... }
+// export interface CharacterResource { ... }
+
+/*--------------------------------------------------------------------------*/
+// --- Tipos para Breadcrumbs (si no los tienes en otro lugar) ---
+/* export interface BreadcrumbItem {
+    title: string;
+    href?: string;
+} */
+/*--------------------------------------------------------------*/

@@ -190,30 +190,39 @@ class PublicStatisticsController extends Controller
             abort(404, 'Character not found or not active.');
         }
 
-        // Obtener el usuario autenticado (opcional, dependiendo de la lógica de negocio)
+        // Obtener el usuario autenticado
         /* $user = Auth::user();
         if (!$user) {
-            // Opcional: Redirigir a login o mostrar mensaje si es necesario
             abort(401, 'Authentication required to view character stats.');
         } */
 
-        // Cargar datos necesarios para la vista de detalle
-        // Cargamos las categorías y encuestas en las que participa el personaje, junto con sus datos pivote
+        // Cargar datos del personaje con sus relaciones y datos pivote
+        // Cargamos 'categories' (con datos pivote de category_character y la relación 'category')
+        // y 'surveys' (con datos pivote de character_survey y la relación 'survey').
         $character->loadMissing([
-            'categories:id,name,slug,color,icon', // Cargar solo campos necesarios de la categoría
-            'surveys:id,title,slug,date_start,date_end,status,category_id', // Cargar solo campos necesarios de la encuesta
+            'categories:id,name,slug,color,icon', // Cargar datos básicos de la categoría (opcional, si se necesita en CharacterStatsResource)
+            'surveys:id,title,slug,date_start,date_end,status,category_id', // Cargar datos básicos de la encuesta
             'surveys.category:id,name,slug,color,icon', // Cargar la categoría de cada encuesta
         ]);
 
-        // Verificar el estado del progreso del usuario (opcional, si se muestra en CharacterStats)
-        // $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user); // Requiere un $survey específico o cálculo global
-        // No se aplica directamente aquí, a menos que se muestre el progreso global del usuario en todas las encuestas del personaje.
+        // --- VERIFICACIÓN: Verificar carga de relaciones ---
+        // dd($character->categories, $character->surveys);
+        // -----------------------------------------------
 
-        // Renderizar la vista Inertia con el recurso específico para estadísticas
+        // --- VERIFICACIÓN: Verificar serialización del recurso ---
+        // $resolvedCharacter = CharacterStatsResource::make($character)->resolve();
+        // dd($resolvedCharacter);
+        // ----------------------------------------------------------
+
+        // Cargar datos pivote adicionales si es necesario (aunque `withPivot` en el modelo debería cubrirlo)
+        // $character->loadMissing(['categories', 'surveys']);
+
+        // Devolver la vista Inertia con el recurso específico para estadísticas
+        // Asegurar que el recurso se resuelva a un array plano antes de pasarlo a Inertia
         return Inertia::render('Public/Statistics/CharacterStats', [
-            'character' => CharacterStatsResource::make($character)->resolve(), // <-- Usar CharacterStatsResource y .resolve()
-            // 'userProgress' => $progressStatus, // <-- No aplicable directamente aquí
-            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, estadísticas generales del personaje)
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- CORREGIDO: Usar .resolve() aquí
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, el historial de ELO si se implementa)
+            // 'eloHistory' => [...],
         ]);
     }
 

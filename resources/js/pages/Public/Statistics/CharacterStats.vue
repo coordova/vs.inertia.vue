@@ -261,7 +261,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableRow v-else v-for="participation in props.character.surveys_participation"
                                             :key="`${participation.character_id}-${participation.survey_id}`">
                                             <TableCell class="font-medium">
-                                                <Link :href="route('public.surveys.show', participation.id)"
+                                                <Link :href="route('public.surveys.show', participation.survey.id)"
                                                     class="text-indigo-600 hover:text-indigo-900">
                                                 {{ participation.survey.title }}
                                                 </Link>

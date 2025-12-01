@@ -28,6 +28,33 @@ class CharacterStatsResource extends CharacterResource // Extender de CharacterR
 
         // Agregar campos específicos para estadísticas
         $extendedData = [
+            // --- CORRECCIÓN: Asegurar que las colecciones se resuelvan aquí también ---
+            // Las colecciones devueltas por whenLoaded también deben resolverse si se quiere que Inertia las maneje como arrays directos
+            'categories_stats' => CategoryCharacterResource::collection($this->whenLoaded('categories'))->resolve(), // <-- .resolve() aquí
+            'surveys_participation' => CharacterSurveyResource::collection($this->whenLoaded('surveys'))->resolve(), // <-- .resolve() aquí
+            // --- FIN CORRECCIÓN ---
+        ];
+
+        // Combinar datos básicos y extendidos
+        return array_merge($basicData, $extendedData);
+    }
+
+
+    public function toArray__old(Request $request): array
+    {
+        // Obtener los campos básicos del personaje desde CharacterResource
+        $basicData = parent::toArray($request);
+
+        // Agregar datos específicos de estadísticas
+        $extendedData = [
+            // --- CORRECCIÓN: Asegurar que las colecciones se resuelvan aquí también ---
+            'categories_stats' => CategoryCharacterResource::collection($this->whenLoaded('categories'))->resolve(), // <-- .resolve() aquí
+            'surveys_participation' => CharacterSurveyResource::collection($this->whenLoaded('surveys'))->resolve(), // <-- .resolve() aquí
+            // --- FIN CORRECCIÓN ---
+        ];
+
+        // Agregar campos específicos para estadísticas
+        /* $extendedData = [
             // Relación con categorías (y estadísticas dentro de cada categoría)
             'categories_stats' => $this->whenLoaded('categories', fn() => CategoryCharacterResource::collection($this->categories)),
 
@@ -44,7 +71,7 @@ class CharacterStatsResource extends CharacterResource // Extender de CharacterR
             //         ]
             //     ];
             // })),
-        ];
+        ]; */
 
         // Combinar datos básicos y extendidos
         return array_merge($basicData, $extendedData);
