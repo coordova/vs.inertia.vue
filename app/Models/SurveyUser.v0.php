@@ -4,13 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\Pivot; // <-- Extender Pivot
 
-class SurveyUser extends Pivot // <-- Extender Pivot
+class SurveyUser extends Model
 {
+    // use HasFactory;
+
     protected $table = 'survey_user';
 
     public $timestamps = true; // Asumiendo que tiene timestamps
+
+    // protected $primaryKey = ['user_id', 'survey_id'];    // esta produce error, 
+
+    // Especificar la clave primaria compuesta
+    // Laravel asume por defecto una columna 'id' autoincrementable
+    protected $primaryKey = ['user_id', 'survey_id']; // Clave primaria compuesta
+
+    // Desactivar el auto-incremento ya que la clave primaria es compuesta
+    public $incrementing = false;
+
+    // Especificar el tipo de clave primaria
+    protected $keyType = 'array'; // o 'string' si se serializa como string, pero 'array' es más común para compuestas
+
 
     protected $fillable = [
         'user_id',
@@ -36,15 +50,16 @@ class SurveyUser extends Pivot // <-- Extender Pivot
         'is_completed' => 'boolean',
         'completion_time' => 'integer', // segundos
         'total_combinations_expected' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
-    // Opcional: Definir claves foráneas explícitamente si no se deducen correctamente
-    // protected $foreignKey = 'user_id';
-    // protected $relatedKey = 'survey_id';
+    // --- Relaciones ---
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    // --- Relaciones desde el pivote (Opcional) ---
-    // public function user(): BelongsTo { ... }
-    // public function survey(): BelongsTo { ... }
+    public function survey(): BelongsTo
+    {
+        return $this->belongsTo(Survey::class);
+    }
 }

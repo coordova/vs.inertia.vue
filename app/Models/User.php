@@ -70,11 +70,30 @@ class User extends Authenticatable
     }
 
     public function surveys(): BelongsToMany
+{
+    return $this->belongsToMany(Survey::class, 'survey_user', 'user_id', 'survey_id')
+                ->using(SurveyUser::class) // <-- Asegurar el uso del modelo pivote personalizado
+                ->withPivot([
+                    'progress_percentage',
+                    'total_votes',
+                    'completed_at',
+                    'started_at',
+                    'last_activity_at',
+                    'is_completed',
+                    'completion_time',
+                    'total_combinations_expected',
+                    'created_at', // pivot_created_at
+                    'updated_at', // pivot_updated_at
+                ])
+                ->withTimestamps();
+}
+
+    /* public function surveys(): BelongsToMany
     {
         return $this->belongsToMany(Survey::class, 'survey_user')
                     ->withPivot(['progress_percentage', 'total_votes', 'completed_at', 'started_at', 'last_activity_at', 'is_completed', 'completion_time'])
                     ->withTimestamps();
-    }
+    } */
 
     public function surveyUserPivots(): HasMany
     {

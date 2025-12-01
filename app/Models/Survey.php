@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\CharacterSurvey; // Importar el modelo pivote personalizado
 
 class Survey extends Model
 {
@@ -71,9 +72,19 @@ class Survey extends Model
 
     public function characters(): BelongsToMany
     {
-        return $this->belongsToMany(Character::class, 'character_survey')
-                    ->withPivot(['survey_matches', 'survey_wins', 'survey_losses', 'survey_ties', 'is_active', 'sort_order'])
-                    ->withTimestamps();
+        return $this->belongsToMany(Character::class, 'character_survey', 'survey_id', 'character_id')
+                    ->using(CharacterSurvey::class) // <-- Asegurar el uso del modelo pivote personalizado
+                    ->withPivot([
+                        'survey_matches',
+                        'survey_wins',
+                        'survey_losses',
+                        'survey_ties', // Asegurar que 'survey_ties' esté incluido
+                        'is_active',
+                        'sort_order',
+                        'created_at', // pivot_created_at
+                        'updated_at', // pivot_updated_at
+                    ])
+                    ->withTimestamps(); // Asumiendo que la tabla pivote tiene created_at, updated_at
     }
 
     public function combinatorics(): HasMany
@@ -87,12 +98,31 @@ class Survey extends Model
     }
 
     public function users(): BelongsToMany
+{
+    return $this->belongsToMany(User::class, 'survey_user', 'survey_id', 'user_id')
+                ->using(SurveyUser::class) // <-- Asegurar el uso del modelo pivote personalizado
+                ->withPivot([
+                    'progress_percentage',
+                    'total_votes',
+                    'completed_at',
+                    'started_at',
+                    'last_activity_at',
+                    'is_completed',
+                    'completion_time',
+                    'total_combinations_expected',
+                    'created_at', // pivot_created_at
+                    'updated_at', // pivot_updated_at
+                ])
+                ->withTimestamps();
+}
+
+    /* public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'survey_user')
                     // ->using(SurveyUser::class) // <-- Indica el modelo pivote
                     ->withPivot(['progress_percentage', 'total_votes', 'completed_at', 'started_at', 'last_activity_at', 'is_completed', 'completion_time', 'total_combinations_expected'])
                     ->withTimestamps();
-    }
+    } */
 
     public function surveyUserPivots(): HasMany
     {

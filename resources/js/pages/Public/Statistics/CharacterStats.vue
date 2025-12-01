@@ -261,7 +261,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableRow v-else v-for="participation in props.character.surveys_participation"
                                             :key="`${participation.character_id}-${participation.survey_id}`">
                                             <TableCell class="font-medium">
-                                                <Link :href="route('public.surveys.show', participation.survey.slug)"
+                                                <Link :href="route('public.surveys.show', participation.id)"
                                                     class="text-indigo-600 hover:text-indigo-900">
                                                 {{ participation.survey.title }}
                                                 </Link>
@@ -278,7 +278,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             <TableCell class="text-right">
                                                 <Button asChild variant="outline" size="sm">
                                                     <Link
-                                                        :href="route('public.surveys.results', participation.survey.slug)">
+                                                        :href="route('public.surveys.results', participation.survey.id)">
                                                     <!-- Asumiendo una ruta de resultados -->
                                                     <Eye class="mr-2 h-4 w-4" />
                                                     View Results

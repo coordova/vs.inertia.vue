@@ -177,6 +177,47 @@ class PublicStatisticsController extends Controller
     }
 
     /**
+     * Muestra las estadísticas detalladas de un personaje específico.
+     * Incluye estadísticas generales (ELO por categoría) y específicas de encuestas.
+     *
+     * @param Character $character El modelo del personaje, inyectado por route model binding.
+     * @return Response
+     */
+    public function characterStats(Character $character): Response
+    {
+        // Verificar si el personaje está activo
+        if (!$character->status) {
+            abort(404, 'Character not found or not active.');
+        }
+
+        // Obtener el usuario autenticado (opcional, dependiendo de la lógica de negocio)
+        /* $user = Auth::user();
+        if (!$user) {
+            // Opcional: Redirigir a login o mostrar mensaje si es necesario
+            abort(401, 'Authentication required to view character stats.');
+        } */
+
+        // Cargar datos necesarios para la vista de detalle
+        // Cargamos las categorías y encuestas en las que participa el personaje, junto con sus datos pivote
+        $character->loadMissing([
+            'categories:id,name,slug,color,icon', // Cargar solo campos necesarios de la categoría
+            'surveys:id,title,slug,date_start,date_end,status,category_id', // Cargar solo campos necesarios de la encuesta
+            'surveys.category:id,name,slug,color,icon', // Cargar la categoría de cada encuesta
+        ]);
+
+        // Verificar el estado del progreso del usuario (opcional, si se muestra en CharacterStats)
+        // $progressStatus = $this->surveyProgressService->getUserSurveyStatus($survey, $user); // Requiere un $survey específico o cálculo global
+        // No se aplica directamente aquí, a menos que se muestre el progreso global del usuario en todas las encuestas del personaje.
+
+        // Renderizar la vista Inertia con el recurso específico para estadísticas
+        return Inertia::render('Public/Statistics/CharacterStats', [
+            'character' => CharacterStatsResource::make($character)->resolve(), // <-- Usar CharacterStatsResource y .resolve()
+            // 'userProgress' => $progressStatus, // <-- No aplicable directamente aquí
+            // Puedes pasar otros datos auxiliares si es necesario (por ejemplo, estadísticas generales del personaje)
+        ]);
+    }
+
+    /**
      * Muestra el ranking de personajes para una categoría específica.
      *
      * @param Category $category Categoría específica.
@@ -351,7 +392,7 @@ class PublicStatisticsController extends Controller
      * @param Character $character El modelo del personaje, inyectado por route model binding.
      * @return Response
      */
-    public function characterStats(Character $character): Response
+    public function characterStats_v1(Character $character): Response
     {
         // Verificar si el personaje está activo
         if (!$character->status) {
