@@ -34,14 +34,14 @@ const breadcrumbs = [
         <div class="min-h-screen bg-background">
             <!-- Hero Section -->
             <section
-                class="relative bg-gradient-to-r from-background via-primary to-secondary text-white py-20 md:py-32 lg:py-40">
+                class="relative bg-gradient-to-r from-secondary text-accent via-muted-foreground to-background  dark:from-background dark:via-primary dark:to-secondary py-20 md:py-32 lg:py-40">
                 <div class="absolute inset-0 bg-black opacity-20"></div> <!-- Overlay oscuro opcional -->
                 <div class="container mx-auto px-4 relative z-10">
                     <div class="max-w-3xl mx-auto text-center">
                         <h1 class="text-4xl md:text-6xl font-bold mb-6">
                             Discover Who's More...
                         </h1>
-                        <p class="text-xl md:text-2xl mb-8">
+                        <p class="text-xl md:text-2xl mb-8 text-accent/50">
                             Compare and vote on your favorite characters across various categories.
                         </p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">

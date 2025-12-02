@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, /* CardFooter, */ CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/composables/useToast';
+// import { Separator } from '@/components/ui/separator';
+// import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CharacterStatsResource/* , CategoryCharacterStatResource, CharacterSurveyParticipationResource */ } from '@/types/global'; // Tipos actualizados
-import { Pencil, Trash, Eye } from 'lucide-vue-next'; // Iconos
-import { ref, computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación de encuestas)
+// import { Pencil, Trash, Eye } from 'lucide-vue-next'; // Iconos
+import { /* ref, */ computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación de encuestas)
 
 // --- Tipos ---
 interface Props {
@@ -26,7 +26,7 @@ console.log(props);
 // console.log(props.character.surveys_participation);
 
 // --- Composables ---
-const { success, error } = useToast();
+// const { success, error } = useToast();
 
 // --- Computed Properties ---
 // Calcular win rate total (promedio ponderado o simple, dependiendo de la lógica de negocio deseada)
@@ -117,7 +117,11 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <h4 class="font-medium text-muted-foreground">Date of Birth</h4>
-                                            <p>{{ character.dob_formatted || 'N/A' }}</p>
+                                            <p>{{ character.dob_formatted || 'N/A' }} |
+                                                <span class="text-xs opacity-50">
+                                                    {{ character.dob_for_humans }}
+                                                </span>
+                                            </p>
                                         </div>
                                         <div>
                                             <h4 class="font-medium text-muted-foreground">Gender</h4>
@@ -212,7 +216,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         </TableRow>
                                         <TableRow v-else v-for="stat in props.character.categories_stats"
                                             :key="`${stat.category_id}-${stat.character_id}`">
-                                            <TableCell class="font-medium">{{ stat.category?.name || `Category
+                                            <TableCell class="font-medium">{{ stat.category_info?.name || `Category
                                                 ${stat.category_id}` }}</TableCell>
                                             <TableCell>{{ stat.elo_rating/* .toFixed(2) */ }}</TableCell>
                                             <TableCell>{{ stat.matches_played }}</TableCell>
