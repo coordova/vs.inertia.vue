@@ -22,7 +22,7 @@ class CharacterSurveyResource extends JsonResource
         $pivot = $this->resource->pivot; // <-- Guardar referencia al pivote
 
         // VERIFICACION FINAL
-        // dd($this->resource->survey); // <-- Hacer este dd para ver el modelo encuesta antes de pasarlo al recurso
+        // dd($this->resource->pivot); // <-- Hacer este dd para ver el modelo encuesta antes de pasarlo al recurso
 
         return [
             // Campos del pivote 'character_survey'

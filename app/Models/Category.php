@@ -46,8 +46,25 @@ class Category extends Model
     // --- Relaciones ---
     public function characters(): BelongsToMany
     {
-        return $this->belongsToMany(Character::class, 'category_character')
-                    ->withPivot(['elo_rating', 'matches_played', 'wins', 'losses', 'win_rate', 'highest_rating', 'lowest_rating', 'rating_deviation', 'last_match_at', 'is_featured', 'sort_order', 'status'])
+        return $this->belongsToMany(Character::class, 'category_character', 'category_id', 'character_id')
+                    ->using(CategoryCharacter::class) // <-- Asegurar el uso del modelo pivote personalizado
+                    ->withPivot([
+                        'elo_rating', 
+                        'matches_played', 
+                        'wins', 
+                        'losses', 
+                        'ties', // Asegurar que 'ties' esté incluido
+                        'win_rate', 
+                        'highest_rating', 
+                        'lowest_rating', 
+                        'rating_deviation', 
+                        'last_match_at', 
+                        'is_featured', 
+                        'sort_order', 
+                        'status',
+                        'created_at',
+                        'updated_at',
+                    ])
                     ->withTimestamps();
     }
 

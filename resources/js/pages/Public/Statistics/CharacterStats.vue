@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CharacterStatsResource/* , CategoryCharacterStatResource, CharacterSurveyParticipationResource */ } from '@/types/global'; // Tipos actualizados
-// import { Pencil, Trash, Eye } from 'lucide-vue-next'; // Iconos
+import { /* Pencil, Trash, */ Eye } from 'lucide-vue-next'; // Iconos
 import { /* ref, */ computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación de encuestas)
 
 // --- Tipos ---
@@ -269,7 +269,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             :key="`${participation.character_id}-${participation.survey_id}`">
                                             <TableCell class="font-medium">
                                                 <Link :href="route('public.surveys.show', participation.survey.id)"
-                                                    class="text-indigo-600 hover:text-indigo-900">
+                                                    class=" hover:text-muted-foreground">
                                                 {{ participation.survey.title }}
                                                 </Link>
                                             </TableCell>

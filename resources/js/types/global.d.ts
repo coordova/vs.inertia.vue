@@ -473,7 +473,7 @@ export interface CharacterSurveyParticipationResource {
     pivot_updated_at: string; // Formato ISO (updated_at de character_survey)
 
     // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService o calculado aquí si se implementa)
-    // survey_position?: number; // Incluir si se implementa
+    survey_position?: number; // Incluir si se implementa // TODO - (N/A default) por ahora para ver este dato entrar al ranking de la encuesta // habilitado para evitar error de tipos en el componente
 
     // Relación con la encuesta (devuelta por CharacterSurveyResource como objeto resuelto)
     survey: SurveyResource; // <-- Debe ser directamente SurveyResource, no {  SurveyResource }
