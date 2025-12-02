@@ -17,18 +17,18 @@ class CategoryCharacterResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Acceder a los campos del modelo pivote
+        // Acceder a los campos del modelo pivote - $this->resource es un modelo Category con el pivote adjunto $this->resource->pivot.
         $pivot = $this->resource->pivot; // <-- Guardar referencia al pivote
 
         return [
-            // Campos del pivote 'category_character'
+            // Campos del pivote 'category_character' (accedidos a través de $this->resource->pivot)
             'character_id' => $pivot->character_id,
             'category_id' => $pivot->category_id,
             'elo_rating' => $pivot->elo_rating,
             'matches_played' => $pivot->matches_played,
             'wins' => $pivot->wins,
             'losses' => $pivot->losses,
-            'ties' => $pivot->ties,
+            'ties' => $pivot->ties, // Asegurar que se serialice
             'win_rate' => $pivot->win_rate,
             'highest_rating' => $pivot->highest_rating,
             'lowest_rating' => $pivot->lowest_rating,
@@ -40,15 +40,27 @@ class CategoryCharacterResource extends JsonResource
             'pivot_created_at' => $pivot->created_at,
             'pivot_updated_at' => $pivot->updated_at,
 
-            // Campos del modelo 'Category' relacionado (opcional, solo si se necesita en el frontend)
-            // Incluir solo campos relevantes para identificar la categoría en el contexto de las estadísticas
+            // Información resumida de la categoría (ya disponible en $this->resource)
+            // Opcional: Devolver la categoría completa si se necesita más info o si no se incluye en CharacterStatsResource
+            // 'category' => new CategoryResource($this->resource), // <-- $this->resource es Category
+            // O devolver solo un subconjunto de datos de la categoría directamente en este objeto
             'category_info' => [
-                'id' => $this->resource->id,
+                'id' => $this->resource->id, // <-- $this->resource es Category
                 'name' => $this->resource->name,
                 'slug' => $this->resource->slug,
                 'color' => $this->resource->color,
                 'icon' => $this->resource->icon,
             ],
+
+            // Campos del modelo 'Category' relacionado (opcional, solo si se necesita en el frontend)
+            // Incluir solo campos relevantes para identificar la categoría en el contexto de las estadísticas
+            // 'category_info' => [
+            //     'id' => $this->resource->id,
+            //     'name' => $this->resource->name,
+            //     'slug' => $this->resource->slug,
+            //     'color' => $this->resource->color,
+            //     'icon' => $this->resource->icon,
+            // ],
             // O, si se prefiere, incluir los campos directamente en el objeto principal de la estadística
             // 'category_name' => $this->resource->name,
             // 'category_slug' => $this->resource->slug,

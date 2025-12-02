@@ -20,6 +20,9 @@ interface Props {
 const props = defineProps<Props>();
 
 console.log(props);
+// console.log(props.character.surveys_participation[0].survey.data.title);
+// console.log(props.character.surveys_participation[0].survey.data.category.name);
+// console.log(props.character.surveys_participation[0].survey.data.pivot.survey_matches);
 // console.log(props.character.surveys_participation);
 
 // --- Composables ---

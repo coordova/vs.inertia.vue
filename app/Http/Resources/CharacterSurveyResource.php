@@ -21,6 +21,9 @@ class CharacterSurveyResource extends JsonResource
         // Acceder a los campos del modelo pivote
         $pivot = $this->resource->pivot; // <-- Guardar referencia al pivote
 
+        // VERIFICACION FINAL
+        // dd($this->resource->survey); // <-- Hacer este dd para ver el modelo encuesta antes de pasarlo al recurso
+
         return [
             // Campos del pivote 'character_survey'
             'character_id' => $pivot->character_id,
@@ -39,7 +42,8 @@ class CharacterSurveyResource extends JsonResource
 
             // Relación con el modelo 'Survey' (ya cargada en $this->resource)
             // Asumiendo que SurveyResource ya incluye la categoría si es necesaria
-            'survey' => new SurveyResource($this->resource), // <-- $this->resource es el modelo Survey con sus datos y relaciones (como 'category') ya cargadas
+            // Y usar .resolve() aquí también para evitar wrapper 'data' si SurveyResource es individual
+            'survey' => SurveyResource::make($this->resource)->resolve(), // <-- $this->resource es Survey, usar SurveyResource y .resolve()
         ];
     }
 }

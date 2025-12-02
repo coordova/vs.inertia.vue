@@ -426,7 +426,7 @@ export interface SurveyResultsData {
 // Interfaz para un registro de relación personaje-categoría (tabla pivote category_character)
 // Devuelto por CategoryCharacterResource
 export interface CategoryCharacterStatResource {
-    // Campos de la tabla pivote 'category_character' (accedidos a través de $this->resource->pivot)
+    // Campos del pivote 'category_character' (accedidos a través de $this->resource->pivot)
     character_id: number;
     category_id: number;
     elo_rating: number; // Asegurar tipo decimal si es necesario
@@ -445,7 +445,7 @@ export interface CategoryCharacterStatResource {
     pivot_created_at: string; // Formato ISO (created_at de category_character)
     pivot_updated_at: string; // Formato ISO (updated_at de category_character)
 
-    // Información resumida de la categoría relacionada (devuelta por CategoryCharacterResource)
+    // Información resumida de la categoría (devuelta por CategoryCharacterResource)
     category_info: {
         id: number;
         name: string;
@@ -453,16 +453,14 @@ export interface CategoryCharacterStatResource {
         color: string; // Hex color
         icon: string; // Icon name or URL
     };
-    // Opcional: Si se incluyen campos directos de categoría en CategoryCharacterResource:
-    // category_name: string;
-    // category_slug: string;
-    // category_color: string;
+    // Opcional: Si se devuelve la categoría completa como objeto anidado
+    // category: CategoryResource;
 }
 
 // Interfaz para un registro de relación personaje-encuesta (tabla pivote character_survey)
 // Devuelto por CharacterSurveyResource
 export interface CharacterSurveyParticipationResource {
-    // Campos de la tabla pivote 'character_survey' (accedidos a través de $this->resource->pivot)
+    // Campos del pivote 'character_survey' (accedidos a través de $this->resource->pivot)
     character_id: number;
     survey_id: number;
     survey_matches: number;
@@ -477,17 +475,15 @@ export interface CharacterSurveyParticipationResource {
     // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService o calculado aquí si se implementa)
     // survey_position?: number; // Incluir si se implementa
 
-    // Relación con la encuesta (devuelta por CharacterSurveyResource)
-    survey: SurveyResource; // Asumiendo que SurveyResource existe y tiene category
+    // Relación con la encuesta (devuelta por CharacterSurveyResource como objeto resuelto)
+    survey: SurveyResource; // <-- Debe ser directamente SurveyResource, no {  SurveyResource }
 }
 
 // Interfaz para el recurso de estadísticas del personaje (detalle de personaje + estadísticas)
 // Extiende de CharacterResource para reutilizar campos básicos
 export interface CharacterStatsResource extends CharacterResource { // Extiende de CharacterResource
     // Añadir relaciones específicas para estadísticas (ya resueltas)
-    // --- CORRECCIÓN: Actualizar el tipo de categories_stats ---
     categories_stats: CategoryCharacterStatResource[]; // <-- Array directo de objetos con datos pivote y category_info
-    // --- FIN CORRECCIÓN ---
     surveys_participation: CharacterSurveyParticipationResource[]; // <-- Array directo de objetos con datos pivote y survey
 }
 
