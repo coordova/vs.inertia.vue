@@ -44,7 +44,18 @@ Route::name('public.')->group(function () {
     // Vista de detalle de una encuesta (pública, pero se requiere autenticación para verla completamente o votar)
     // Esta ruta se moverá al grupo 'auth' si requiere login para verla.
     // Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.show');
+
 });
+// --------------------------------------------------------------
+// RUTAS PÚBLICAS (llamadas ajax)
+// --------------------------------------------------------------
+Route::prefix('ajax')
+    ->name('ajax.')
+    ->group(function () {
+        // Ruta para obtener la informacion de un personaje, llamada AJAX desde [TCharacterDialogAjax.vue, ...]
+        Route::get('/characters/{character}', [PublicCharacterController::class, 'getAjaxCharacterInfo'])
+            ->name('character.info');
+    });
 
 // --------------------------------------------------------------
 // RUTAS PÚBLICAS (requieren autenticación)

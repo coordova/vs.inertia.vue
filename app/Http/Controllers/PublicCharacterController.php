@@ -6,6 +6,7 @@ use App\Http\Resources\CharacterResource;
 use App\Models\Character;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\JsonResponse;
 
 class PublicCharacterController extends Controller
 {
@@ -22,6 +23,14 @@ class PublicCharacterController extends Controller
             'character' => CharacterResource::make($character)->resolve(),
             'categories' => $character->categories()->get(['id', 'name', 'slug'/* , 'category_character.elo_rating', 'category_character.status' */]), // get only name, id, and pivot elo_rating
             // 'categories' => $character->categories()->withPivot('elo_rating', 'status')->get(['id', 'name']),
+        ]);
+    }
+
+    public function getAjaxCharacterInfo(Character $character): JsonResponse
+    {
+        dd(CharacterResource::make($character)->resolve());
+        return response()->json([
+            'character' => CharacterResource::make($character)->resolve(),
         ]);
     }
 }

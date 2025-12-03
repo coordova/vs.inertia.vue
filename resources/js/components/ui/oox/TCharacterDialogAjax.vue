@@ -39,7 +39,7 @@ async function ensureCharacterLoaded() {
 
     try {
         // Ajusta el tipo de respuesta según tu backend: { data: CharacterResource } o directamente CharacterResource
-        const response = await axios.get<CharacterResource>(route('ajax.character', props.characterId))
+        const response = await axios.get<CharacterResource>(route('ajax.character.info', props.characterId))
         // Si tu API responde como { data: {...} }, cambia a: response.data.data
         character.value = response.data
     } catch (e) {

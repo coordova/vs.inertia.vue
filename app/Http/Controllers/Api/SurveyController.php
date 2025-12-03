@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\CharacterResource;
+use Illuminate\Support\Facades\Log;
 
 class SurveyController extends Controller
 {
@@ -89,7 +90,7 @@ class SurveyController extends Controller
 
         // Verificar que las relaciones se hayan cargado
         if (!$nextCombination->relationLoaded('character1') || !$nextCombination->relationLoaded('character2')) {
-            \Log::warning("Relations character1 or character2 not loaded for combinatoric ID: {$nextCombination->id}");
+            Log::warning("Relations character1 or character2 not loaded for combinatoric ID: {$nextCombination->id}");
             return response()->json(['message' => 'Internal error: character data not loaded.'], 500);
         }
 
