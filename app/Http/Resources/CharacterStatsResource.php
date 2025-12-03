@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\CategoryCharacterResource; // Recurso para datos pivote categoría-personaje
 use App\Http\Resources\CharacterSurveyResource; // Recurso para datos pivote personaje-encuesta
+use App\Http\Resources\CharacterSurveyStatsResource; // <-- Importar el nuevo recurso
 
 /**
  * Resource para representar las estadísticas detalladas de un personaje.
@@ -31,7 +32,7 @@ class CharacterStatsResource extends CharacterResource // Extender de CharacterR
             // --- CORRECCIÓN: Asegurar que las colecciones se resuelvan aquí también ---
             // Las colecciones devueltas por whenLoaded también deben resolverse si se quiere que Inertia las maneje como arrays directos
             'categories_stats' => CategoryCharacterResource::collection($this->whenLoaded('categories'))->resolve(), // <-- .resolve() aquí
-            'surveys_participation' => CharacterSurveyResource::collection($this->whenLoaded('surveys'))->resolve(), // <-- .resolve() aquí
+            'surveys_participation' => CharacterSurveyStatsResource::collection($this->whenLoaded('surveys'))->resolve(), // <-- .resolve() aquí
             // --- FIN CORRECCIÓN ---
         ];
 

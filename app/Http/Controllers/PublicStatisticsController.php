@@ -7,6 +7,7 @@ use App\Http\Resources\SurveyResource; // O SurveyIndexResource si se usa para l
 use App\Http\Resources\CategoryResource; // O CategoryIndexResource
 use App\Http\Resources\CharacterResource; // O CharacterIndexResource
 use App\Http\Resources\CategoryCharacterResource; // <-- Nuevo recurso para estadísticas por categoría
+use App\Http\Resources\CharacterSurveyRankingResource; // <-- Importar el nuevo recurso
 use App\Http\Resources\CharacterSurveyResource; // <-- Importar el resource CharacterSurveyResource
 use App\Http\Resources\CharacterStatsResource; // <-- Importar el resource CharacterStatsResource
 use App\Models\Survey;
@@ -171,7 +172,7 @@ class PublicStatisticsController extends Controller
         // Devolver la vista Inertia con los recursos específicos
         return Inertia::render('Public/Statistics/SurveyResults', [
             'survey' => SurveyResource::make($survey)->resolve(), // <-- Resolver el recurso de la encuesta
-            'ranking' => CharacterSurveyResource::collection($surveyRanking)->resolve(), // <-- Resolver la colección paginada de ranking
+            'ranking' => CharacterSurveyRankingResource::collection($surveyRanking)->resolve(), // <-- Resolver la colección paginada de ranking,  Usar el nuevo recurso para ranking
             // 'filters' => $request->only(['search', 'sort', 'direction', 'per_page']), // Opcional: pasar filtros para UI
         ]);
     }

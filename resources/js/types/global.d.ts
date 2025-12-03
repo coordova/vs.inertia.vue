@@ -342,6 +342,30 @@ export interface CategoryRankingData {
     // No hay propiedad 'meta'
 }
 
+// Interfaz para un registro de relación personaje-encuesta (tabla pivote character_survey)
+// en el contexto de la vista de estadísticas del personaje (CharacterStats).
+// Este recurso maneja un objeto Survey con su pivote CharacterSurvey adjunto.
+export interface CharacterSurveyStatsResource {
+    // Campos del pivote 'character_survey' (accedidos a través de $this->resource->pivot)
+    character_id: number;
+    survey_id: number;
+    survey_matches: number;
+    survey_wins: number;
+    survey_losses: number;
+    survey_ties: number; // Nueva columna
+    is_active: boolean;
+    sort_order: number;
+    pivot_created_at: string; // Formato ISO (created_at de character_survey)
+    pivot_updated_at: string; // Formato ISO (updated_at de character_survey)
+
+    // Campo calculado: posición en el ranking de la encuesta (añadido por el servicio RankingService o calculado aquí si se implementa)
+    survey_position?: number; // Incluir si se implementa // TODO, habilitado solo para tipado correcto
+
+    // Relación con el modelo 'Survey' (ya resuelto)
+    survey: SurveyResource; // <-- Debe ser directamente SurveyResource, no {  SurveyResource }
+}
+
+
 // Interfaz para un registro de ranking de personaje en una encuesta específica (fila de la tabla)
 // Esta interfaz representa un objeto de la tabla pivote 'character_survey' + la relación 'character'(resuelta como objeto plano)
 // Incluye la posición calculada por el servicio RankingService
@@ -484,7 +508,8 @@ export interface CharacterSurveyParticipationResource {
 export interface CharacterStatsResource extends CharacterResource { // Extiende de CharacterResource
     // Añadir relaciones específicas para estadísticas (ya resueltas)
     categories_stats: CategoryCharacterStatResource[]; // <-- Array directo de objetos con datos pivote y category_info
-    surveys_participation: CharacterSurveyParticipationResource[]; // <-- Array directo de objetos con datos pivote y survey
+    // surveys_participation: CharacterSurveyParticipationResource[]; // <-- Array directo de objetos con datos pivote y survey
+    surveys_participation: CharacterSurveyStatsResource[]; // <-- Array directo de objetos CharacterSurveyStatsResource
 }
 
 // Interfaz para la respuesta de resultados de encuesta

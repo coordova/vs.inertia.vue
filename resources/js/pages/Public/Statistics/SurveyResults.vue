@@ -4,17 +4,31 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/composables/useToast';
+// import { Separator } from '@/components/ui/separator';
+// import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { SurveyResource, CharacterSurveyRankingResource } from '@/types/global'; // Tipos actualizados
-import { Eye, Pencil, RotateCw, Trash } from 'lucide-vue-next'; // Iconos
-import { ref, computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación)
+import { Eye/* , Pencil, RotateCw, Trash */ } from 'lucide-vue-next'; // Iconos
+import { /* ref, */ computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación)
 
 interface Props {
     survey: SurveyResource; // Datos de la encuesta
     ranking: CharacterSurveyRankingResource[]; // Ranking de personajes en la encuesta (sin paginación por ahora)
+    /* ranking: { // Asumiendo que RankingService devuelve una colección paginada
+        data: CharacterSurveyRankingResource[]; // Array de entradas de ranking
+        meta: {
+            current_page: number;
+            from: number;
+            last_page: number;
+            path: string;
+            per_page: number;
+            to: number;
+            total: number;
+        };
+        links: { url: string | null; label: string; active: boolean }[]; // Links de paginación
+    }; */
+
     // Si se implementa paginación, el tipo sería SurveyResultsData
     // filters?: Record<string, any>; // Filtros aplicados (search, sort, per_page, page) - opcional
 }
@@ -25,7 +39,7 @@ console.log(props.survey);
 console.log(props.ranking);
 
 // --- Composables ---
-const { success, error } = useToast();
+// const { success, error } = useToast();
 
 // --- Computed Properties para estadísticas generales ---
 const totalVotes = computed(() => {

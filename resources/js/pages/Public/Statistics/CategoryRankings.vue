@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { onMounted, ref, watch } from 'vue';
-import { useToast } from '@/composables/useToast';
+import { Head, /* Link, */ router } from '@inertiajs/vue3';
+import { /* onMounted, */ ref, watch } from 'vue';
+// import { useToast } from '@/composables/useToast';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 // Importar recursos de shadcn-vue
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+// import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+// import { Badge } from '@/components/ui/badge';
+// import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // <-- Añadir Select
 import { debounce } from 'lodash';
 import { Search } from 'lucide-vue-next'; // <-- Añadir Search icon
@@ -30,7 +30,7 @@ const props = defineProps<Props>();
 console.log(props);
 
 // --- Composables ---
-const { success, error } = useToast();
+// const { success, error } = useToast();
 
 // --- Estados reactivos ---
 const search = ref(props.filters?.search || '');
@@ -183,7 +183,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             No characters found.
                                         </TableCell>
                                     </TableRow>
-                                    <TableRow v-else v-for="(characterRating, index) in props.ranking.data"
+                                    <TableRow v-else v-for="(characterRating/* , index */) in props.ranking.data"
                                         :key="characterRating.character_id">
                                         <!-- Acceder a la posición calculada por el servicio -->
                                         <TableCell class="font-medium">{{ characterRating.position }}</TableCell>

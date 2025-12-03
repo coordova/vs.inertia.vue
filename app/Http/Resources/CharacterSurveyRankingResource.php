@@ -1,5 +1,3 @@
-// app/Http/Resources/CharacterSurveyRankingResource.php
-
 <?php
 
 namespace App\Http\Resources;
