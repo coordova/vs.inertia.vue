@@ -10,6 +10,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog/';
+import TCharacterDialog from '@/components/ui/oox/TCharacterDialog.vue';
 import Badge from '@/components/ui/badge/Badge.vue';
 import { Button } from '@/components/ui/button';
 import DetailItem from '@/components/ui/oox/TDetailItem.vue';
@@ -51,7 +52,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-// console.log(props);
+console.log(props);
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
 
@@ -83,18 +84,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
+
     <Head :title="props.survey?.title" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4 md:p-6">
             <!-- Header con título y acciones -->
-            <div
-                class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
-            >
+            <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
-                    <h1
-                        class="text-2xl font-bold text-gray-900 dark:text-white"
-                    >
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
                         {{ props.survey?.title }}
                     </h1>
                     <p class="text-muted-foreground">
@@ -103,21 +101,15 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
                 <div class="flex gap-2">
                     <Button asChild variant="outline">
-                        <Link
-                            :href="
-                                route('admin.surveys.edit', props.survey?.id)
-                            "
-                        >
-                            <Pencil class="mr-2 h-4 w-4" /> Edit
+                        <Link :href="route('admin.surveys.edit', props.survey?.id)
+                            ">
+                        <Pencil class="mr-2 h-4 w-4" /> Edit
                         </Link>
                     </Button>
                     <Button asChild variant="default">
-                        <Link
-                            :href="
-                                route('public.surveys.show', props.survey?.id)
-                            "
-                        >
-                            Start Voting
+                        <Link :href="route('public.surveys.show', props.survey?.id)
+                            ">
+                        Start Voting
                         </Link>
                     </Button>
                 </div>
@@ -132,29 +124,15 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <div class="rounded-lg border p-4">
                         <h3 class="mb-3 font-semibold">Basic Information</h3>
                         <dl class="space-y-3">
-                            <DetailItem
-                                label="Status"
-                                :content="
-                                    props.survey?.status ? 'Active' : 'Inactive'
-                                "
-                            />
-                            <DetailItem
-                                label="Type"
-                                :content="
-                                    props.survey?.type === 0
-                                        ? 'Public'
-                                        : 'Private'
-                                "
-                            />
-                            <DetailItem
-                                label="Category"
-                                :content="props.survey?.category?.name"
-                            />
-                            <DetailItem
-                                label="Reverse"
-                                :content="props.survey?.reverse ? 'Yes' : 'No'"
-                                :showBorder="false"
-                            />
+                            <DetailItem label="Status" :content="props.survey?.status ? 'Active' : 'Inactive'
+                                " />
+                            <DetailItem label="Type" :content="props.survey?.type === 0
+                                ? 'Public'
+                                : 'Private'
+                                " />
+                            <DetailItem label="Category" :content="props.survey?.category?.name" />
+                            <DetailItem label="Reverse" :content="props.survey?.reverse ? 'Yes' : 'No'"
+                                :showBorder="false" />
                         </dl>
                     </div>
 
@@ -164,25 +142,18 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <dl class="space-y-3">
                             <DetailItem label="Start Date">
                                 <div class="flex items-center">
-                                    <Calendar
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Calendar class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{ props.survey?.date_start_formatted }}
                                 </div>
                             </DetailItem>
                             <DetailItem label="End Date">
                                 <div class="flex items-center">
-                                    <Calendar
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Calendar class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{ props.survey?.date_end_formatted }}
                                 </div>
                             </DetailItem>
-                            <DetailItem
-                                label="Duration"
-                                :content="`${props.survey?.duration} days`"
-                                :showBorder="false"
-                            />
+                            <DetailItem label="Duration" :content="`${props.survey?.duration} days`"
+                                :showBorder="false" />
                         </dl>
                     </div>
                 </div>
@@ -194,9 +165,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <h3 class="mb-3 font-semibold">Selection Strategy</h3>
                         <div v-if="selectionStrategyInfo" class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <Settings
-                                    class="h-4 w-4 text-muted-foreground"
-                                />
+                                <Settings class="h-4 w-4 text-muted-foreground" />
                                 <div>
                                     <div class="font-medium">
                                         {{ selectionStrategyInfo?.name }}
@@ -207,28 +176,19 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </div>
                             </div>
 
-                            <div
-                                v-if="
-                                    Object.keys(
-                                        selectionStrategyInfo?.metadata || {},
-                                    ).length > 0
-                                "
-                                class="mt-2 text-xs"
-                            >
+                            <div v-if="
+                                Object.keys(
+                                    selectionStrategyInfo?.metadata || {},
+                                ).length > 0
+                            " class="mt-2 text-xs">
                                 <div class="mb-1 font-medium">
                                     Strategy Details:
                                 </div>
                                 <ul class="space-y-1">
-                                    <li
-                                        v-for="(
-                                            value, key
-                                        ) in selectionStrategyInfo?.metadata"
-                                        :key="key"
-                                        class="flex"
-                                    >
-                                        <span
-                                            class="text-muted-foreground capitalize"
-                                        >
+                                    <li v-for="(
+value, key
+                                        ) in selectionStrategyInfo?.metadata" :key="key" class="flex">
+                                        <span class="text-muted-foreground capitalize">
                                             {{ key }}:
                                             <!-- ✅ Sin replace, ya viene limpio -->
                                         </span>
@@ -250,9 +210,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <dl class="space-y-3">
                             <DetailItem label="Characters">
                                 <div class="flex items-center">
-                                    <Users
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Users class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{
                                         (
                                             survey?.character_count || 0
@@ -262,9 +220,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             </DetailItem>
                             <DetailItem label="Possible Combinations">
                                 <div class="flex items-center">
-                                    <Settings
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Settings class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{
                                         (
                                             survey.combinations_count || 0
@@ -275,9 +231,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             <!-- revisar esta info, parece que no es correcta, parece que es la misma que las combinaciones posibles, mejor mostrar nro de veces actualizada, ie, modificado cuando se cambia/amplia la fecha del survey -->
                             <DetailItem label="Combinations Generated">
                                 <div class="flex items-center">
-                                    <Users
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Users class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{
                                         (
                                             survey.combinations_count || 0
@@ -285,11 +239,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     }}
                                 </div>
                             </DetailItem>
-                            <DetailItem
-                                label="Slug"
-                                :content="survey?.slug"
-                                :showBorder="false"
-                            />
+                            <DetailItem label="Slug" :content="survey?.slug" :showBorder="false" />
                         </dl>
                     </div>
                     <!-- ... en la sección de estadísticas ... -->
@@ -298,9 +248,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <dl class="space-y-3">
                             <DetailItem label="Characters">
                                 <div class="flex items-center">
-                                    <Users
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Users class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{
                                         (
                                             survey?.character_count || 0
@@ -310,9 +258,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             </DetailItem>
                             <DetailItem label="Total Combinations">
                                 <div class="flex items-center">
-                                    <Settings
-                                        class="mr-2 h-4 w-4 text-muted-foreground"
-                                    />
+                                    <Settings class="mr-2 h-4 w-4 text-muted-foreground" />
                                     {{
                                         (
                                             survey.combinations_count || 0
@@ -320,47 +266,30 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     }}
                                 </div>
                             </DetailItem>
-                            <DetailItem
-                                label="Your Votes"
-                                :content="
-                                    (userProgress?.total_votes || 0).toString()
-                                "
-                            />
-                            <DetailItem
-                                label="Progress"
-                                :content="`${userProgress?.progress.toFixed(2) || 0}%`"
-                            />
-                            <DetailItem
-                                label="Status"
-                                :content="
-                                    userProgress?.is_completed
-                                        ? 'Completed'
-                                        : 'In Progress'
-                                "
-                                :showBorder="false"
-                            />
+                            <DetailItem label="Your Votes" :content="(userProgress?.total_votes || 0).toString()
+                                " />
+                            <DetailItem label="Progress" :content="`${userProgress?.progress.toFixed(2) || 0}%`" />
+                            <DetailItem label="Status" :content="userProgress?.is_completed
+                                ? 'Completed'
+                                : 'In Progress'
+                                " :showBorder="false" />
                         </dl>
 
                         <!-- Barra de progreso visual -->
                         <div v-if="survey.combinations_count" class="mt-4">
                             <div class="flex justify-between text-sm">
                                 <span>Progress</span>
-                                <span
-                                    >{{
-                                        userProgress?.progress.toFixed(2) || 0
-                                    }}%</span
-                                >
+                                <span>{{
+                                    userProgress?.progress.toFixed(2) || 0
+                                    }}%</span>
                             </div>
                             <div class="mt-1 h-2 w-full rounded-full bg-muted">
-                                <div
-                                    class="h-2 rounded-full bg-primary transition-all duration-300"
-                                    :style="{
-                                        width:
-                                            (userProgress?.progress.toFixed(
-                                                2,
-                                            ) || 0) + '%',
-                                    }"
-                                ></div>
+                                <div class="h-2 rounded-full bg-primary transition-all duration-300" :style="{
+                                    width:
+                                        (userProgress?.progress.toFixed(
+                                            2,
+                                        ) || 0) + '%',
+                                }"></div>
                             </div>
                         </div>
                     </div>
@@ -373,52 +302,36 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div class="space-y-4">
                 <h3 class="text-lg font-semibold">Characters in Survey</h3>
                 <div class="rounded-lg border p-4">
-                    <DetailItem
-                        v-if="survey?.characters?.length > 0"
-                        label=""
-                        :showBorder="false"
-                    >
+                    <DetailItem v-if="survey?.characters?.length > 0" label="" :showBorder="false">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div v-for="character in survey?.characters" :key="character.id"
+                                class="flex items-center gap-3">
+                            </div>
+                        </div>
                         <ul class="flex flex-wrap gap-2 py-2">
-                            <li
-                                v-for="character in survey?.characters"
-                                :key="character.id"
-                            >
-                                <Link
-                                    :href="
-                                        route(
+                            <li v-for="character in survey?.characters" :key="character.id">
+                                <TCharacterDialog :character="character">
+                                    <template #trigger>
+                                        <!-- <Link :href="route(
                                             'admin.characters.show',
                                             character.id,
                                         )
-                                    "
-                                    class="cursor-pointer"
-                                >
-                                    <Badge
-                                        :variant="
-                                            character?.status === true
-                                                ? 'default'
-                                                : 'secondary'
-                                        "
-                                    >
-                                        <Mars
-                                            v-if="character.gender === 1"
-                                            class="mr-1 h-4 w-4 text-blue-500"
-                                        />
-                                        <Venus
-                                            v-else
-                                            class="mr-1 h-4 w-4 text-pink-500"
-                                        />
-                                        {{ character.fullname }}
-                                    </Badge>
-                                </Link>
+                                            " class="cursor-pointer"> -->
+                                        <Badge :variant="character?.status === true
+                                            ? 'default'
+                                            : 'secondary'
+                                            ">
+                                            <Mars v-if="character.gender === 1" class="mr-1 h-4 w-4 text-blue-500" />
+                                            <Venus v-else class="mr-1 h-4 w-4 text-pink-500" />
+                                            {{ character.fullname }}
+                                        </Badge>
+                                        <!-- </Link> -->
+                                    </template>
+                                </TCharacterDialog>
                             </li>
                         </ul>
                     </DetailItem>
-                    <DetailItem
-                        v-else
-                        label=""
-                        content="No characters assigned"
-                        :showBorder="false"
-                    />
+                    <DetailItem v-else label="" content="No characters assigned" :showBorder="false" />
                 </div>
             </div>
 
@@ -426,16 +339,8 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div class="rounded-lg border p-4">
                 <h3 class="mb-3 font-semibold">System Information</h3>
                 <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <DetailItem
-                        label="Created"
-                        :content="survey?.created_at_formatted"
-                        :showBorder="false"
-                    />
-                    <DetailItem
-                        label="Last Updated"
-                        :content="survey?.updated_at_formatted"
-                        :showBorder="false"
-                    />
+                    <DetailItem label="Created" :content="survey?.created_at_formatted" :showBorder="false" />
+                    <DetailItem label="Last Updated" :content="survey?.updated_at_formatted" :showBorder="false" />
                 </dl>
             </div>
 
@@ -443,12 +348,12 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div class="flex flex-col gap-4 md:flex-row md:justify-center">
                 <Button asChild variant="outline">
                     <Link :href="route('admin.surveys.index')">
-                        Back to Surveys
+                    Back to Surveys
                     </Link>
                 </Button>
                 <Button asChild variant="default">
                     <Link :href="route('public.surveys.show', survey?.id)">
-                        Start Voting
+                    Start Voting
                     </Link>
                 </Button>
 
@@ -471,11 +376,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                @click="
-                                    (e: Event) => handleDelete(e, survey?.id)
-                                "
-                            >
+                            <AlertDialogAction @click="
+                                (e: Event) => handleDelete(e, survey?.id)
+                            ">
                                 Confirm Delete
                             </AlertDialogAction>
                         </AlertDialogFooter>

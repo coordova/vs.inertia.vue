@@ -22,26 +22,33 @@ const props = defineProps<Props>()
 
 <template>
     <Dialog>
-        <!-- Trigger: avatar + nombre/nickname -->
+        <!-- Trigger: slot personalizable + fallback -->
         <DialogTrigger asChild>
-            <div class="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent cursor-pointer">
-                <div class="relative aspect-square w-12 overflow-hidden rounded-full border">
-                    <img v-if="character.picture_url" :src="character.picture_url" :alt="character.fullname"
-                        class="h-full w-full object-cover" />
-                    <div v-else class="flex h-full w-full items-center justify-center bg-muted">
-                        <span class="text-xs text-muted-foreground">No img</span>
+            <!--
+        Si el padre define <template #trigger>... se usa ese contenido.
+        Si no define nada, se usa el trigger por defecto (avatar + nombre).
+      -->
+            <slot name="trigger">
+                <!-- Trigger por defecto -->
+                <div class="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent cursor-pointer">
+                    <div class="relative aspect-square w-12 overflow-hidden rounded-full border">
+                        <img v-if="character.picture_url" :src="character.picture_url" :alt="character.fullname"
+                            class="h-full w-full object-cover" />
+                        <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                            <span class="text-xs text-muted-foreground">No img</span>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 truncate">
+                        <p class="truncate text-sm font-medium">
+                            {{ character.fullname }}
+                        </p>
+                        <p v-if="character.nickname" class="truncate text-xs text-muted-foreground">
+                            {{ character.nickname }}
+                        </p>
                     </div>
                 </div>
-
-                <div class="flex-1 truncate">
-                    <p class="truncate text-sm font-medium">
-                        {{ character.fullname }}
-                    </p>
-                    <p v-if="character.nickname" class="truncate text-xs text-muted-foreground">
-                        {{ character.nickname }}
-                    </p>
-                </div>
-            </div>
+            </slot>
         </DialogTrigger>
 
         <!-- Dialog Content -->
