@@ -9,20 +9,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogClose,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+// import { ref } from 'vue';
+import TCharacterDialog from '@/components/ui/oox/TCharacterDialog.vue'
 // import { format } from 'date-fns'; // O dayjs, o formateo nativo
 
 interface Props {
@@ -47,14 +38,14 @@ console.log(props);
 ]; */
 
 // --- Data ---
-const modalOpen = ref(false);
-const selectedCharacter = ref<CharacterResource | null>(null);
+// const modalOpen = ref(false);
+// const selectedCharacter = ref<CharacterResource | null>(null);
 
 // --- Functions ---
-function openModal(character: CharacterResource) {
+/* function openModal(character: CharacterResource) {
     selectedCharacter.value = character;
     modalOpen.value = true;
-}
+} */
 </script>
 
 <template>
@@ -251,125 +242,11 @@ function openModal(character: CharacterResource) {
                                 <CardContent class="max-h-96 overflow-y-auto">
                                     <div class="grid grid-cols-2 gap-4">
                                         <div v-for="character in props.characters" :key="character.id"
-                                            class="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent">
-                                            <!-- Modal - Character -->
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <div
-                                                        class="relative aspect-square w-12 overflow-hidden rounded-full border">
-                                                        <img v-if="character.picture_url" :src="character.picture_url"
-                                                            :alt="character.fullname"
-                                                            class="h-full w-full object-cover cursor-pointer"
-                                                            @click="openModal(character)" />
-                                                        <div v-else
-                                                            class="flex h-full w-full items-center justify-center bg-muted">
-                                                            <span class="text-xs text-muted-foreground">No img</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex-1 truncate">
-                                                        <p class="truncate text-sm font-medium">
-                                                            {{ character.fullname }}
-                                                        </p>
-                                                        <p v-if="character.nickname"
-                                                            class="truncate text-xs text-muted-foreground">
-                                                            {{ character.nickname }}
-                                                        </p>
-                                                    </div>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>{{ selectedCharacter?.fullname }}</DialogTitle>
-                                                        <DialogDescription>
-                                                            {{ selectedCharacter?.nickname }}
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <!-- DialogBody -->
-                                                    <div class="flex flex-col text-sm gap-4 items-center">
-                                                        <img :src="selectedCharacter?.picture_url"
-                                                            :alt="selectedCharacter?.fullname"
-                                                            class="h-64 w-64 rounded-full object-cover" />
-                                                        <div>
-                                                            <p class="text-sm text-muted-foreground line-clamp-3 mb-4">
-                                                                {{
-                                                                    selectedCharacter?.bio
-                                                                }}</p>
-                                                            <!-- Character Information -->
-                                                            <dl class="divide-y divide-gray-100 dark:divide-white/10">
-                                                                <div
-                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt class="text-sm/6 font-medium">
-                                                                        Gender
-                                                                    </dt>
-                                                                    <dd
-                                                                        class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
-                                                                        <div class="flex items-center gap-2">
-                                                                            {{
-                                                                                selectedCharacter?.gender === 0
-                                                                                    ? 'Other'
-                                                                                    : selectedCharacter?.gender === 1
-                                                                                        ? 'Male'
-                                                                                        : selectedCharacter?.gender === 2
-                                                                                            ? 'Female'
-                                                                                            : selectedCharacter?.gender === 3
-                                                                                                ? 'Non-binary'
-                                                                                                : 'Unknown'
-                                                                            }}
-                                                                        </div>
-                                                                    </dd>
-                                                                </div>
-                                                                <div
-                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt class="text-sm/6 font-medium">
-                                                                        DOB
-                                                                    </dt>
-                                                                    <dd class="mt-1 text-sm/6 sm:col-span-2 sm:mt-0 ">
-                                                                        <div
-                                                                            class="flex items-center gap-2 text-muted-foreground">
-                                                                            {{ selectedCharacter?.dob_formatted || 'N/A'
-                                                                            }} <span
-                                                                                class="text-xs text-muted-foreground/70">({{
-                                                                                    selectedCharacter?.dob_for_humans ||
-                                                                                    'N/A'
-                                                                                }})</span>
-                                                                        </div>
-                                                                    </dd>
-                                                                </div>
-                                                                <div
-                                                                    class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                                                    <dt class="text-sm/6 font-medium">
-                                                                        Status
-                                                                    </dt>
-                                                                    <dd
-                                                                        class="mt-1 text-sm/6 sm:col-span-2 sm:mt-0 text-muted-foreground">
-                                                                        {{
-                                                                            selectedCharacter?.status === true
-                                                                                ? 'Active'
-                                                                                : 'Inactive'
-                                                                        }}
-                                                                    </dd>
-                                                                </div>
-                                                            </dl>
-
-                                                        </div>
-                                                    </div>
-                                                    <DialogFooter>
-                                                        <Link
-                                                            :href="route('public.characters.show', selectedCharacter?.id)">
-                                                        <Button type="button" variant="outline">
-                                                            View Character
-                                                        </Button>
-                                                        </Link>
-                                                        <DialogClose as-child>
-                                                            <Button type="button" variant="outline">
-                                                                Close
-                                                            </Button>
-                                                        </DialogClose>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
-
+                                            class="flex items-center gap-3">
+                                            <TCharacterDialog :character="character" />
                                         </div>
                                     </div>
+
                                 </CardContent>
                             </Card>
                         </div>

@@ -61,11 +61,11 @@ Route::middleware(['auth'])->group(function () {
         // Rutas para Estadísticas Públicas
         // Vista de ranking por categoría
         Route::get('/statistics/categories/{category}/rankings', [PublicStatisticsController::class, 'categoryRankings'])
-             ->name('statistics.category.rankings');
+            ->name('statistics.category.rankings');
 
         // Vista de resultados de una encuesta (requiere autenticación)
         Route::get('/surveys/{survey}/results', [PublicStatisticsController::class, 'surveyResults'])
-             ->name('surveys.results');
+            ->name('surveys.results');
 
         // Vista de estadísticas publicas de un personaje (requiere autenticación)
         Route::get('/characters/{character}/stats', [PublicStatisticsController::class, 'characterStats'])->name('characters.stats');

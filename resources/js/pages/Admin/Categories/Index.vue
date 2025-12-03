@@ -37,7 +37,7 @@ import {
 import { useToast } from '@/composables/useToast'; // Importar el composable
 import { CategoriesData } from '@/types/global';
 import { debounce } from 'lodash';
-import { Eye, Pencil, RotateCw, Search, Trash } from 'lucide-vue-next';
+import { Eye, Pencil, RotateCw, Search, Trash, ChartLine } from 'lucide-vue-next';
 import { reactive, ref, watch } from 'vue'; // Para manejar estado local (ID de categoría a borrar, estado de diálogo)
 
 // --- Tipado de datos recibidos ---
@@ -193,88 +193,52 @@ function goToPage(page: number) {
 </script>
 
 <template>
+
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
+        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Categories</h1>
                 <span class="text-sm text-gray-500"> </span>
 
                 <div class="flex items-center gap-4">
                     <!-- Reload -->
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="router.visit(route('admin.categories.index'))"
-                    >
+                    <Button type="button" variant="outline" @click="router.visit(route('admin.categories.index'))">
                         <RotateCw />
                     </Button>
                     <!-- Per page -->
                     <div class="flex items-center justify-end">
-                        <Select
-                            v-model="perPage"
-                            @update:modelValue="goToPage(1)"
-                        >
+                        <Select v-model="perPage" @update:modelValue="goToPage(1)">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a page size" />
                             </SelectTrigger>
                             <SelectContent>
                                 <!-- valor por defecto -->
-                                <SelectItem
-                                    value="15"
-                                    :selected="perPage === '15'"
-                                    >15</SelectItem
-                                >
-                                <SelectItem
-                                    value="25"
-                                    :selected="perPage === '25'"
-                                    >25</SelectItem
-                                >
-                                <SelectItem
-                                    value="50"
-                                    :selected="perPage === '50'"
-                                    >50</SelectItem
-                                >
-                                <SelectItem
-                                    value="100"
-                                    :selected="perPage === '100'"
-                                    >100</SelectItem
-                                >
+                                <SelectItem value="15" :selected="perPage === '15'">15</SelectItem>
+                                <SelectItem value="25" :selected="perPage === '25'">25</SelectItem>
+                                <SelectItem value="50" :selected="perPage === '50'">50</SelectItem>
+                                <SelectItem value="100" :selected="perPage === '100'">100</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
-                        <Input
-                            v-model="search"
-                            id="search"
-                            type="text"
-                            placeholder="Search..."
-                            class="pl-10"
-                        />
-                        <span
-                            class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
-                        >
+                        <Input v-model="search" id="search" type="text" placeholder="Search..." class="pl-10" />
+                        <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
                             <Search class="size-6 text-muted-foreground" />
                         </span>
                     </div>
                     <!-- Create Category -->
                     <Button asChild>
-                        <Link :href="route('admin.categories.create')"
-                            >Create Category</Link
-                        >
+                        <Link :href="route('admin.categories.create')">Create Category</Link>
                     </Button>
                 </div>
             </div>
             <Table>
-                <TableCaption class="text-right"
-                    >Showing {{ props.categories?.meta.from }} to
+                <TableCaption class="text-right">Showing {{ props.categories?.meta.from }} to
                     {{ props.categories?.meta.to }} of
-                    {{ props.categories?.meta.total }} categories</TableCaption
-                >
+                    {{ props.categories?.meta.total }} categories</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead> Name</TableHead>
@@ -286,31 +250,21 @@ function goToPage(page: number) {
                 </TableHeader>
                 <TableBody>
                     <TableRow v-if="props.categories?.data.length === 0">
-                        <TableCell colspan="5" class="h-24 text-center"
-                            >No categories found.
+                        <TableCell colspan="5" class="h-24 text-center">No categories found.
                         </TableCell>
                     </TableRow>
-                    <TableRow
-                        v-else
-                        v-for="category in props.categories?.data"
-                        :key="category.id"
-                        :class="{
-                            'pointer-events-none text-gray-500 opacity-50':
-                                deleting[category.id],
-                        }"
-                    >
+                    <TableRow v-else v-for="category in props.categories?.data" :key="category.id" :class="{
+                        'pointer-events-none text-gray-500 opacity-50':
+                            deleting[category.id],
+                    }">
                         <TableCell class="font-medium">
-                            {{ category.name }}</TableCell
-                        >
+                            {{ category.name }}</TableCell>
                         <TableCell>{{ category.description }}</TableCell>
                         <TableCell>
-                            <Badge
-                                :variant="
-                                    category.status === true
-                                        ? 'default'
-                                        : 'secondary'
-                                "
-                                >{{
+                            <Badge :variant="category.status === true
+                                ? 'default'
+                                : 'secondary'
+                                ">{{
                                     category.status === true
                                         ? 'Active'
                                         : 'Inactive'
@@ -323,37 +277,36 @@ function goToPage(page: number) {
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="
-                                        route(
-                                            'admin.categories.show',
-                                            category.id,
-                                        )
-                                    "
-                                >
-                                    <Eye />
+                                <Link :href="route(
+                                    'admin.categories.show',
+                                    category.id,
+                                )
+                                    ">
+                                <Eye />
                                 </Link>
                             </Button>
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="
-                                        route(
-                                            'admin.categories.edit',
-                                            category.id,
-                                        )
-                                    "
-                                >
-                                    <Pencil />
+                                <Link :href="route(
+                                    'public.statistics.category.rankings',
+                                    category.id,
+                                )
+                                    ">
+                                <ChartLine />
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Link :href="route(
+                                    'admin.categories.edit',
+                                    category.id,
+                                )
+                                    ">
+                                <Pencil />
                                 </Link>
                             </Button>
                             <!-- delete -->
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button
-                                        as-child
-                                        variant="outline"
-                                        size="sm"
-                                    >
+                                    <Button as-child variant="outline" size="sm">
                                         <span>
                                             <Trash />
                                         </span>
@@ -361,9 +314,7 @@ function goToPage(page: number) {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle
-                                            >Are you sure?</AlertDialogTitle
-                                        >
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                         <AlertDialogDescription>
                                             This action cannot be undone. This
                                             will permanently delete the
@@ -371,15 +322,11 @@ function goToPage(page: number) {
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel
-                                            >Cancel</AlertDialogCancel
-                                        >
-                                        <AlertDialogAction
-                                            @click="
-                                                (e: Event) =>
-                                                    handleDelete(e, category.id)
-                                            "
-                                            >Confirm Delete
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction @click="
+                                            (e: Event) =>
+                                                handleDelete(e, category.id)
+                                        ">Confirm Delete
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -389,12 +336,8 @@ function goToPage(page: number) {
                 </TableBody>
             </Table>
             <!-- Pagination -->
-            <TPagination
-                :current-page="props.categories.meta.current_page"
-                :total-items="props.categories.meta.total"
-                :items-per-page="props.categories.meta.per_page"
-                @page-change="goToPage"
-            />
+            <TPagination :current-page="props.categories.meta.current_page" :total-items="props.categories.meta.total"
+                :items-per-page="props.categories.meta.per_page" @page-change="goToPage" />
         </div>
     </AppLayout>
 </template>

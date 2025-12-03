@@ -1,5 +1,3 @@
-// app/Http/Resources/CharacterSurveyStatsResource.php
-
 <?php
 
 namespace App\Http\Resources;
