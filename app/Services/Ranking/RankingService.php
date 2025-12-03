@@ -22,20 +22,24 @@ class RankingService
     /**
      * Obtiene el ranking de personajes para una categoría específica.
      * Calcula el ranking basado en elo_rating (u otra métrica) y estadísticas de la tabla pivote category_character.
+     * Carga la relación 'character' para obtener datos como fullname, picture.
      *
      * @param Category $category La categoría para la cual calcular el ranking.
      * @param array $filters Filtros opcionales (search, sort, page, per_page).
-     * @return \Illuminate\Pagination\LengthAwarePaginator La colección paginada de personajes con sus estadísticas de ranking.
+     * @return \Illuminate\Pagination\LengthAwarePaginator La colección paginada de objetos CategoryCharacter (con relación character cargada).
      */
-    public function getCategoryRanking(Category $category, array $filters = [])
+    public function getCategoryRanking(Category $category, array $filters = []): \Illuminate\Pagination\LengthAwarePaginator
     {
         $query = CategoryCharacter::where('category_id', $category->id)
-                                 ->with(['character:id,fullname,nickname,picture,slug']) // Cargar datos básicos del personaje
+                                 // --- CORRECCIÓN: Cargar la relación 'character' ---
+                                 ->with(['character:id,fullname,nickname,picture']) // Cargar datos del personaje relacionado
+                                 // --- FIN CORRECCIÓN ---
                                  ->where('status', true); // Solo personajes activos en la categoría
 
         // --- Aplicar Filtros Opcionales ---
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
+            // Buscar en el nombre del personaje relacionado
             $query->whereHas('character', function ($subQuery) use ($searchTerm) {
                 $subQuery->where('fullname', 'like', "%{$searchTerm}%")
                          ->orWhere('nickname', 'like', "%{$searchTerm}%");
@@ -47,7 +51,7 @@ class RankingService
         $sortDirection = strtolower($filters['direction'] ?? 'desc'); // Dirección por defecto
 
         // Validar campos de ordenamiento si es necesario
-        $allowedSortFields = ['elo_rating', 'matches_played', 'wins', 'losses', 'win_rate', 'highest_rating', 'lowest_rating'];
+        $allowedSortFields = ['elo_rating', 'matches_played', 'wins', 'losses', 'ties', 'win_rate', 'highest_rating', 'lowest_rating'];
         if (!in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'elo_rating'; // Volver a valor por defecto si no es válido
         }
@@ -64,8 +68,8 @@ class RankingService
         // --- Paginación ---
         $perPage = min((int) ($filters['per_page'] ?? self::DEFAULT_PAGE_SIZE), self::MAX_PAGE_SIZE);
 
-        // Cargar los resultados paginados
-        $paginatedRanking = $query->paginate($perPage)->withQueryString();
+        // Cargar los resultados paginados - ESTA LINEA AHORA DEBERÍA FUNCIONAR
+        $paginatedRanking = $query->paginate($perPage)->withQueryString(); // <-- Linea 68 (ahora debería estar resuelta)
 
         // --- Procesar la colección paginada para incluir la posición ---
         // La paginación no incluye automáticamente la posición global.
@@ -74,18 +78,18 @@ class RankingService
         $perPageValue = $paginatedRanking->perPage();
         $startPosition = ($currentPage - 1) * $perPageValue + 1;
 
-        $rankingWithPositions = $paginatedRanking->getCollection()->map(function ($pivot, $index) use ($startPosition) {
+        $index = 0;
+        $rankingWithPositions = $paginatedRanking->getCollection()->map(function ($pivot) use ($startPosition, &$index) {
             // Añadir la posición al objeto pivote
             $pivot->setAttribute('position', $startPosition + $index);
+            $index++;
             return $pivot;
         });
 
         // Volver a colocar la colección modificada en el objeto Paginator
         $paginatedRanking->setCollection($rankingWithPositions);
 
-        // Devolver el objeto Paginator *con* la colección modificada
-        // Inertia lo entenderá y lo serializará como { data: [...], meta: {...}, links: [...] }
-        return $paginatedRanking; // <-- Devolver el objeto Paginator
+        return $paginatedRanking; // Devolver el objeto Paginator con la colección modificada
     }
 
     /**
@@ -204,6 +208,75 @@ class RankingService
 
         // Devolver el objeto Paginator *con* la colección modificada que incluye la posición
         // Inertia lo entenderá y lo serializará como {  [...], meta: {...}, links: [...] }
+        return $paginatedRanking; // <-- Devolver el objeto Paginator
+    }
+
+    /**
+     * Obtiene el ranking de personajes para una categoría específica.
+     * Calcula el ranking basado en elo_rating (u otra métrica) y estadísticas de la tabla pivote category_character.
+     *
+     * @param Category $category La categoría para la cual calcular el ranking.
+     * @param array $filters Filtros opcionales (search, sort, page, per_page).
+     * @return \Illuminate\Pagination\LengthAwarePaginator La colección paginada de personajes con sus estadísticas de ranking.
+     */
+    public function getCategoryRanking_previous_structural_changes(Category $category, array $filters = [])
+    {
+        $query = CategoryCharacter::where('category_id', $category->id)
+                                 ->with(['character:id,fullname,nickname,picture,slug']) // Cargar datos básicos del personaje
+                                 ->where('status', true); // Solo personajes activos en la categoría
+
+        // --- Aplicar Filtros Opcionales ---
+        if (!empty($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->whereHas('character', function ($subQuery) use ($searchTerm) {
+                $subQuery->where('fullname', 'like', "%{$searchTerm}%")
+                         ->orWhere('nickname', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // --- Definir Criterio de Ordenamiento ---
+        $sortBy = $filters['sort'] ?? 'elo_rating'; // Campo por defecto
+        $sortDirection = strtolower($filters['direction'] ?? 'desc'); // Dirección por defecto
+
+        // Validar campos de ordenamiento si es necesario
+        $allowedSortFields = ['elo_rating', 'matches_played', 'wins', 'losses', 'win_rate', 'highest_rating', 'lowest_rating'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'elo_rating'; // Volver a valor por defecto si no es válido
+        }
+
+        // Asegurar que la dirección sea 'asc' o 'desc'
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'desc'; // Volver a valor por defecto
+        }
+
+        $query->orderBy($sortBy, $sortDirection)
+              ->orderBy('character_id', 'asc'); // Orden secundario para desempatar
+
+
+        // --- Paginación ---
+        $perPage = min((int) ($filters['per_page'] ?? self::DEFAULT_PAGE_SIZE), self::MAX_PAGE_SIZE);
+
+        // Cargar los resultados paginados
+        $paginatedRanking = $query->paginate($perPage)->withQueryString();
+
+        // --- Procesar la colección paginada para incluir la posición ---
+        // La paginación no incluye automáticamente la posición global.
+        // La posición debe calcularse considerando la página actual.
+        $currentPage = $paginatedRanking->currentPage();
+        $perPageValue = $paginatedRanking->perPage();
+        $startPosition = ($currentPage - 1) * $perPageValue + 1;
+
+        $rankingWithPositions = $paginatedRanking->getCollection()->map(function ($pivot, $index) use ($startPosition) {
+            // Añadir la posición al objeto pivote
+            $pivot->setAttribute('position', $startPosition + $index);
+            return $pivot;
+        });
+
+        // Volver a colocar la colección modificada en el objeto Paginator
+        $paginatedRanking->setCollection($rankingWithPositions);
+
+        // Devolver el objeto Paginator *con* la colección modificada
+        // Inertia lo entenderá y lo serializará como { data: [...], meta: {...}, links: [...] }
         return $paginatedRanking; // <-- Devolver el objeto Paginator
     }
 

@@ -272,10 +272,50 @@ export interface CombinatoricResource {
 }
 /*--------------------------------------------------------------------------*/
 // --- Interfaces para Rankings ---
+
+// Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
+// Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character' (resuelta como objeto plano)
+// Devuelto por CategoryCharacterResource
+export interface CategoryCharacterRankingResource {
+    // Campos de la tabla pivote 'category_character'
+    category_id: number;
+    character_id: number;
+    elo_rating: number; // Asegurar tipo decimal si es necesario
+    matches_played: number;
+    wins: number;
+    losses: number;
+    ties: number; // Nueva columna
+    win_rate: number | float; // Porcentaje
+    highest_rating: number;
+    lowest_rating: number;
+    rating_deviation: number; // Si se usa Glicko
+    last_match_at: string | null; // Formato ISO
+    is_featured: boolean;
+    sort_order: number;
+    status: boolean;
+    created_at: string; // Formato ISO
+    updated_at: string; // Formato ISO
+    // deleted_at: string | null; // Si se maneja soft delete y se envía
+
+    // Campo calculado: posición en el ranking de la categoría (añadido por RankingService)
+    position?: number; // <-- Campo calculado y añadido por RankingService
+
+    // Relación con el modelo 'Character' (cargada por CategoryCharacter->with('character'))
+    character: {
+        id: number;
+        fullname: string;
+        nickname: string | null;
+        picture: string | null; // Ruta relativa
+        picture_url: string | null; // URL generada por Storage::url
+        slug: string;
+        // Añadir otros campos necesarios del personaje si se usan en la UI
+    };
+}
+
 // Interfaz para un registro de ranking de personaje en una categoría (fila de la tabla)
 // Esta interfaz representa un objeto de la tabla pivote 'category_character' + la relación 'character' (resuelta como objeto plano)
 // Asumiendo que el objeto que llega es la serialización directa de CategoryCharacter::with('character')->first()
-export interface CategoryCharacterRankingResource {
+export interface CategoryCharacterRankingResource_old_ok {
     // Campos de la tabla pivote 'category_character'
     category_id: number;
     character_id: number;

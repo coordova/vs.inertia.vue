@@ -183,7 +183,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             No characters found.
                                         </TableCell>
                                     </TableRow>
-                                    <TableRow v-else v-for="(characterRating/* , index */) in props.ranking.data"
+                                    <TableRow v-else v-for="(characterRating) in props.ranking.data"
                                         :key="characterRating.character_id">
                                         <!-- Acceder a la posición calculada por el servicio -->
                                         <TableCell class="font-medium">{{ characterRating.position }}</TableCell>

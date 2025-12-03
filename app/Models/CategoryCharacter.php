@@ -4,7 +4,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\Pivot; // <-- EXTENDER Pivot, no Model
+use Illuminate\Database\Eloquent\Relations\Pivot; // Extiende Pivot no del Model
+use App\Models\Character; // Modelo relacionado
+use App\Models\Category; // Modelo relacionado
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Para las relaciones
 // use Illuminate\Database\Eloquent\Model; // <-- COMENTAR ESTO
 
 class CategoryCharacter extends Pivot // <-- EXTENDER Pivot
@@ -34,6 +37,8 @@ class CategoryCharacter extends Pivot // <-- EXTENDER Pivot
     ];
 
     protected $casts = [
+        'category_id' => 'integer',
+        'character_id' => 'integer',
         'elo_rating' => 'integer',
         'matches_played' => 'integer',
         'wins' => 'integer',
@@ -50,6 +55,20 @@ class CategoryCharacter extends Pivot // <-- EXTENDER Pivot
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    // --- Relaciones desde el modelo pivote ---
+    // Estas relaciones son necesarias si se va a usar $categoryCharacterPivot->with('character') o $categoryCharacterPivot->with('category') en consultas directas a CategoryCharacter
+    // O si se quiere acceder directamente a $this->character o $this->category desde una instancia de CategoryCharacter (raro, pero posible).
+    public function character(): BelongsTo
+    {
+        return $this->belongsTo(Character::class, 'character_id'); // FK en la tabla pivote apuntando a characters.id
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id'); // FK en la tabla pivote apuntando a categories.id
+    }
+    // --- FIN Relaciones ---
 
     // Opcional: Definir claves foráneas explícitamente si no se deducen correctamente
     // o si se usan nombres no convencionales. Generalmente no es necesario si los nombres son estándar.
