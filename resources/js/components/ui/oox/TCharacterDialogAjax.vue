@@ -15,6 +15,10 @@ import {
 import { Link } from '@inertiajs/vue3'
 import type { CharacterResource } from '@/types/global'
 
+interface Character extends CharacterResource {
+    character: CharacterResource
+}
+
 interface Props {
     characterId: number
 }
@@ -39,9 +43,10 @@ async function ensureCharacterLoaded() {
 
     try {
         // Ajusta el tipo de respuesta según tu backend: { data: CharacterResource } o directamente CharacterResource
-        const response = await axios.get<CharacterResource>(route('ajax.character.info', props.characterId))
+        const response = await axios.get<Character>(route('ajax.character.info', props.characterId))
+        console.log(response.data.character)
         // Si tu API responde como { data: {...} }, cambia a: response.data.data
-        character.value = response.data
+        character.value = response.data.character
     } catch (e) {
         console.error(e)
         error.value = 'Unable to load character information. Please try again.'
@@ -89,6 +94,9 @@ const genderLabel = computed(() => {
                 </DialogTitle>
                 <DialogDescription v-if="hasCharacter">
                     {{ character!.nickname }}
+                </DialogDescription>
+                <DialogDescription v-else>
+                    ...
                 </DialogDescription>
             </DialogHeader>
 

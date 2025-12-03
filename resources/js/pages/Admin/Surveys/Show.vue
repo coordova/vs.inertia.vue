@@ -10,7 +10,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog/';
-import TCharacterDialog from '@/components/ui/oox/TCharacterDialog.vue';
+import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
 import Badge from '@/components/ui/badge/Badge.vue';
 import { Button } from '@/components/ui/button';
 import DetailItem from '@/components/ui/oox/TDetailItem.vue';
@@ -52,7 +52,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-console.log(props);
+// console.log(props);
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
 
@@ -194,7 +194,7 @@ value, key
                                         </span>
                                         <span class="ml-2">{{
                                             String(value)
-                                        }}</span>
+                                            }}</span>
                                     </li>
                                 </ul>
                             </div>
@@ -281,7 +281,7 @@ value, key
                                 <span>Progress</span>
                                 <span>{{
                                     userProgress?.progress.toFixed(2) || 0
-                                    }}%</span>
+                                }}%</span>
                             </div>
                             <div class="mt-1 h-2 w-full rounded-full bg-muted">
                                 <div class="h-2 rounded-full bg-primary transition-all duration-300" :style="{
@@ -310,7 +310,7 @@ value, key
                         </div>
                         <ul class="flex flex-wrap gap-2 py-2">
                             <li v-for="character in survey?.characters" :key="character.id">
-                                <TCharacterDialog :character="character">
+                                <TCharacterDialogAjax :character-id="character.id">
                                     <template #trigger>
                                         <!-- <Link :href="route(
                                             'admin.characters.show',
@@ -327,7 +327,7 @@ value, key
                                         </Badge>
                                         <!-- </Link> -->
                                     </template>
-                                </TCharacterDialog>
+                                </TCharacterDialogAjax>
                             </li>
                         </ul>
                     </DetailItem>

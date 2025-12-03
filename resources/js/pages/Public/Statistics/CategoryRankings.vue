@@ -14,6 +14,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // <-- Añadir Select
 import { debounce } from 'lodash';
 import { Search } from 'lucide-vue-next'; // <-- Añadir Search icon
+import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
 
 // Importar tipos
 import { CategoryResource, CategoryRankingData } from '@/types/global'; // <-- Importar las interfaces correctas
@@ -189,23 +190,28 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableCell class="font-medium">{{ characterRating.position }}</TableCell>
 
                                         <TableCell>
-                                            <div class="flex items-center gap-3">
-                                                <img v-if="characterRating.character.picture"
-                                                    :src="'/storage/' + characterRating.character.picture"
-                                                    :alt="characterRating.character.fullname"
-                                                    class="h-10 w-10 rounded-full object-cover" />
-                                                <div v-else
-                                                    class="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
-                                                    <span class="text-muted-foreground text-xs">N/A</span>
-                                                </div>
-                                                <div>
-                                                    <div class="font-medium">{{ characterRating.character.fullname }}
+                                            <TCharacterDialogAjax :character-id="characterRating.character.id">
+                                                <template #trigger>
+                                                    <div class="flex items-center gap-3">
+                                                        <img v-if="characterRating.character.picture"
+                                                            :src="'/storage/' + characterRating.character.picture"
+                                                            :alt="characterRating.character.fullname"
+                                                            class="h-10 w-10 rounded-full object-cover" />
+                                                        <div v-else
+                                                            class="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
+                                                            <span class="text-muted-foreground text-xs">N/A</span>
+                                                        </div>
+                                                        <div>
+                                                            <div class="font-medium">{{
+                                                                characterRating.character.fullname }}
+                                                            </div>
+                                                            <div v-if="characterRating.character.nickname"
+                                                                class="text-sm text-muted-foreground">{{
+                                                                    characterRating.character.nickname }}</div>
+                                                        </div>
                                                     </div>
-                                                    <div v-if="characterRating.character.nickname"
-                                                        class="text-sm text-muted-foreground">{{
-                                                            characterRating.character.nickname }}</div>
-                                                </div>
-                                            </div>
+                                                </template>
+                                            </TCharacterDialogAjax>
                                         </TableCell>
 
                                         <TableCell>{{ characterRating.elo_rating }}</TableCell>

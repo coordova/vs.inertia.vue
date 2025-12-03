@@ -11,6 +11,7 @@ import { type BreadcrumbItem } from '@/types';
 import { SurveyResource, CharacterSurveyRankingResource } from '@/types/global'; // Tipos actualizados
 import { Eye/* , Pencil, RotateCw, Trash */ } from 'lucide-vue-next'; // Iconos
 import { /* ref, */ computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación)
+import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
 
 interface Props {
     survey: SurveyResource; // Datos de la encuesta
@@ -187,23 +188,28 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         <TableRow v-else v-for="rankItem in ranking" :key="rankItem.character_id">
                                             <TableCell class="font-medium">{{ rankItem.survey_position }}</TableCell>
                                             <TableCell>
-                                                <div class="flex items-center gap-3">
-                                                    <img v-if="rankItem.character.picture_url"
-                                                        :src="rankItem.character.picture_url"
-                                                        :alt="rankItem.character.fullname"
-                                                        class="h-10 w-10 rounded-full object-cover" />
-                                                    <div v-else
-                                                        class="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
-                                                        <span class="text-muted-foreground text-xs">N/A</span>
-                                                    </div>
-                                                    <div>
-                                                        <div class="font-medium">{{ rankItem.character.fullname }}
+                                                <TCharacterDialogAjax :character-id="rankItem.character.id">
+                                                    <template #trigger>
+                                                        <div class="flex items-center gap-3">
+                                                            <img v-if="rankItem.character.picture_url"
+                                                                :src="rankItem.character.picture_url"
+                                                                :alt="rankItem.character.fullname"
+                                                                class="h-10 w-10 rounded-full object-cover" />
+                                                            <div v-else
+                                                                class="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
+                                                                <span class="text-muted-foreground text-xs">N/A</span>
+                                                            </div>
+                                                            <div>
+                                                                <div class="font-medium">{{ rankItem.character.fullname
+                                                                }}
+                                                                </div>
+                                                                <div v-if="rankItem.character.nickname"
+                                                                    class="text-sm text-muted-foreground">{{
+                                                                        rankItem.character.nickname }}</div>
+                                                            </div>
                                                         </div>
-                                                        <div v-if="rankItem.character.nickname"
-                                                            class="text-sm text-muted-foreground">{{
-                                                                rankItem.character.nickname }}</div>
-                                                    </div>
-                                                </div>
+                                                    </template>
+                                                </TCharacterDialogAjax>
                                             </TableCell>
                                             <TableCell>{{ rankItem.survey_matches }}</TableCell>
                                             <TableCell>{{ rankItem.survey_wins }}</TableCell>

@@ -26,9 +26,9 @@ class PublicCharacterController extends Controller
         ]);
     }
 
-    public function getAjaxCharacterInfo(Character $character): JsonResponse
+    public function getAjaxCharacterInfo(Character $character)
     {
-        dd(CharacterResource::make($character)->resolve());
+        // dd(CharacterResource::make($character)->resolve());
         return response()->json([
             'character' => CharacterResource::make($character)->resolve(),
         ]);
