@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,17 +21,9 @@ interface Character extends CharacterResource {
 
 interface Props {
     characterId: number
-    /**
-     * Si es true, el componente volverá a llamar a la API
-     * cada vez que se abra el diálogo.
-     * Si es false (por defecto), solo carga una vez (lazy + cache).
-     */
-    reloadOnOpen?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    reloadOnOpen: false,
-})
+const props = defineProps<Props>()
 
 // Estado interno
 const open = ref(false)
@@ -39,24 +31,21 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const character = ref<CharacterResource | null>(null)
 
-// ¿tenemos datos cargados?
+// Helper: ¿ya tenemos datos?
 const hasCharacter = computed(() => character.value !== null)
 
-// Reset interno (útil cuando cambia characterId o cuando queremos forzar reload)
-function resetState() {
-    character.value = null
-    error.value = null
-    loading.value = false
-}
+// Cargar character solo cuando se abre por primera vez
+async function ensureCharacterLoaded() {
+    if (hasCharacter.value || loading.value) return
 
-// Cargar character (respeta reloadOnOpen)
-async function loadCharacter() {
     loading.value = true
     error.value = null
 
     try {
-        // Ajusta si tu backend envuelve la data
+        // Ajusta el tipo de respuesta según tu backend: { data: CharacterResource } o directamente CharacterResource
         const response = await axios.get<Character>(route('ajax.character.info', props.characterId))
+        console.log(response.data.character)
+        // Si tu API responde como { data: {...} }, cambia a: response.data.data
         character.value = response.data.character
     } catch (e) {
         console.error(e)
@@ -64,21 +53,6 @@ async function loadCharacter() {
     } finally {
         loading.value = false
     }
-}
-
-// Garantizar datos antes de mostrar contenido
-async function ensureCharacterLoaded() {
-    // Si queremos reload en cada apertura, siempre llamamos a loadCharacter
-    if (props.reloadOnOpen) {
-        await loadCharacter()
-        return
-    }
-
-    // Si NO queremos reload en cada apertura:
-    // - si ya hay datos o ya se está cargando, no hacemos nada
-    if (hasCharacter.value || loading.value) return
-
-    await loadCharacter()
 }
 
 // Handler cuando cambia el estado de apertura del Dialog
@@ -89,19 +63,7 @@ async function handleOpenChange(value: boolean) {
     }
 }
 
-// Si el characterId cambia, reseteamos el estado
-watch(
-    () => props.characterId,
-    () => {
-        resetState()
-        // Opcional: si el diálogo está abierto cuando cambia el id, recargar inmediatamente
-        if (open.value) {
-            ensureCharacterLoaded()
-        }
-    }
-)
-
-// Texto de género
+// Texto de género (mismo mapping que antes, pero encapsulado)
 const genderLabel = computed(() => {
     const g = character.value?.gender
     if (g === 0) return 'Other'
@@ -117,6 +79,7 @@ const genderLabel = computed(() => {
         <!-- Trigger: slot + fallback -->
         <DialogTrigger asChild>
             <slot name="trigger">
+                <!-- Fallback trigger (simple texto) -->
                 <button type="button" class="text-sm text-blue-600 hover:underline cursor-pointer">
                     View character
                 </button>
@@ -126,6 +89,7 @@ const genderLabel = computed(() => {
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>
+                    <!-- Mientras carga, título genérico -->
                     {{ hasCharacter ? character!.fullname : 'Loading character...' }}
                 </DialogTitle>
                 <DialogDescription v-if="hasCharacter">
@@ -158,6 +122,7 @@ const genderLabel = computed(() => {
                         {{ character!.bio }}
                     </p>
 
+                    <!-- Character Information -->
                     <dl class="divide-y divide-gray-100 dark:divide-white/10">
                         <!-- Gender -->
                         <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -213,6 +178,7 @@ const genderLabel = computed(() => {
                 </DialogClose>
             </DialogFooter>
 
+            <!-- Footer reducido si hay error -->
             <DialogFooter v-else-if="error">
                 <DialogClose as-child>
                     <Button type="button" variant="outline">
