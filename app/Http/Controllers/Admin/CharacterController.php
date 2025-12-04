@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CharacterController extends Controller
 {
@@ -84,7 +86,7 @@ class CharacterController extends Controller
                 $validated['picture'] = $result['main']; // ruta guardada de imagen principal
                 $validated['picture_thumb'] = $result['thumb']; // (opcional, si tienes columna en la BD)
             } catch (\Exception $e) {
-                \Log::error('Error al generar la imagen/canvas: '.$e->getMessage());
+                Log::error('Error al generar la imagen/canvas: '.$e->getMessage());
 
                 return to_route('admin.characters.index')
                     ->with('error', 'Error al procesar la imagen.');
@@ -99,7 +101,7 @@ class CharacterController extends Controller
             return to_route('admin.characters.show', $character)
                 ->with('success', 'Character created successfully.');
         } catch (\Exception $e) {
-            \Log::error('Error al crear el personaje: '.$e->getMessage());
+            Log::error('Error al crear el personaje: '.$e->getMessage());
 
             return to_route('admin.characters.index')
                 ->with('error', 'Error al crear el personaje.');
@@ -125,7 +127,7 @@ class CharacterController extends Controller
                 $validated['picture'] = $path;
             } catch (\Exception $e) {
                 // Manejar el error, por ejemplo, registrar en el log
-                \Log::error('Error al almacenar la imagen: '.$e->getMessage());
+                Log::error('Error al almacenar la imagen: '.$e->getMessage());
 
                 // Opcional: redirigir con un mensaje de error
                 return to_route('admin.characters.index')->with('error', 'Error al almacenar la imagen.');
@@ -163,7 +165,7 @@ class CharacterController extends Controller
             return to_route('admin.characters.show', $character)->with('success', 'Character created successfully.');
         } catch (\Exception $e) {
             // Manejar el error, por ejemplo, registrar en el log
-            \Log::error('Error al crear el personaje: '.$e->getMessage());
+            Log::error('Error al crear el personaje: '.$e->getMessage());
 
             // Opcional: redirigir con un mensaje de error
             return to_route('admin.characters.index')->with('error', 'Error al crear el personaje.');
@@ -230,16 +232,16 @@ class CharacterController extends Controller
 
                 // Eliminar antiguo archivo principal y thumb si existen
                 if ($character->picture) {
-                    \Storage::disk('public')->delete($character->picture);
+                    Storage::disk('public')->delete($character->picture);
                 }
                 if ($character->picture_thumb ?? false) {
-                    \Storage::disk('public')->delete($character->picture_thumb);
+                    Storage::disk('public')->delete($character->picture_thumb);
                 }
 
                 $validated['picture'] = $result['main'];
                 $validated['picture_thumb'] = $result['thumb'];
             } catch (\Exception $e) {
-                \Log::error('Error al procesar la imagen: '.$e->getMessage());
+                Log::error('Error al procesar la imagen: '.$e->getMessage());
 
                 return to_route('admin.characters.show', $character)
                     ->with('error', 'Error al actualizar la imagen.');
@@ -256,7 +258,7 @@ class CharacterController extends Controller
             return to_route('admin.characters.show', $character)
                 ->with('success', 'Character updated successfully.');
         } catch (\Exception $e) {
-            \Log::error('Error al actualizar el personaje: '.$e->getMessage());
+            Log::error('Error al actualizar el personaje: '.$e->getMessage());
 
             return to_route('admin.characters.index')
                 ->with('error', 'Error al actualizar el personaje.');
@@ -278,11 +280,11 @@ class CharacterController extends Controller
                 $validated['picture'] = $path;
                 // Elimina la imagen anterior si existe
                 if ($character->picture) {
-                    \Storage::disk('public')->delete($character->picture);
+                    Storage::disk('public')->delete($character->picture);
                 }
             } catch (\Exception $e) {
                 // Manejar el error, por ejemplo, registrar en el log
-                \Log::error('Error al almacenar la imagen: '.$e->getMessage());
+                Log::error('Error al almacenar la imagen: '.$e->getMessage());
 
                 // Opcional: redirigir con un mensaje de error
                 return to_route('admin.characters.show', $character)->with('error', 'Error al almacenar la imagen.');

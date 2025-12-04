@@ -3,6 +3,8 @@ import { useToast } from '@/composables/useToast'; // Importar el composable de 
 import VotingLayout from '@/layouts/VotingLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { HelpCircle } from 'lucide-vue-next';
+import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
 
 // Layouts & Components
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Componente de alerta de shadcn
@@ -388,11 +390,19 @@ onUnmounted(() => {
                         <!-- Characters comparison -->
                         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
                             <!-- Character 1 -->
-                            <Card>
+                            <Card class="relative">
+                                <!-- icono help -->
+                                <div class="absolute top-2 right-2">
+                                    <TCharacterDialogAjax :character-id="nextCombination.character1.id">
+                                        <template #trigger>
+                                            <HelpCircle class="h-5 w-5 text-muted-foreground" />
+                                        </template>
+                                    </TCharacterDialogAjax>
+                                </div>
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character1.fullname
-                                    }}</CardTitle>
+                                        }}</CardTitle>
                                     <CardDescription>
                                         <span v-if="nextCombination.character1.nickname">
                                             {{
@@ -431,11 +441,19 @@ onUnmounted(() => {
                             </Card>
 
                             <!-- Character 2 -->
-                            <Card>
+                            <Card class="relative">
+                                <!-- icono help -->
+                                <div class="absolute top-2 right-2">
+                                    <TCharacterDialogAjax :character-id="nextCombination.character2.id">
+                                        <template #trigger>
+                                            <HelpCircle class="h-5 w-5 text-muted-foreground" />
+                                        </template>
+                                    </TCharacterDialogAjax>
+                                </div>
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character2.fullname
-                                    }}</CardTitle>
+                                        }}</CardTitle>
                                     <CardDescription>
                                         <span v-if="nextCombination.character2.nickname">
                                             {{
