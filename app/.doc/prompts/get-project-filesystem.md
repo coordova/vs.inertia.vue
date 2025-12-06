@@ -1,0 +1,51 @@
+Eres un experto 'SENIOR' en ingenieria de software, con dos decadas de experiencia en desarrollo de aplicaciones web con PHP, MySQL/PostgreSQL/SQLite. Experto certificado en el framework PHP Laravel (version 12.x) con InertiaJs (2.x) y todo su ecosistema para el BACKEND con Pest PHP Testing Framework (4.x) para las pruebas. Tambien experto 'SENIOR' certificado en Javascript y Typescript con los frameworks Reactjs, Vuejs (3.x), Svelte y Tailwindcss (4.x) con ShadCn para el FRONTEND. Tambien eres proficiente y excelente profesional en UI/UX, Analista, Diseñador, Desarrollador y Control de calidad de software. Quiero Colaboracion, Proactividad y respuestas a las siguientes preguntas, tomando en cuenta un enfoque claro y fiable.
+
+Eres un experto 'SENIOR' en ingenieria de software, con dos decadas de experiencia en desarrollo de aplicaciones web con PHP, MySQL/PostgreSQL/SQLite.
+Experto certificado en el lenguaje de programacion PHP 8.x+ especialista en el sistema de archivos, manejo de directorios, permisos, etc.
+
+Debes crear un sistema en PHP puro, utilizando las mejores prestaciones y recursos del lenguaje bajo los siguentes requisitos:
+
+1. Solicitar al usuario que ingrese un directorio o ruta del directorio para ser analizada, esta ruta debe ser la raiz del proyecto.
+2. Si el usuario no ingresa una ruta, el sistema debe tomar la raiz del proyecto como ruta valida.
+3. Si la ruta es valida, el sistema debe analizar el directorio y sus subdirectorios (parsear/parsing) para obtener la informacion de la estructura de los directorios y los archivos.
+   3.1 Si la ruta contiene en la raiz del directorio un archivo .gitignore, el sistema debe analizar el archivo y obviar las rutas (directorios/archivos) que esten en el archivo. Tomando en cuenta los mismos principios que 'git' utiliza para ignorar archivos y directorios en base a la sintaxis del archivo .gitignore. El formato del archivo .gitignore es simple: una línea por cada archivo o directorio a ignorar, usando rutas relativas, comodines (_). Para ignorar una carpeta completa, se escribe su nombre seguido de barra / (ej. node_modules/), y para archivos específicos, solo el nombre o patrón (ej. _.log o /config.json).
+   Formatos comunes en .gitignore (a ser ignorados):
+   Archivos específicos:
+   archivo_secreto.txt
+   /config.json (ignora solo en la raíz)
+   Archivos por extensión (comodín _):
+   _.log (ignora todos los archivos .log)
+   _.tmp
+   Directorios completos (añadir / al final):
+   build/
+   logs/
+   Archivos o carpetas dentro de directorios (rutas):
+   dist/assets/
+   src/temp_files/
+   3.2 Si la ruta contiene en la raiz del directorio un archivo .avoid, el sistema debe analizar el archivo y proceder del mismo modo que lo hace con .gitignore. El formato de este archivo es el mismo descrito en el punto 3.1.
+   3.3 Si la ruta contiene en la raiz del directorio un archivo .onlyfiles que contiene una lista de extensiones (tipos de archivos) con el siguiente formato: una línea por cada extension de archivo a tomar en cuenta. Ejemplo:
+   Archivos por extensión (comodín _):
+   _.php (tomar en cuenta todos los archivos .php)
+   _.js (tomar en cuenta todos los archivos .js)
+   \*.css (tomar en cuenta todos los archivos .css)
+
+4 El procedimiento general es el siguiente: 4.1. Analizar la ruta proporcionada por el usuario. 4.2. Si la ruta es valida, proceder con el analisis de la estructura de los directorios y los archivos. 4.3. Si la ruta no es valida, mostrar un mensaje de error y detenerse. 4.4. Si la ruta es valida, proceder con el analisis de la estructura de los directorios y los archivos. 4.5. Elegir solamente los archivos que cumplan con el formato descrito en el punto 3.3. 4.6. Generar un archivo de texto con el árbol/estructura de directorios y archivos (los que aplican). 4.7. La estructura debe estar en el siguiente formato, ej:
+
+        ```
+        dir1
+            dir2
+                file1
+                file2
+            dir3
+                file3
+        ```
+
+5. El archivo de texto debe llamarse: "<oox>-<project_name>-<timestamp>-filesystem.txt" y debe guardarse en la raiz del directorio.
+6. El sistema solamente debe funcionar en la linea de comandos, no es necesario crear una interfaz grafica.
+7. El sistema debe ser ejecutable desde la linea de comandos. Y debes proporcionar una guia de usuario para poder ejecutar el sistema.
+8. Si el sistema no puede ejecutarse, o encuentra un error en el sistema de archivos, o entra en un bucle infinito, el sistema debe mostrar un mensaje de error y detenerse.
+9. Si tienes alguna sugerencia para que el sistema sea mas eficiente, o mas rapido, o mas optimizado, o mas seguro, o mas estable, consideralo.
+10. Antes de escribir el codigo del sistema, debes explicarme si has entendido los requerimientos (con ejemplos ilustrativos) y crear una hoja de ruta que vas a seguir para escribir el codigo del sistema.
+11. Una vez de acuerdo con todas las premisas, procede a escribir el codigo del sistema cuando te lo autorice.
+
+Eleva tu nivel de experiencia a senior, y muestra tu experiencia en el campo, analiza la solucion en amplitud y profundidad, evitando errores y bucles infinitos. Esto es el preambulo para un sistema que se complementa con estas bases, asi que hazlo de manera profesional y segura, para que pueda ser ejecutado en cualquier entorno, por lo pronto sera probado en un entorno de windows. Y si todo esta bien vamos con el complemento de este sistema.

@@ -1,0 +1,9 @@
+/.github/
+/.git/
+.archive/
+storage/debugbar/
+storage/framework/
+storage/logs
+app/.ai.ai/
+app/.doc/
+resources/js/components/ui

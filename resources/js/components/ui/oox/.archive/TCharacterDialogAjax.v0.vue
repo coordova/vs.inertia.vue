@@ -80,7 +80,7 @@ const genderLabel = computed(() => {
         <DialogTrigger asChild>
             <slot name="trigger">
                 <!-- Fallback trigger (simple texto) -->
-                <button type="button" class="text-sm text-blue-600 hover:underline cursor-pointer">
+                <button type="button" class="text-sm hover:text-muted-foreground cursor-pointer">
                     View character
                 </button>
             </slot>

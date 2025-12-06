@@ -59,7 +59,7 @@ async function loadCharacter() {
         const response = await axios.get<Character>(route('ajax.character.info', props.characterId))
         character.value = response.data.character
     } catch (e) {
-        console.error(e)
+        // console.error(e)
         error.value = 'Unable to load character information. Please try again.'
     } finally {
         loading.value = false
@@ -117,7 +117,7 @@ const genderLabel = computed(() => {
         <!-- Trigger: slot + fallback -->
         <DialogTrigger asChild>
             <slot name="trigger">
-                <button type="button" class="text-sm text-blue-600 hover:underline cursor-pointer">
+                <button type="button" class="text-sm hover:text-muted-foreground cursor-pointer">
                     View character
                 </button>
             </slot>
