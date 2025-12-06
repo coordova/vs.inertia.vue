@@ -155,6 +155,15 @@ vs.inertia.vue
                     CharacterCard.vue
                     SurveyProgress.vue
                     VoteInterface.vue
+                oox
+                    TCharacterDialog.vue
+                    TCharacterDialogAjax.vue
+                    TCharacterTagsInput.vue
+                    TDateMaskEdit.vue
+                    TDatePicker.vue
+                    TDetailItem.vue
+                    TFlashMessages.vue
+                    TPagination.vue
                 AlertError.vue
                 AppContent.vue
                 AppHeader.vue
@@ -292,7 +301,9 @@ vs.inertia.vue
             ExampleTest.php
         Pest.php
         TestCase.php
-    analyze_filesystem.php
-    analyze_filesystem.v0.php
+    components.json
+    composer.json
     eslint.config.js
+    package.json
+    tsconfig.json
     vite.config.ts

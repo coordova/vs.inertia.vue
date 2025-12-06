@@ -7,3 +7,4 @@ storage/logs
 app/.ai.ai/
 app/.doc/
 resources/js/components/ui
+/analyze_filesystem.php
