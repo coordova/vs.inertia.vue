@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TFlashMessages from '@/components/ui/oox/TFlashMessages.vue';
+import TFlashMessages from '@/components/oox/TFlashMessages.vue';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 

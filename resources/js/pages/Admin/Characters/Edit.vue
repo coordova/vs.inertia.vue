@@ -3,7 +3,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import MaskDateEdit from '@/components/ui/oox/TDateMaskEdit.vue';
+import MaskDateEdit from '@/components/oox/TDateMaskEdit.vue';
 import {
     Select,
     SelectContent,
@@ -117,6 +117,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
+
     <Head title="Edit Character" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full max-w-3xl flex-1 flex-col gap-4 p-4 md:p-6">
@@ -126,28 +127,14 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <div class="space-y-2">
                         <Label>Gender</Label>
                         <Select v-model="form.gender">
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    :value="0"
-                                    :selected="form.gender === 0"
-                                    >Other</SelectItem
-                                >
-                                <SelectItem
-                                    :value="1"
-                                    :selected="form.gender === 1"
-                                    >Male</SelectItem
-                                >
-                                <SelectItem
-                                    :value="2"
-                                    :selected="form.gender === 2"
-                                    >Female</SelectItem
-                                >
-                                <SelectItem
-                                    :value="3"
-                                    :selected="form.gender === 3"
-                                    >No-binario</SelectItem
-                                >
+                                <SelectItem :value="0" :selected="form.gender === 0">Other</SelectItem>
+                                <SelectItem :value="1" :selected="form.gender === 1">Male</SelectItem>
+                                <SelectItem :value="2" :selected="form.gender === 2">Female</SelectItem>
+                                <SelectItem :value="3" :selected="form.gender === 3">No-binario</SelectItem>
                             </SelectContent>
                         </Select>
                         <InputError :message="form.errors.gender" />
@@ -156,21 +143,14 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <Label for="categories">Category</Label>
                         <Select v-model="form.category_ids" multiple>
                             <SelectTrigger>
-                                <SelectValue
-                                    :placeholder="
-                                        form.category_ids.length
-                                            ? `${form.category_ids.length} selected`
-                                            : 'Select categories'
-                                    "
-                                />
+                                <SelectValue :placeholder="form.category_ids.length
+                                        ? `${form.category_ids.length} selected`
+                                        : 'Select categories'
+                                    " />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    v-for="category in props.categories"
-                                    :key="category.id"
-                                    :value="category.id"
-                                    >{{ category.name }}</SelectItem
-                                >
+                                <SelectItem v-for="category in props.categories" :key="category.id"
+                                    :value="category.id">{{ category.name }}</SelectItem>
                             </SelectContent>
                         </Select>
                         <InputError :message="form.errors.category_ids" />
@@ -181,11 +161,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="fullname">Fullname</Label>
-                        <Input
-                            id="fullname"
-                            v-model="form.fullname"
-                            autofocus
-                        />
+                        <Input id="fullname" v-model="form.fullname" autofocus />
                         <InputError :message="form.errors.fullname" />
                     </div>
 
@@ -213,24 +189,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                     <div class="space-y-2">
                         <Label for="image">Image</Label>
-                        <Input
-                            id="image"
-                            type="file"
-                            accept="image/*"
-                            @input="onFileChange"
-                        />
-                        <img
-                            v-if="imagePreview"
-                            :src="imagePreview"
-                            alt="Preview"
-                            class="mt-2 max-h-40 w-auto rounded"
-                        />
-                        <img
-                            v-else-if="existingImage"
-                            :src="existingImage"
-                            alt="Current"
-                            class="mt-2 max-h-40 w-auto rounded"
-                        />
+                        <Input id="image" type="file" accept="image/*" @input="onFileChange" />
+                        <img v-if="imagePreview" :src="imagePreview" alt="Preview"
+                            class="mt-2 max-h-40 w-auto rounded" />
+                        <img v-else-if="existingImage" :src="existingImage" alt="Current"
+                            class="mt-2 max-h-40 w-auto rounded" />
                         <InputError :message="form.errors.picture" />
                     </div>
                 </div>
@@ -239,40 +202,27 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div>
                     <div class="flex items-center space-x-2 pt-2">
                         <Switch id="status" v-model="form.status" />
-                        <Label
-                            for="status"
-                            class="cursor-pointer text-sm font-medium"
-                            >Enable character</Label
-                        >
+                        <Label for="status" class="cursor-pointer text-sm font-medium">Enable character</Label>
                     </div>
                     <InputError :message="form.errors.status" class="mt-1" />
                 </div>
 
                 <Separator class="my-4" />
                 <div
-                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4"
-                >
-                    <Button
-                        type="button"
-                        variant="outline"
-                        class="w-full cursor-pointer md:w-auto"
-                        :disabled="form.processing"
-                        @click="
+                    class="flex w-full flex-col items-center space-y-4 space-x-0 md:flex-row md:justify-end md:space-y-0 md:space-x-4">
+                    <Button type="button" variant="outline" class="w-full cursor-pointer md:w-auto"
+                        :disabled="form.processing" @click="
                             router.visit(
                                 route(
                                     'admin.characters.show',
                                     props.character.id,
                                 ),
                             )
-                        "
-                    >
+                            ">
                         Cancel
                     </Button>
-                    <Button
-                        type="submit"
-                        class="w-full cursor-pointer md:w-auto"
-                        :disabled="form.processing || !form.isDirty"
-                    >
+                    <Button type="submit" class="w-full cursor-pointer md:w-auto"
+                        :disabled="form.processing || !form.isDirty">
                         {{ form.processing ? 'Saving...' : 'Update' }}
                     </Button>
                 </div>

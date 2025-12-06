@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/ui/oox/TPagination.vue';
+import TPagination from '@/components/oox/TPagination.vue';
 import {
     Select,
     SelectContent,
@@ -143,86 +143,49 @@ function goToPage(page: number) {
 </script>
 
 <template>
+
     <Head title="Characters" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
+        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Characters</h1>
                 <span class="text-sm text-gray-500"> </span>
 
                 <div class="flex items-center gap-4">
                     <!-- Reload -->
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="router.visit(route('admin.characters.index'))"
-                    >
+                    <Button type="button" variant="outline" @click="router.visit(route('admin.characters.index'))">
                         <RotateCw />
                     </Button>
                     <!-- Per page -->
                     <div class="flex items-center justify-end">
-                        <Select
-                            v-model="perPage"
-                            @update:modelValue="goToPage(1)"
-                        >
+                        <Select v-model="perPage" @update:modelValue="goToPage(1)">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a page size" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    value="15"
-                                    :selected="perPage === '15'"
-                                    >15</SelectItem
-                                >
-                                <SelectItem
-                                    value="25"
-                                    :selected="perPage === '25'"
-                                    >25</SelectItem
-                                >
-                                <SelectItem
-                                    value="50"
-                                    :selected="perPage === '50'"
-                                    >50</SelectItem
-                                >
-                                <SelectItem
-                                    value="100"
-                                    :selected="perPage === '100'"
-                                    >100</SelectItem
-                                >
+                                <SelectItem value="15" :selected="perPage === '15'">15</SelectItem>
+                                <SelectItem value="25" :selected="perPage === '25'">25</SelectItem>
+                                <SelectItem value="50" :selected="perPage === '50'">50</SelectItem>
+                                <SelectItem value="100" :selected="perPage === '100'">100</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
-                        <Input
-                            v-model="search"
-                            id="search"
-                            type="text"
-                            placeholder="Search..."
-                            class="pl-10"
-                        />
-                        <span
-                            class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
-                        >
+                        <Input v-model="search" id="search" type="text" placeholder="Search..." class="pl-10" />
+                        <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
                             <Search class="size-6 text-muted-foreground" />
                         </span>
                     </div>
                     <!-- Create Character -->
                     <Button asChild>
-                        <Link :href="route('admin.characters.create')"
-                            >Create Character</Link
-                        >
+                        <Link :href="route('admin.characters.create')">Create Character</Link>
                     </Button>
                 </div>
             </div>
             <Table>
-                <TableCaption
-                    v-if="props.characters?.meta.total > 0"
-                    class="text-right"
-                >
+                <TableCaption v-if="props.characters?.meta.total > 0" class="text-right">
                     Showing {{ props.characters?.meta.from }} to
                     {{ props.characters?.meta.to }} of
                     {{ props.characters?.meta.total }} characters
@@ -240,19 +203,12 @@ function goToPage(page: number) {
                 </TableHeader>
                 <TableBody>
                     <TableRow v-if="props.characters?.data.length === 0">
-                        <TableCell colspan="6" class="h-24 text-center"
-                            >No characters found.</TableCell
-                        >
+                        <TableCell colspan="6" class="h-24 text-center">No characters found.</TableCell>
                     </TableRow>
-                    <TableRow
-                        v-else
-                        v-for="character in props.characters?.data"
-                        :key="character.id"
-                        :class="{
-                            'pointer-events-none text-gray-500 opacity-50':
-                                deleting[character.id],
-                        }"
-                    >
+                    <TableRow v-else v-for="character in props.characters?.data" :key="character.id" :class="{
+                        'pointer-events-none text-gray-500 opacity-50':
+                            deleting[character.id],
+                    }">
                         <TableCell>
                             <Avatar>
                                 <AvatarImage :src="character.thumbnail_url" />
@@ -267,16 +223,13 @@ function goToPage(page: number) {
                         </TableCell>
                         <TableCell class="font-medium">{{
                             character.fullname
-                        }}</TableCell>
+                            }}</TableCell>
                         <TableCell>{{ character.nickname || '-' }}</TableCell>
                         <!-- Mostrar '-' si nickname es null -->
                         <!-- <TableCell>{{ character.occupation || '-' }}</TableCell> -->
                         <TableCell>
-                            <Badge
-                                :variant="
-                                    character.status ? 'default' : 'secondary'
-                                "
-                            >
+                            <Badge :variant="character.status ? 'default' : 'secondary'
+                                ">
                                 {{ character.status ? 'Active' : 'Inactive' }}
                             </Badge>
                         </TableCell>
@@ -289,49 +242,39 @@ function goToPage(page: number) {
                         }}</TableCell> -->
                         <TableCell>{{
                             character.created_at_formatted
-                        }}</TableCell>
+                            }}</TableCell>
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="
-                                        route(
-                                            'admin.characters.show',
-                                            character.id,
-                                        )
-                                    "
-                                >
-                                    <Eye />
+                                <Link :href="route(
+                                    'admin.characters.show',
+                                    character.id,
+                                )
+                                    ">
+                                <Eye />
                                 </Link>
                             </Button>
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="
-                                        route(
-                                            'admin.characters.edit',
-                                            character.id,
-                                        )
-                                    "
-                                >
-                                    <Pencil />
+                                <Link :href="route(
+                                    'admin.characters.edit',
+                                    character.id,
+                                )
+                                    ">
+                                <Pencil />
                                 </Link>
                             </Button>
                             <!-- delete -->
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button
-                                        as-child
-                                        variant="outline"
-                                        size="sm"
-                                    >
-                                        <span><Trash /></span>
+                                    <Button as-child variant="outline" size="sm">
+                                        <span>
+                                            <Trash />
+                                        </span>
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle
-                                            >Are you sure?</AlertDialogTitle
-                                        >
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                         <AlertDialogDescription>
                                             This action cannot be undone. This
                                             will permanently delete the
@@ -339,18 +282,14 @@ function goToPage(page: number) {
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel
-                                            >Cancel</AlertDialogCancel
-                                        >
-                                        <AlertDialogAction
-                                            @click="
-                                                (e: Event) =>
-                                                    handleDelete(
-                                                        e,
-                                                        character.id,
-                                                    )
-                                            "
-                                        >
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction @click="
+                                            (e: Event) =>
+                                                handleDelete(
+                                                    e,
+                                                    character.id,
+                                                )
+                                        ">
                                             Confirm Delete
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
@@ -361,12 +300,8 @@ function goToPage(page: number) {
                 </TableBody>
             </Table>
             <!-- Pagination -->
-            <TPagination
-                :current-page="props.characters.meta.current_page"
-                :total-items="props.characters.meta.total"
-                :items-per-page="props.characters.meta.per_page"
-                @page-change="goToPage"
-            />
+            <TPagination :current-page="props.characters.meta.current_page" :total-items="props.characters.meta.total"
+                :items-per-page="props.characters.meta.per_page" @page-change="goToPage" />
         </div>
     </AppLayout>
 </template>

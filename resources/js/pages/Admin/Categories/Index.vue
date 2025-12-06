@@ -17,7 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/ui/oox/TPagination.vue';
+import TPagination from '@/components/oox/TPagination.vue';
 import {
     Select,
     SelectContent,
@@ -273,7 +273,7 @@ function goToPage(page: number) {
                         </TableCell>
                         <TableCell>{{
                             category.created_at_formatted
-                        }}</TableCell>
+                            }}</TableCell>
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">

@@ -14,7 +14,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // <-- Añadir Select
 import { debounce } from 'lodash';
 import { Search } from 'lucide-vue-next'; // <-- Añadir Search icon
-import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
+import TCharacterDialogAjax from '@/components/oox/TCharacterDialogAjax.vue';
 
 // Importar tipos
 import { CategoryResource, CategoryRankingData } from '@/types/global'; // <-- Importar las interfaces correctas

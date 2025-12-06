@@ -11,7 +11,7 @@ import { type BreadcrumbItem } from '@/types';
 import { SurveyResource, CharacterSurveyRankingResource } from '@/types/global'; // Tipos actualizados
 import { Eye/* , Pencil, RotateCw, Trash */ } from 'lucide-vue-next'; // Iconos
 import { /* ref, */ computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación)
-import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
+import TCharacterDialogAjax from '@/components/oox/TCharacterDialogAjax.vue';
 
 interface Props {
     survey: SurveyResource; // Datos de la encuesta
@@ -201,7 +201,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                             </div>
                                                             <div>
                                                                 <div class="font-medium">{{ rankItem.character.fullname
-                                                                }}
+                                                                    }}
                                                                 </div>
                                                                 <div v-if="rankItem.character.nickname"
                                                                     class="text-sm text-muted-foreground">{{

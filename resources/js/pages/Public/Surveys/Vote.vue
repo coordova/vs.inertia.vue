@@ -4,7 +4,7 @@ import VotingLayout from '@/layouts/VotingLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { HelpCircle } from 'lucide-vue-next';
-import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
+import TCharacterDialogAjax from '@/components/oox/TCharacterDialogAjax.vue';
 
 // Layouts & Components
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Componente de alerta de shadcn
@@ -402,7 +402,7 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character1.fullname
-                                        }}</CardTitle>
+                                    }}</CardTitle>
                                     <CardDescription>
                                         <span v-if="nextCombination.character1.nickname">
                                             {{
@@ -453,7 +453,7 @@ onUnmounted(() => {
                                 <CardHeader class="text-center">
                                     <CardTitle>{{
                                         nextCombination.character2.fullname
-                                        }}</CardTitle>
+                                    }}</CardTitle>
                                     <CardDescription>
                                         <span v-if="nextCombination.character2.nickname">
                                             {{

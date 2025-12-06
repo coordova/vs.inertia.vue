@@ -7,7 +7,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import DatePicker from '@/components/ui/oox/TDatePicker.vue'; // <-- Importa el nuevo componente
+import DatePicker from '@/components/oox/TDatePicker.vue'; // <-- Importa el nuevo componente
 import {
     Select,
     SelectContent,
@@ -24,7 +24,7 @@ import { useToast } from '@/composables/useToast';
 import { type BreadcrumbItem } from '@/types';
 
 // Importar nuevo componente
-import TCharacterTagsInput from '@/components/ui/oox/TCharacterTagsInput.vue';
+import TCharacterTagsInput from '@/components/oox/TCharacterTagsInput.vue';
 import { SurveyResourceForm } from '@/types/global';
 import { watch } from 'vue';
 
@@ -126,6 +126,7 @@ watch(
 </script>
 
 <template>
+
     <Head title="Create Survey" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -135,12 +136,7 @@ watch(
                 <!-- Title -->
                 <div class="space-y-2">
                     <Label for="title">Survey Title</Label>
-                    <Input
-                        id="title"
-                        type="text"
-                        autoFocus
-                        v-model="form.title"
-                    />
+                    <Input id="title" type="text" autoFocus v-model="form.title" />
                     <InputError :message="form.errors.title" />
                 </div>
 
@@ -156,15 +152,12 @@ watch(
                     <div class="space-y-2">
                         <Label for="category_id">Category</Label>
                         <Select v-model="form.category_id">
-                            <SelectTrigger
-                                ><SelectValue placeholder="Select a category"
-                            /></SelectTrigger>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    v-for="category in props.categories"
-                                    :key="category.id"
-                                    :value="category.id"
-                                >
+                                <SelectItem v-for="category in props.categories" :key="category.id"
+                                    :value="category.id">
                                     {{ category.name }}
                                 </SelectItem>
                             </SelectContent>
@@ -175,9 +168,9 @@ watch(
                     <div class="space-y-2">
                         <Label for="type">Type</Label>
                         <Select v-model="form.type">
-                            <SelectTrigger
-                                ><SelectValue placeholder="Select type"
-                            /></SelectTrigger>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
                             <SelectContent>
                                 <SelectItem :value="0">Public</SelectItem>
                                 <SelectItem :value="1">Private</SelectItem>
@@ -190,19 +183,14 @@ watch(
                 <!-- Selection Strategy -->
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="space-y-2">
-                        <Label for="selection_strategy"
-                            >Selection Strategy</Label
-                        >
+                        <Label for="selection_strategy">Selection Strategy</Label>
                         <Select v-model="form.selection_strategy">
-                            <SelectTrigger
-                                ><SelectValue placeholder="Select a strategy"
-                            /></SelectTrigger>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a strategy" />
+                            </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    v-for="strategy in props.selectionStrategies"
-                                    :key="strategy.value"
-                                    :value="strategy.value"
-                                >
+                                <SelectItem v-for="strategy in props.selectionStrategies" :key="strategy.value"
+                                    :value="strategy.value">
                                     {{ strategy.label }}
                                 </SelectItem>
                             </SelectContent>
@@ -214,10 +202,7 @@ watch(
                 <!-- Characters in survey -->
                 <div class="space-y-2">
                     <!-- <Label for="characters">Characters in survey</Label> -->
-                    <TCharacterTagsInput
-                        v-model="form.characters"
-                        :category-id="form.category_id"
-                    />
+                    <TCharacterTagsInput v-model="form.characters" :category-id="form.category_id" />
                     <InputError :message="form.errors.characters" />
                 </div>
 
@@ -245,46 +230,27 @@ watch(
                     <div>
                         <div class="flex items-center space-x-2 pt-2">
                             <Switch id="status" v-model="form.status" />
-                            <Label
-                                for="status"
-                                class="cursor-pointer text-sm leading-none font-medium"
-                            >
+                            <Label for="status" class="cursor-pointer text-sm leading-none font-medium">
                                 Enable this survey upon creation
                             </Label>
                         </div>
-                        <InputError
-                            :message="form.errors.status"
-                            class="mt-1"
-                        />
+                        <InputError :message="form.errors.status" class="mt-1" />
                     </div>
 
                     <div>
                         <div class="flex items-center space-x-2 pt-2">
                             <Switch id="reverse" v-model="form.reverse" />
-                            <Label
-                                for="reverse"
-                                class="cursor-pointer text-sm leading-none font-medium"
-                            >
+                            <Label for="reverse" class="cursor-pointer text-sm leading-none font-medium">
                                 Reverse this survey upon creation
                             </Label>
                         </div>
-                        <InputError
-                            :message="form.errors.reverse"
-                            class="mt-1"
-                        />
+                        <InputError :message="form.errors.reverse" class="mt-1" />
                     </div>
                 </div>
 
                 <!-- Submit -->
-                <Button
-                    type="submit"
-                    class="w-full cursor-pointer"
-                    :disabled="form.processing"
-                >
-                    <LoaderCircle
-                        v-if="form.processing"
-                        class="mr-2 h-4 w-4 animate-spin"
-                    />
+                <Button type="submit" class="w-full cursor-pointer" :disabled="form.processing">
+                    <LoaderCircle v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
                     Create Survey
                 </Button>
             </form>

@@ -17,7 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/ui/oox/TPagination.vue';
+import TPagination from '@/components/oox/TPagination.vue';
 import {
     Select,
     SelectContent,
@@ -148,86 +148,49 @@ function goToPage(page: number) {
 </script>
 
 <template>
+
     <Head title="Surveys" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
+        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <div class="flex items-center justify-between">
                 <h1 class="text-xl font-semibold">Surveys</h1>
                 <span class="text-sm text-gray-500"> </span>
 
                 <div class="flex items-center gap-4">
                     <!-- Reload -->
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="router.visit(route('admin.surveys.index'))"
-                    >
+                    <Button type="button" variant="outline" @click="router.visit(route('admin.surveys.index'))">
                         <RotateCw />
                     </Button>
                     <!-- Per page -->
                     <div class="flex items-center justify-end">
-                        <Select
-                            v-model="perPage"
-                            @update:modelValue="goToPage(1)"
-                        >
+                        <Select v-model="perPage" @update:modelValue="goToPage(1)">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a page size" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem
-                                    value="15"
-                                    :selected="perPage === '15'"
-                                    >15</SelectItem
-                                >
-                                <SelectItem
-                                    value="25"
-                                    :selected="perPage === '25'"
-                                    >25</SelectItem
-                                >
-                                <SelectItem
-                                    value="50"
-                                    :selected="perPage === '50'"
-                                    >50</SelectItem
-                                >
-                                <SelectItem
-                                    value="100"
-                                    :selected="perPage === '100'"
-                                    >100</SelectItem
-                                >
+                                <SelectItem value="15" :selected="perPage === '15'">15</SelectItem>
+                                <SelectItem value="25" :selected="perPage === '25'">25</SelectItem>
+                                <SelectItem value="50" :selected="perPage === '50'">50</SelectItem>
+                                <SelectItem value="100" :selected="perPage === '100'">100</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
-                        <Input
-                            v-model="search"
-                            id="search"
-                            type="text"
-                            placeholder="Search..."
-                            class="pl-10"
-                        />
-                        <span
-                            class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
-                        >
+                        <Input v-model="search" id="search" type="text" placeholder="Search..." class="pl-10" />
+                        <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
                             <Search class="size-6 text-muted-foreground" />
                         </span>
                     </div>
                     <!-- Create Survey -->
                     <Button asChild>
-                        <Link :href="route('admin.surveys.create')"
-                            >Create Survey</Link
-                        >
+                        <Link :href="route('admin.surveys.create')">Create Survey</Link>
                     </Button>
                 </div>
             </div>
             <Table>
-                <TableCaption
-                    v-if="props.surveys?.meta.total > 0"
-                    class="text-right"
-                >
+                <TableCaption v-if="props.surveys?.meta.total > 0" class="text-right">
                     Showing {{ props.surveys?.meta.from }} to
                     {{ props.surveys?.meta.to }} of
                     {{ props.surveys?.meta.total }} surveys
@@ -249,24 +212,15 @@ function goToPage(page: number) {
                 </TableHeader>
                 <TableBody>
                     <TableRow v-if="props.surveys?.data.length === 0">
-                        <TableCell colspan="6" class="h-24 text-center"
-                            >No surveys found.</TableCell
-                        >
+                        <TableCell colspan="6" class="h-24 text-center">No surveys found.</TableCell>
                     </TableRow>
-                    <TableRow
-                        v-else
-                        v-for="survey in props.surveys?.data"
-                        :key="survey.id"
-                        :class="{
-                            'pointer-events-none text-gray-500 opacity-50':
-                                deleting[survey.id],
-                        }"
-                    >
-                        <TableCell class="font-medium"
-                            >{{ survey.title.slice(0, 20) }}...
+                    <TableRow v-else v-for="survey in props.surveys?.data" :key="survey.id" :class="{
+                        'pointer-events-none text-gray-500 opacity-50':
+                            deleting[survey.id],
+                    }">
+                        <TableCell class="font-medium">{{ survey.title.slice(0, 20) }}...
                         </TableCell>
-                        <TableCell>{{ survey.category?.name }}</TableCell
-                        ><!-- Acceder al nombre de la categoría -->
+                        <TableCell>{{ survey.category?.name }}</TableCell><!-- Acceder al nombre de la categoría -->
                         <TableCell>{{ survey.type }}</TableCell>
                         <TableCell>{{ survey.selection_strategy }}</TableCell>
                         <TableCell>{{ survey.date_start_formatted }}</TableCell>
@@ -280,11 +234,8 @@ function goToPage(page: number) {
                             new Date(survey.date_end).toLocaleDateString()
                         }}</TableCell> -->
                         <TableCell>
-                            <Badge
-                                :variant="
-                                    survey.status ? 'default' : 'secondary'
-                                "
-                            >
+                            <Badge :variant="survey.status ? 'default' : 'secondary'
+                                ">
                                 {{ survey.status ? 'Active' : 'Inactive' }}
                             </Badge>
                         </TableCell>
@@ -292,50 +243,40 @@ function goToPage(page: number) {
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="
-                                        route('admin.surveys.show', survey.id)
-                                    "
-                                >
-                                    <Eye />
+                                <Link :href="route('admin.surveys.show', survey.id)
+                                    ">
+                                <Eye />
                                 </Link>
                             </Button>
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="
-                                        route('admin.surveys.edit', survey.id)
-                                    "
-                                >
-                                    <Pencil />
+                                <Link :href="route('admin.surveys.edit', survey.id)
+                                    ">
+                                <Pencil />
                                 </Link>
                             </Button>
                             <!-- delete -->
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button asChild variant="outline" size="sm">
-                                        <span><Trash /></span>
+                                        <span>
+                                            <Trash />
+                                        </span>
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle
-                                            >Are you sure?</AlertDialogTitle
-                                        >
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                         <AlertDialogDescription>
                                             This action cannot be undone. This
                                             will permanently delete the survey.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel
-                                            >Cancel</AlertDialogCancel
-                                        >
-                                        <AlertDialogAction
-                                            @click="
-                                                (e: Event) =>
-                                                    handleDelete(e, survey.id)
-                                            "
-                                        >
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction @click="
+                                            (e: Event) =>
+                                                handleDelete(e, survey.id)
+                                        ">
                                             Confirm Delete
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
@@ -346,13 +287,9 @@ function goToPage(page: number) {
                 </TableBody>
             </Table>
             <!-- Pagination -->
-            <TPagination
-                v-if="props.surveys.meta.total > props.surveys.meta.per_page"
-                :current-page="props.surveys.meta.current_page"
-                :total-items="props.surveys.meta.total"
-                :items-per-page="props.surveys.meta.per_page"
-                @page-change="goToPage"
-            />
+            <TPagination v-if="props.surveys.meta.total > props.surveys.meta.per_page"
+                :current-page="props.surveys.meta.current_page" :total-items="props.surveys.meta.total"
+                :items-per-page="props.surveys.meta.per_page" @page-change="goToPage" />
         </div>
     </AppLayout>
 </template>

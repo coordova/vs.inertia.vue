@@ -13,7 +13,7 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
 // import { ref } from 'vue';
-import TCharacterDialog from '@/components/ui/oox/TCharacterDialog.vue'
+import TCharacterDialog from '@/components/oox/TCharacterDialog.vue'
 // import { format } from 'date-fns'; // O dayjs, o formateo nativo
 
 interface Props {
@@ -234,7 +234,7 @@ console.log(props);
                                 <CardHeader>
                                     <CardTitle>Participants ({{
                                         props.characters.length
-                                        }})</CardTitle>
+                                    }})</CardTitle>
                                     <CardDescription>
                                         Characters competing in this survey.
                                     </CardDescription>

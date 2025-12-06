@@ -17,7 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/ui/oox/TPagination.vue';
+import TPagination from '@/components/oox/TPagination.vue';
 import {
     Select,
     SelectContent,
@@ -224,6 +224,7 @@ const handleStatus = (e: Event, id: number) => {
 </script>
 
 <template>
+
     <Head title="Users" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -234,60 +235,29 @@ const handleStatus = (e: Event, id: number) => {
 
                 <div class="flex items-center gap-4">
                     <!-- Reload -->
-                    <Button
-                        class="cursor-pointer"
-                        type="button"
-                        variant="outline"
-                        @click="router.visit(route('admin.users.index'))"
-                    >
+                    <Button class="cursor-pointer" type="button" variant="outline"
+                        @click="router.visit(route('admin.users.index'))">
                         <RotateCw />
                     </Button>
                     <!-- Per page -->
                     <div class="flex items-center justify-end">
-                        <Select
-                            v-model="perPage"
-                            @update:modelValue="goToPage(1)"
-                        >
+                        <Select v-model="perPage" @update:modelValue="goToPage(1)">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a page size" />
                             </SelectTrigger>
                             <SelectContent>
                                 <!-- valor por defecto -->
-                                <SelectItem
-                                    value="15"
-                                    :selected="perPage === '15'"
-                                    >15</SelectItem
-                                >
-                                <SelectItem
-                                    value="25"
-                                    :selected="perPage === '25'"
-                                    >25</SelectItem
-                                >
-                                <SelectItem
-                                    value="50"
-                                    :selected="perPage === '50'"
-                                    >50</SelectItem
-                                >
-                                <SelectItem
-                                    value="100"
-                                    :selected="perPage === '100'"
-                                    >100</SelectItem
-                                >
+                                <SelectItem value="15" :selected="perPage === '15'">15</SelectItem>
+                                <SelectItem value="25" :selected="perPage === '25'">25</SelectItem>
+                                <SelectItem value="50" :selected="perPage === '50'">50</SelectItem>
+                                <SelectItem value="100" :selected="perPage === '100'">100</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <!-- Search -->
                     <div class="relative w-full max-w-sm items-center">
-                        <Input
-                            v-model="search"
-                            id="search"
-                            type="text"
-                            placeholder="Search..."
-                            class="pl-10"
-                        />
-                        <span
-                            class="absolute inset-y-0 start-0 flex items-center justify-center px-2"
-                        >
+                        <Input v-model="search" id="search" type="text" placeholder="Search..." class="pl-10" />
+                        <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
                             <Search class="size-6 text-muted-foreground" />
                         </span>
                     </div>
@@ -301,11 +271,9 @@ const handleStatus = (e: Event, id: number) => {
             </div>
 
             <Table>
-                <TableCaption class="text-right"
-                    >Showing {{ props.users?.meta.from }} to
+                <TableCaption class="text-right">Showing {{ props.users?.meta.from }} to
                     {{ props.users?.meta.to }} of
-                    {{ props.users?.meta.total }} users</TableCaption
-                >
+                    {{ props.users?.meta.total }} users</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead>Type</TableHead>
@@ -318,34 +286,23 @@ const handleStatus = (e: Event, id: number) => {
                 </TableHeader>
                 <TableBody>
                     <TableRow v-if="props.users?.data.length === 0">
-                        <TableCell colspan="5" class="h-24 text-center"
-                            >No users found.
+                        <TableCell colspan="5" class="h-24 text-center">No users found.
                         </TableCell>
                     </TableRow>
-                    <TableRow
-                        v-else
-                        v-for="user in props.users?.data"
-                        :key="user.id"
-                        :class="{
-                            'pointer-events-none text-gray-500 opacity-50':
-                                deleting[user.id],
-                        }"
-                    >
+                    <TableRow v-else v-for="user in props.users?.data" :key="user.id" :class="{
+                        'pointer-events-none text-gray-500 opacity-50':
+                            deleting[user.id],
+                    }">
                         <TableCell class="font-medium">
-                            {{ user.type }}</TableCell
-                        >
+                            {{ user.type }}</TableCell>
                         <TableCell class="font-medium">
-                            {{ user.name }}</TableCell
-                        >
+                            {{ user.name }}</TableCell>
                         <TableCell>{{ user.email }}</TableCell>
                         <TableCell>
-                            <Badge
-                                :variant="
-                                    user.status === true
-                                        ? 'default'
-                                        : 'secondary'
-                                "
-                                >{{
+                            <Badge :variant="user.status === true
+                                    ? 'default'
+                                    : 'secondary'
+                                ">{{
                                     user.status === true ? 'Active' : 'Inactive'
                                 }}
                             </Badge>
@@ -354,27 +311,18 @@ const handleStatus = (e: Event, id: number) => {
                         <TableCell class="flex items-center justify-end gap-2">
                             <!-- acciones -->
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="route('admin.users.show', user.id)"
-                                >
-                                    <Eye />
+                                <Link :href="route('admin.users.show', user.id)">
+                                <Eye />
                                 </Link>
                             </Button>
                             <Button asChild variant="outline">
-                                <Link
-                                    :href="route('admin.users.edit', user.id)"
-                                >
-                                    <Pencil />
+                                <Link :href="route('admin.users.edit', user.id)">
+                                <Pencil />
                                 </Link>
                             </Button>
                             <!-- change status -->
-                            <Button
-                                asChild
-                                variant="outline"
-                                size="sm"
-                                @click="(e: Event) => handleStatus(e, user.id)"
-                                class="cursor-pointer"
-                            >
+                            <Button asChild variant="outline" size="sm" @click="(e: Event) => handleStatus(e, user.id)"
+                                class="cursor-pointer">
                                 <span>
                                     <Power />
                                 </span>
@@ -382,12 +330,7 @@ const handleStatus = (e: Event, id: number) => {
                             <!-- delete -->
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button
-                                        as-child
-                                        variant="outline"
-                                        size="sm"
-                                        class="cursor-pointer"
-                                    >
+                                    <Button as-child variant="outline" size="sm" class="cursor-pointer">
                                         <span>
                                             <Trash />
                                         </span>
@@ -395,24 +338,18 @@ const handleStatus = (e: Event, id: number) => {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle
-                                            >Are you sure?</AlertDialogTitle
-                                        >
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                         <AlertDialogDescription>
                                             This action cannot be undone. This
                                             will permanently delete the user.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel
-                                            >Cancel</AlertDialogCancel
-                                        >
-                                        <AlertDialogAction
-                                            @click="
-                                                (e: Event) =>
-                                                    handleDelete(e, user.id)
-                                            "
-                                            >Confirm Delete
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction @click="
+                                            (e: Event) =>
+                                                handleDelete(e, user.id)
+                                        ">Confirm Delete
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -427,12 +364,8 @@ const handleStatus = (e: Event, id: number) => {
                 </TableBody>
             </Table>
             <!-- Pagination -->
-            <TPagination
-                :current-page="props.users.meta.current_page"
-                :total-items="props.users.meta.total"
-                :items-per-page="props.users.meta.per_page"
-                @page-change="goToPage"
-            />
+            <TPagination :current-page="props.users.meta.current_page" :total-items="props.users.meta.total"
+                :items-per-page="props.users.meta.per_page" @page-change="goToPage" />
         </div>
     </AppLayout>
 </template>

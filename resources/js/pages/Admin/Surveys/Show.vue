@@ -10,10 +10,10 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog/';
-import TCharacterDialogAjax from '@/components/ui/oox/TCharacterDialogAjax.vue';
+import TCharacterDialogAjax from '@/components/oox/TCharacterDialogAjax.vue';
 import Badge from '@/components/ui/badge/Badge.vue';
 import { Button } from '@/components/ui/button';
-import DetailItem from '@/components/ui/oox/TDetailItem.vue';
+import DetailItem from '@/components/oox/TDetailItem.vue';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
