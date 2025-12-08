@@ -57,3 +57,33 @@ Debes crear un sistema en PHP puro, utilizando las mejores prestaciones y recurs
 12. Para la indentacion, elige el formato que mejor creas conveniente (tomando en cuenta el peso del archivo generado, y la comprensibilidad del mismo) para que una vez creado el archivo, y este se te sea proporcionado (en otra oportunidad), lo puedas leer sin ningun problema, ubicandote perfectamente en la estructura de archivos generada. Pudiendo ser espacios tipo tabs, o escribiendo la ruta completa, lo importante que sea optimo y confiable.
 
 Eleva tu nivel de experiencia a senior, y muestra tu experiencia en el campo, analiza la solucion en amplitud y profundidad, evitando errores y bucles infinitos. Esto es el preambulo para un sistema que se complementa con estas bases, asi que hazlo de manera profesional y segura, para que pueda ser ejecutado en cualquier entorno, por lo pronto sera probado en un entorno de windows. Y si todo esta bien vamos con el complemento de este sistema.
+
+
+
+PARTE 2 - ANALIZAR ESTRUCTURA DE ARCHIVOS PARA CREAR UN SOLO ARCHIVO DE TEXTO CON EL CODIGO DEL SISTEMA
+
+1. A un inicio, despues de verificar que el directorio proporcionado (si es que se proporciona) sea valido, debes preguntar al usuario si desea continuar con el analisis de la estructura de archivos para: 1. Crear un archivo de texto con la estructura de directorios y archivos (los que aplican). 2. Crear un archivo de texto con el codigo del sistema (de todo el proyecto). 3. Hacer ambas cosas, crear el archivo de texto con la estructura de directorios y archivos (los que aplican) y el archivo de texto con el codigo del sistema (de todo el proyecto).
+2. Para realizar la opcion 1, debes analizar la estructura de directorios y archivos (los que aplican) y crear un archivo de texto con la estructura de directorios y archivos (los que aplican). Ya lo has hecho en la fase 1.
+3. Para realizar la opcion 2, la creacion del archivo de texto con el codigo del sistema (de todo el proyecto), debes analizar cada archivo encontrado que cumpla con el formato definido en la fase 1 (extensiones permitidas), debes analizar su contenido y extraer la informacion relevante (codigo base) para crear UN (1) SOLO ARCHIVO DE TEXTO con el codigo del sistema (de todo el proyecto).
+4. Para la opcion 3, analiza la mejor forma de realizar ambas tareas, crear el archivo de texto con la estructura de directorios y archivos (los que aplican) y el archivo de texto con el codigo del sistema (de todo el proyecto).
+5. El formato del archivo de texto de codigo del sistema debe ser el siguiente: 
+
+```
+/*-------------------------------------------------------------*/
+/* <path_archivo1> */ <-- ruta del archivo a partir de la raiz del proyecto
+/*-------------------------------------------------------------*/
+<codigo_archivo1> <-- codigo del archivo, contenido relevante (codebase)
+
+/*-------------------------------------------------------------*/
+/* <path_archivo2> */
+/*-------------------------------------------------------------*/
+<codigo_archivo2>
+
+/*-------------------------------------------------------------*/
+/* <path_archivo3> */
+/*-------------------------------------------------------------*/
+<codigo_archivo3>
+/*-------------------------------------------------------------*/
+```
+
+6. Antes de escribir codigo, debes explicarme si has entendido los requerimientos (con ejemplos ilustrativos) y crear una hoja de ruta que vas a seguir para escribir el codigo del sistema de esta fase.

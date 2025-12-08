@@ -8,3 +8,5 @@ app/.ai.ai/
 app/.doc/
 resources/js/components/ui
 /analyze_filesystem.php
+/analyze_project.php
+/analyze_project_default.php
