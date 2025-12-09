@@ -69,14 +69,14 @@ const totalVotes = computed(() => {
     // return 0; // Placeholder
 
     // Calculo alternativo si cada voto incrementa matches de ambos personajes:
-    // const totalMatchCounts = props.ranking.reduce((sum, item) => sum + item.survey_matches, 0);
-    // return Math.floor(totalMatchCounts / 2); // Asumiendo 2 personajes por voto
+    const totalMatchCounts = props.ranking.reduce((sum, item) => sum + item.survey_matches, 0);
+    return Math.floor(totalMatchCounts / 2); // Asumiendo 2 personajes por voto
 
     // Calculo basado en la suma de wins y losses (si cada voto genera un win y un loss)
-    const totalWins = props.ranking.reduce((sum, item) => sum + item.survey_wins, 0);
-    const totalLosses = props.ranking.reduce((sum, item) => sum + item.survey_losses, 0);
-    // const totalTies = props.ranking.reduce((sum, item) => sum + item.survey_ties, 0); // Si se quiere incluir empates
-    return totalWins + totalLosses; // Asumiendo que cada voto genera un win y un loss
+    // const totalWins = props.ranking.reduce((sum, item) => sum + item.survey_wins, 0);
+    // const totalLosses = props.ranking.reduce((sum, item) => sum + item.survey_losses, 0);
+    // // const totalTies = props.ranking.reduce((sum, item) => sum + item.survey_ties, 0); // Si se quiere incluir empates
+    // return totalWins + totalLosses; // Asumiendo que cada voto genera un win y un loss
 });
 
 const totalParticipants = computed(() => props.ranking.length);
@@ -201,7 +201,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                             </div>
                                                             <div>
                                                                 <div class="font-medium">{{ rankItem.character.fullname
-                                                                    }}
+                                                                }}
                                                                 </div>
                                                                 <div v-if="rankItem.character.nickname"
                                                                     class="text-sm text-muted-foreground">{{
@@ -228,9 +228,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                 <Button asChild variant="outline" size="sm">
                                                     <Link
                                                         :href="route('public.characters.show', rankItem.character_id)">
-                                                    <!-- O rankItem.character.id -->
-                                                    <Eye class="mr-2 h-4 w-4" />
-                                                    View
+                                                        <!-- O rankItem.character.id -->
+                                                        <Eye class="mr-2 h-4 w-4" />
+                                                        View
                                                     </Link>
                                                 </Button>
                                             </TableCell>
@@ -242,12 +242,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <CardFooter class="flex justify-between">
                             <Button variant="outline" asChild>
                                 <Link :href="route('public.surveys.show', survey.id)"> <!-- O survey.id -->
-                                Back to Survey
+                                    Back to Survey
                                 </Link>
                             </Button>
                             <Button variant="outline" asChild>
                                 <Link :href="route('public.surveys.vote', survey.id)"> <!-- O survey.id -->
-                                Participate
+                                    Participate
                                 </Link>
                             </Button>
                         </CardFooter>

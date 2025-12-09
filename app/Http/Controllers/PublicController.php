@@ -47,10 +47,14 @@ class PublicController extends Controller
         //                     ->limit(6)
         //                     ->get();
 
+        // Opcional: Cargar encuestas que están próximas a finalizar
+        // $endingSoonSurveys = Survey::where(...)->orderBy('date_end', 'asc')->get();
+
         return Inertia::render('LandingPage', [
             'featuredCategories' => CategoryResource::collection($featuredCategories)->resolve(),
             'recentSurveys' => SurveyIndexResource::collection($recentSurveys)->resolve(),
             // 'popularSurveys' => SurveyIndexResource::collection($popularSurveys)->resolve(), // Si se implementa
+            // 'endingSoonSurveys' => SurveyIndexResource::collection($endingSoonSurveys)->resolve(), // Si se implementa
         ]);
     }
 }
