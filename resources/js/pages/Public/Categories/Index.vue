@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/ui/oox/TPagination.vue'; // Asumiendo que existe
-import AppLayout from '@/layouts/AppLayout.vue';
+import TPagination from '@/components/oox/TPagination.vue'; // Asumiendo que existe
 import { type BreadcrumbItem } from '@/types';
 import { CategoriesData, CategoryIndexResource } from '@/types/global'; // Tipos actualizados
 import { Search, Tag } from 'lucide-vue-next'; // Iconos
 import { debounce } from 'lodash';
 import { ref, watch } from 'vue';
+import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 
 // --- Tipos ---
 interface Props {
     categories: CategoriesData; // Colección paginada de categorías con conteo
     filters?: Record<string, any>; // Filtros aplicados (search, per_page, page)
 }
+const props = defineProps<Props>();
 
-const props = defineProps < Props > ();
+console.log(props.categories.data);
 
 // --- Estados reactivos ---
 const search = ref(props.filters?.search);
@@ -54,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <Head title="Categories" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <PublicAppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8">
             <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <header class="border-b pb-4">
@@ -130,7 +131,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </main>
             </div>
         </div>
-    </AppLayout>
+    </PublicAppLayout>
 </template>
 
 <style scoped>

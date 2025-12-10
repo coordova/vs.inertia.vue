@@ -99,7 +99,8 @@ export interface CategoryIndexResource {
 }
 
 export interface CategoriesData { // Para la colección paginada
-    data: CategoryResource[]; // Array de CategoryResource
+    // data: CategoryResource[]; // Array de CategoryResource
+    data: CategoryIndexResource[]; // Array de CategoryResource
     meta: Pagination;
     links: PaginationLinks[]; // Simplificado
 }

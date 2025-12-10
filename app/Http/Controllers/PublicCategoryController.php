@@ -33,10 +33,11 @@ class PublicCategoryController extends Controller
                              ->orderBy('name', 'asc')       // Luego por nombre
                              ->paginate($request->get('per_page', 15))
                              ->withQueryString(); // Mantener parámetros de consulta (search, per_page, etc.)
-
+// dd(CategoryIndexResource::collection($categories));
         // Renderizar la vista Inertia con el recurso específico para la lista
         return Inertia::render('Public/Categories/Index', [
-            'categories' => CategoryIndexResource::collection($categories)->resolve(), // Usar el recurso para la lista
+            // 'categories' => CategoryIndexResource::collection($categories)->resolve(), // Usar el recurso para la lista
+            'categories' => CategoryIndexResource::collection($categories), // Usar el recurso para la lista
             'filters' => $request->only(['search', 'per_page', 'page']), // Pasar filtros si se usan en la UI
         ]);
     }
