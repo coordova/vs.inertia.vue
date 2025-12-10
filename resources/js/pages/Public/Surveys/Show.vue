@@ -9,11 +9,12 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import PublicLayout from '@/layouts/PublicLayout.vue';
+import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
 // import { ref } from 'vue';
 import TCharacterDialog from '@/components/oox/TCharacterDialog.vue'
+import { BreadcrumbItem } from '@/types';
 // import { format } from 'date-fns'; // O dayjs, o formateo nativo
 
 interface Props {
@@ -26,7 +27,7 @@ interface Props {
 const props = defineProps<Props>();
 console.log(props);
 // --- Breadcrumbs ---
-/* const breadcrumbs: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Surveys',
         href: route('public.surveys.index'),
@@ -35,7 +36,7 @@ console.log(props);
         title: props.survey.title,
         href: route('public.surveys.show', props.survey.slug), // O props.survey.id
     },
-]; */
+];
 
 // --- Data ---
 // const modalOpen = ref(false);
@@ -52,7 +53,7 @@ console.log(props);
 
     <Head :title="`Survey: ${survey.title}`" />
 
-    <PublicLayout>
+    <PublicAppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8">
             <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <header class="border-b pb-4">
@@ -211,8 +212,8 @@ console.log(props);
                                             survey.id,
                                         )
                                             ">
-                                        <!-- O survey.id -->
-                                        Start Voting
+                                            <!-- O survey.id -->
+                                            Start Voting
                                         </Link>
                                     </Button>
                                     <!-- Opcional: Botón para ver ranking si está disponible -->
@@ -222,8 +223,8 @@ console.log(props);
                                             survey.id,
                                         )
                                             ">
-                                        <!-- O survey.id -->
-                                        View Rankings
+                                            <!-- O survey.id -->
+                                            View Rankings
                                         </Link>
                                     </Button>
                                 </CardFooter>
@@ -254,7 +255,7 @@ console.log(props);
                 </main>
             </div>
         </div>
-    </PublicLayout>
+    </PublicAppLayout>
 </template>
 
 <style scoped>

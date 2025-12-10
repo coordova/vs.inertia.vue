@@ -330,7 +330,7 @@ class CharacterController extends Controller
     /**
      * Get characters by category for AJAX.
      */
-    public function getCharactersByCategoryAjax(Category $category)
+    public function getAjaxCharactersByCategory(Category $category)
     {
         $characters = $category
             ->characters()

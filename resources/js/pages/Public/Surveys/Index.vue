@@ -10,7 +10,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import VotingLayout from '@/layouts/PublicLayout.vue';
+import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import { SurveyResource } from '@/types/global'; // Asumiendo que SurveyIndexResource está definido y optimizado para esta vista
 import { Head } from '@inertiajs/vue3';
 import { Calendar, Tag } from 'lucide-vue-next'; // Iconos
@@ -51,7 +51,7 @@ const breadcrumbs = [
 
     <Head title="Surveys" />
 
-    <VotingLayout :breadcrumbs="breadcrumbs">
+    <PublicAppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8">
             <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <header class="border-b pb-4">
@@ -153,8 +153,8 @@ const breadcrumbs = [
                                             survey.id,
                                         )
                                             ">
-                                        <!-- O survey.id -->
-                                        View Details
+                                            <!-- O survey.id -->
+                                            View Details
                                         </Link>
                                     </Button>
                                     <Button size="sm" asChild :disabled="!survey.status ||
@@ -166,8 +166,8 @@ const breadcrumbs = [
                                             survey.id,
                                         )
                                             ">
-                                        <!-- O survey.id -->
-                                        Participate
+                                            <!-- O survey.id -->
+                                            Participate
                                         </Link>
                                     </Button>
                                 </div>
@@ -205,14 +205,14 @@ const breadcrumbs = [
                                         ? 'cursor-not-allowed opacity-50'
                                         : '',
                                 ]" :aria-disabled="!link.url" :tabindex="link.url ? 0 : -1">
-                            {{ link.label }}
+                                {{ link.label }}
                             </Link>
                         </nav>
                     </div>
                 </main>
             </div>
         </div>
-    </VotingLayout>
+    </PublicAppLayout>
 </template>
 
 <style scoped>

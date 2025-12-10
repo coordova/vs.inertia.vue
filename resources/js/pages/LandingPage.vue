@@ -21,7 +21,7 @@ const props = defineProps<Props>();
 const breadcrumbs = [
     {
         title: 'Home',
-        href: route('home'), // Asumiendo que esta es la ruta para '/'
+        href: route('public.home'), // Asumiendo que esta es la ruta para '/'
     },
 ];
 </script>
@@ -30,7 +30,7 @@ const breadcrumbs = [
 
     <Head title="Facematch Ultramoderno" />
 
-    <PublicAppLayout :breadcrumbs="breadcrumbs"> <!-- <-- Usar el nuevo layout -->
+    <PublicAppLayout> <!-- <-- Usar el nuevo layout -->
         <div class="min-h-screen bg-background">
             <!-- Hero Section -->
             <section
@@ -46,21 +46,21 @@ const breadcrumbs = [
                         </p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link :href="route('public.surveys.index')">
-                            <button
-                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full h-12 px-8 text-base cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px]">Explore
-                                Surveys
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="lucide lucide-arrow-right ml-2 size-4">
-                                    <path d="M5 12h14"></path>
-                                    <path d="m12 5 7 7-7 7"></path>
-                                </svg>
-                            </button>
+                                <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full h-12 px-8 text-base cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px]">Explore
+                                    Surveys
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-arrow-right ml-2 size-4">
+                                        <path d="M5 12h14"></path>
+                                        <path d="m12 5 7 7-7 7"></path>
+                                    </svg>
+                                </button>
                             </Link>
                             <Link :href="route('public.categories.index')">
-                            <button
-                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input shadow-sm hover:bg-accent hover:text-accent-foreground rounded-full bg-transparent h-12 px-8 text-base transition-all duration-300 hover:translate-y-[-2px]">Browse
-                                Categories</button>
+                                <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input shadow-sm hover:bg-accent hover:text-accent-foreground rounded-full bg-transparent h-12 px-8 text-base transition-all duration-300 hover:translate-y-[-2px]">Browse
+                                    Categories</button>
                             </Link>
                         </div>
                     </div>
@@ -90,14 +90,14 @@ const breadcrumbs = [
                             </CardContent>
                             <CardFooter>
                                 <Link :href="route('public.categories.show', category.slug)"> <!-- O category.id -->
-                                <Button variant="outline" class="w-full">View Category</Button>
+                                    <Button variant="outline" class="w-full">View Category</Button>
                                 </Link>
                             </CardFooter>
                         </Card>
                     </div>
                     <div class="text-center mt-8">
                         <Link :href="route('public.categories.index')">
-                        <Button variant="link">View All Categories</Button>
+                            <Button variant="link">View All Categories</Button>
                         </Link>
                     </div>
                 </div>
@@ -151,14 +151,14 @@ const breadcrumbs = [
                                 <div class="flex justify-between gap-2 w-full">
                                     <!-- Asegurar que los botones ocupen el ancho -->
                                     <Link :href="route('public.surveys.show', survey.id)"> <!-- O survey.id -->
-                                    <Button variant="outline" class="flex-grow">View Details</Button>
-                                    <!-- Botón con crecimiento -->
+                                        <Button variant="outline" class="flex-grow">View Details</Button>
+                                        <!-- Botón con crecimiento -->
                                     </Link>
                                     <Link :href="route('public.surveys.vote', survey.id)"> <!-- O survey.id -->
-                                    <Button class="flex-grow" :disabled="!survey.is_active">
-                                        <!-- Asumiendo is_active calculado en el backend -->
-                                        Participate
-                                    </Button>
+                                        <Button class="flex-grow" :disabled="!survey.is_active">
+                                            <!-- Asumiendo is_active calculado en el backend -->
+                                            Participate
+                                        </Button>
                                     </Link>
                                 </div>
                             </CardFooter>
@@ -166,7 +166,7 @@ const breadcrumbs = [
                     </div>
                     <div class="text-center mt-8">
                         <Link :href="route('public.surveys.index')">
-                        <Button variant="link">View All Surveys</Button>
+                            <Button variant="link">View All Surveys</Button>
                         </Link>
                     </div>
                 </div>
@@ -233,26 +233,26 @@ const breadcrumbs = [
                         </p>
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link :href="route('register')" v-if="!$page.props.auth?.user">
-                            <Button size="lg" variant="secondary">Sign Up</Button>
+                                <Button size="lg" variant="secondary">Sign Up</Button>
                             </Link>
                             <Link :href="route('login')" v-if="!$page.props.auth?.user">
-                            <Button size="lg">Log In</Button>
+                                <Button size="lg">Log In</Button>
                             </Link>
                             <Link :href="route('public.surveys.index')" v-else>
-                            <button
-                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full h-12 px-8 text-base cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px]">Explore
-                                Surveys<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round"
-                                    class="lucide lucide-arrow-right ml-2 size-4">
-                                    <path d="M5 12h14"></path>
-                                    <path d="m12 5 7 7-7 7"></path>
-                                </svg></button>
+                                <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-full h-12 px-8 text-base cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px]">Explore
+                                    Surveys<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round"
+                                        class="lucide lucide-arrow-right ml-2 size-4">
+                                        <path d="M5 12h14"></path>
+                                        <path d="m12 5 7 7-7 7"></path>
+                                    </svg></button>
                             </Link>
                             <Link href="https://github.com/coordova/vs.inertia.vue">
-                            <button
-                                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input shadow-sm hover:bg-accent hover:text-accent-foreground rounded-full bg-transparent h-12 px-8 text-base transition-all duration-300 hover:translate-y-[-2px]">View
-                                on GitHub</button>
+                                <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 border border-input shadow-sm hover:bg-accent hover:text-accent-foreground rounded-full bg-transparent h-12 px-8 text-base transition-all duration-300 hover:translate-y-[-2px]">View
+                                    on GitHub</button>
                             </Link>
                         </div>
                     </div>

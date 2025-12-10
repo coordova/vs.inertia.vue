@@ -16,9 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route; // Asumiendo que SurveyController es para admin
 use Inertia\Inertia;
 
-// Ruta de inicio (pública)
-Route::get('/', [PublicController::class, 'index'])->name('home'); // O podrías mantener el closure si es muy simple
-
 // Ruta de dashboard (requiere autenticación y verificación de email)
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
@@ -29,7 +26,14 @@ Route::get('dashboard', function () {
 // --------------------------------------------------------------
 Route::name('public.')->group(function () {
     // Landing Page (pública)
-    Route::get('/landing', [PublicController::class, 'index'])->name('landing.index'); // Asumiendo que PublicController@index es la landing
+    Route::get('/', [PublicController::class, 'index'])->name('home'); // Ruta raíz
+    // Route::get('/landing', [PublicController::class, 'index'])->name('landing.index'); // Asumiendo que PublicController@index es la landing
+
+    // About
+    // Route::get('/about', [PublicController::class, 'about'])->name('about');
+
+    // Contact
+    // Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 
     // Listados Públicos (categorías y encuestas)
     Route::get('/categories', [PublicCategoryController::class, 'index'])->name('categories.index');
@@ -47,17 +51,6 @@ Route::name('public.')->group(function () {
 
 });
 // --------------------------------------------------------------
-// RUTAS PÚBLICAS (llamadas ajax)
-// --------------------------------------------------------------
-Route::prefix('ajax')
-    ->name('ajax.')
-    ->group(function () {
-        // Ruta para obtener la informacion de un personaje, llamada AJAX desde [TCharacterDialogAjax.vue, ...]
-        Route::get('/characters/{character}', [PublicCharacterController::class, 'getAjaxCharacterInfo'])
-            ->name('character.info');
-    });
-
-// --------------------------------------------------------------
 // RUTAS PÚBLICAS (requieren autenticación)
 // --------------------------------------------------------------
 Route::middleware(['auth'])->group(function () {
@@ -66,10 +59,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/surveys/{survey}', [PublicSurveyController::class, 'show'])->name('surveys.show');
 
         // Vista de ranking de una encuesta (requiere autenticación)
-        Route::get('/surveys/{survey}/ranking', [PublicSurveyController::class, 'ranking'])->name('surveys.ranking');   // <-- Asegúrate de que RankingController existe
+        // Route::get('/surveys/{survey}/ranking', [PublicSurveyController::class, 'ranking'])->name('surveys.ranking');   
 
-        /*------------------------------------*/
-        // Rutas para Estadísticas Públicas
+        // ------------------------------------------------------------
+        // Rutas para Estadísticas Públicas (requieren autenticación)
+        // ------------------------------------------------------------
         // Vista de ranking por categoría
         Route::get('/statistics/categories/{category}/rankings', [PublicStatisticsController::class, 'categoryRankings'])
             ->name('statistics.category.rankings');
@@ -80,35 +74,16 @@ Route::middleware(['auth'])->group(function () {
 
         // Vista de estadísticas publicas de un personaje (requiere autenticación)
         Route::get('/characters/{character}/stats', [PublicStatisticsController::class, 'characterStats'])->name('characters.stats');
-
-        /*------------------------------------*/
-
-        // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Vote - utilizando axios
+        // ------------------------------------------------------------
+        // Rutas para Votación (requieren autenticación)
+        // ------------------------------------------------------------
+        // Vista para iniciar la votación en una encuesta (requiere autenticación) - utilizando axios
         Route::get('/surveys/{survey}/vote', [PublicSurveyController::class, 'vote'])->name('surveys.vote');
         // Vista para obtener la próxima combinación para votar - llamada AJAX con axios desde la vista vote.vue (antes voto.vue)
-        Route::get('/ajax/surveys/{survey}/combination', [PublicSurveyController::class, 'getCombination'])
-            ->name('ajax.surveys.combination');
-
+        Route::get('/ajax/surveys/{survey}/combination', [PublicSurveyController::class, 'getCombination'])->name('ajax.surveys.combination');
         // Procesar un voto (requiere autenticación)
         Route::post('/surveys/{survey}/vote', [SurveyVoteController::class, 'store'])->name('surveys.vote.store');
 
-
-        // Vista para iniciar la votación en una encuesta (requiere autenticación) - version Voto - utilizando inertia y axios
-        // Route::get('/surveys/{survey}/vote-inertia', [PublicSurveyController::class, 'voteInertia'])->name('surveys.vote-inertia');
-        // Vista para obtener la próxima combinación para votar - llamada AJAX con axios desde la vista voto.vue
-        // Route::get('/ajax/surveys/{survey}/combination', [PublicSurveyController::class, 'getCombination4Inertia'])
-            // ->name('ajax.surveys.combination4Inertia');
-
-    });
-
-    // --------------------------------------------------------------
-    // RUTAS API PÚBLICAS (requieren autenticación)
-    // --------------------------------------------------------------
-    // Agrupamos las rutas de la API pública de encuestas
-    Route::prefix('api/public')->name('api.public.')->group(function () {
-        // Ruta para obtener la próxima combinación para votar
-        Route::get('/surveys/{survey}/next-combination', [ApiPublicSurveyController::class, 'getNextCombination'])
-            ->name('surveys.next_combination');
     });
 });
 
@@ -138,10 +113,15 @@ Route::middleware(['auth'])
 // --------------------------------------------------------------
 // RUTAS AJAX (requieren autenticación)
 // --------------------------------------------------------------
-// Ejemplo: Cargar personajes por categoría para formularios
 Route::middleware(['auth'])->group(function () {
-    Route::get('/ajax/categories/{category}/characters', [CharacterController::class, 'getCharactersByCategoryAjax'])->name('ajax.categories.characters');
-    // Puedes añadir otras rutas AJAX aquí si es necesario
+    Route::prefix('ajax')
+    ->name('ajax.')
+    ->group(function () {
+        // Cargar personajes por categoría para formularios
+        Route::get('/categories/{category}/characters', [CharacterController::class, 'getAjaxCharactersByCategory'])->name('categories.characters');
+        // Ruta para obtener la informacion de un personaje, llamada AJAX desde [TCharacterDialogAjax.vue, ...]
+        Route::get('/characters/{character}', [PublicCharacterController::class, 'getAjaxCharacterInfo'])->name('character.info');
+    });
 });
 
 // --------------------------------------------------------------
