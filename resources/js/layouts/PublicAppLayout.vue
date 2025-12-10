@@ -20,7 +20,7 @@ withDefaults(defineProps<Props>(), {
         <header class="sticky top-0 z-100 border-b bg-background/80 backdrop-blur-sm">
             <div class="container mx-auto flex h-16 items-center justify-between px-4">
                 <!-- Logo/Nombre del Sitio -->
-                <Link :href="route('public.home')" class="text-xl font-bold text-primary">
+                <Link :href="route('home')" class="text-xl font-bold text-primary">
                     VS
                 </Link>
 
@@ -82,9 +82,9 @@ withDefaults(defineProps<Props>(), {
             <div class="container mx-auto px-4 text-center text-sm text-muted-foreground">
                 <p>&copy; {{ new Date().getFullYear() }} Facematch Ultramoderno. All rights reserved.</p>
                 <div class="mt-2 flex justify-center space-x-4">
-                    <Link :href="route('public.home')">Terms</Link>
-                    <Link :href="route('public.home')">Privacy</Link>
-                    <Link :href="route('public.home')">Contact</Link>
+                    <Link :href="route('home')">Terms</Link>
+                    <Link :href="route('home')">Privacy</Link>
+                    <Link :href="route('home')">Contact</Link>
                 </div>
             </div>
         </footer>

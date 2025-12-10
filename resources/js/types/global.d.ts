@@ -75,6 +75,29 @@ export interface CategoryResource { // Renombrado para claridad
     surveys_count: number;
 }
 
+// Interfaz para una categoría en la vista de listado
+export interface CategoryIndexResource {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    image: string | null;
+    image_url: string | null; // URL generada por Storage::url
+    color: string; // Hex color
+    icon: string; // Nombre del icono
+    sort_order: number;
+    status: boolean;
+    is_featured: boolean;
+    meta_title: string | null;
+    meta_description: string | null;
+    created_at_formatted: string; // Formato d-m-Y
+    updated_at_formatted: string; // Formato d-m-Y
+
+    // Campo específico para la vista de listado
+    character_count: number; // Conteo de personajes en la categoría
+    // survey_count?: number; // Conteo de encuestas en la categoría (si se implementa)
+}
+
 export interface CategoriesData { // Para la colección paginada
     data: CategoryResource[]; // Array de CategoryResource
     meta: Pagination;

@@ -18,12 +18,12 @@ interface Props {
 const props = defineProps<Props>();
 
 // --- Breadcrumbs ---
-const breadcrumbs = [
+/* const breadcrumbs = [
     {
         title: 'Home',
-        href: route('public.home'), // Asumiendo que esta es la ruta para '/'
+        href: route('home'), // Asumiendo que esta es la ruta para '/'
     },
-];
+]; */
 </script>
 
 <template>
@@ -89,7 +89,7 @@ const breadcrumbs = [
                                 <!-- <p class="text-sm text-muted-foreground">{{ category.surveys_count }} surveys</p> -->
                             </CardContent>
                             <CardFooter>
-                                <Link :href="route('public.categories.show', category.slug)"> <!-- O category.id -->
+                                <Link :href="route('public.categories.show', category.id)"> <!-- O category.id -->
                                     <Button variant="outline" class="w-full">View Category</Button>
                                 </Link>
                             </CardFooter>
