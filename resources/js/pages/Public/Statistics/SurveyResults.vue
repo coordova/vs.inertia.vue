@@ -6,12 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 // import { Separator } from '@/components/ui/separator';
 // import { useToast } from '@/composables/useToast';
-import AppLayout from '@/layouts/AppLayout.vue';
+// import PAppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { SurveyResource, CharacterSurveyRankingResource } from '@/types/global'; // Tipos actualizados
 import { Eye/* , Pencil, RotateCw, Trash */ } from 'lucide-vue-next'; // Iconos
 import { /* ref, */ computed } from 'vue'; // Para manejar estado local si es necesario (ej: paginación)
 import TCharacterDialogAjax from '@/components/oox/TCharacterDialogAjax.vue';
+import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 
 interface Props {
     survey: SurveyResource; // Datos de la encuesta
@@ -89,11 +90,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: props.survey.title,
-        href: route('public.surveys.show', props.survey.slug), // O props.survey.id
+        href: route('public.surveys.show', props.survey.id), // O props.survey.id
     },
     {
         title: 'Results',
-        href: route('public.surveys.results', props.survey.slug), // O props.survey.id, si existe esta ruta
+        href: route('public.surveys.results', props.survey.id), // O props.survey.id, si existe esta ruta
     },
 ];
 </script>
@@ -102,7 +103,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <Head :title="`Results: ${survey.title}`" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <PublicAppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8">
             <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <header class="border-b pb-4">
@@ -280,7 +281,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </main>
             </div>
         </div>
-    </AppLayout>
+    </PublicAppLayout>
 </template>
 
 <style scoped>

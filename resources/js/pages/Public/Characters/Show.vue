@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { Badge } from '@/components/ui/badge';
-import PublicLayout from '@/layouts/PublicLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
+// import { type BreadcrumbItem } from '@/types';
 import { CharacterResource } from '@/types/global'; // Asumiendo que tienes una interfaz CharacterResource o similar
 import { User } from 'lucide-vue-next'; // Iconos
 
@@ -30,23 +30,24 @@ const props = defineProps<Props>();
 // --- Inicializar el composable de toast ---
 
 
-const breadcrumbs: BreadcrumbItem[] = [
-    /* {
+/* const breadcrumbs: BreadcrumbItem[] = [
+    {
         title: 'Characters',
         href: route('public.characters.index'),
-    }, */
+    },
     {
         title: props.character.fullname, // Nombre dinámico del personaje
         href: route('public.characters.show', props.character.id),
     },
-];
+]; */
 </script>
 
 <template>
 
     <Head :title="`View ${props.character.fullname}`" />
 
-    <PublicLayout :breadcrumbs="breadcrumbs">
+    <!-- <PublicAppLayout :breadcrumbs="breadcrumbs"> -->
+    <PublicAppLayout>
         <div class="flex h-full flex-1 flex-col gap-4 p-4 md:p-6">
             <!-- Character Information -->
             <div class="p-4 md:max-w-6xl md:p-6">
@@ -206,7 +207,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
         </div>
-    </PublicLayout>
+    </PublicAppLayout>
 </template>
 
 <style scoped>

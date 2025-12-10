@@ -19,8 +19,8 @@ const props = defineProps<{
         <header class="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
             <div class="container mx-auto flex h-16 items-center justify-between px-4">
                 <div class="flex items-center gap-3">
-                    <Link :href="route('public.landing.index')" class="text-xl font-bold text-primary">
-                    VS
+                    <Link :href="route('public.home')" class="text-xl font-bold text-primary">
+                        VS
                     </Link>
                     <Separator orientation="vertical" class="h-6" />
                     <div class="flex items-center gap-2">
@@ -33,12 +33,12 @@ const props = defineProps<{
                 <div class="flex items-center gap-2">
                     <Button variant="ghost" size="sm" as-child>
                         <Link :href="route('public.surveys.show', surveyId)" v-if="surveyId">
-                        Survey Home
+                            Survey Home
                         </Link>
                     </Button>
                     <Button variant="ghost" size="sm" as-child>
                         <Link :href="route('public.surveys.index')">
-                        All Surveys
+                            All Surveys
                         </Link>
                     </Button>
                     <Button variant="ghost" size="sm" as-child>
