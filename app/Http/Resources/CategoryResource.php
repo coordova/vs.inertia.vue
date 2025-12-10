@@ -34,6 +34,8 @@ class CategoryResource extends JsonResource
             // 'created_at' => $this->created_at,
             // 'updated_at' => $this->updated_at,
             // 'deleted_at' => $this->when($this->trashed(), $this->deleted_at), // Mostrar deleted_at solo si está borrado
+
+            'characters' => $this->whenLoaded('characters', fn() => CharacterResource::collection($this->characters)->resolve()), // <-- Serializar los personajes si están cargados
         ];
     }
 }

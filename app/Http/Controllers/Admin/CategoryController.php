@@ -18,7 +18,7 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request):  Response
+    public function index(Request $request):  Response | RedirectResponse
     {
         // dd($request->all());
         // print_r('<pre>'); print_r($request->all()); print_r('</pre>');exit;

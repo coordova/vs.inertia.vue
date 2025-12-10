@@ -23,7 +23,7 @@ class CharacterController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response | RedirectResponse
     {
         $characters = Character::query()
             ->when(request('search'), function ($query, $search) {

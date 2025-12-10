@@ -75,6 +75,9 @@ export interface CategoryResource { // Renombrado para claridad
     updated_at_formatted: string; // O updated_at si se formatea en el frontend
     // Añadir otros campos devueltos por CategoryResource
     surveys_count: number;
+
+    // Campo específico para la vista de detalle
+    characters: CharacterResource[]; // Array de personajes asociados (serializado por CharacterResource)
 }
 
 // Interfaz para una categoría en la vista de listado

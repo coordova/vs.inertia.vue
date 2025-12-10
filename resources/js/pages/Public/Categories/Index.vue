@@ -20,7 +20,7 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-console.log(props.categories.data);
+console.log(props.categories);
 
 // --- Estados reactivos ---
 const search = ref(props.filters?.search);

@@ -3,8 +3,6 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CategoryResource, CharacterResource } from '@/types/global'; // Tipos actualizados
 import { Mars, Venus, VenusAndMars, NonBinary, CircleSmall, User } from 'lucide-vue-next'; // Iconos para género
