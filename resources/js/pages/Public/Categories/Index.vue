@@ -106,7 +106,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     {{ category.character_count }} characters
                                 </div>
                                 <Button asChild>
-                                    <Link :href="route('public.categories.show', category.slug)">
+                                    <Link :href="route('public.categories.show', category.id)">
                                         View Category
                                     </Link>
                                 </Button>
