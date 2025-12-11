@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
 import { CategoryResource, CharacterResource } from '@/types/global'; // Tipos actualizados
-import { Mars, Venus, VenusAndMars, NonBinary, CircleSmall, User } from 'lucide-vue-next'; // Iconos para género
-import { ref, computed } from 'vue';
+import { Mars, Venus, NonBinary, CircleSmall, User, Tag } from 'lucide-vue-next'; // Iconos para género
+import { computed } from 'vue';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
+import TCharacterDialog from '@/components/oox/TCharacterDialog.vue';
 
 // --- Tipos ---
 interface Props {
@@ -19,7 +20,7 @@ interface Props {
 const props = defineProps<Props>();
 console.log(props);
 // --- Computed Properties ---
-const hasManyCharacters = computed(() => props.activeCharacterCount > 20);
+const hasManyCharacters = computed(() => props.activeCharacterCount > 0);
 
 // --- Funciones ---
 const getGenderIcon = (gender: number) => {
@@ -85,7 +86,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </div>
                                 <div>
                                     <h4 class="font-medium text-muted-foreground">Icon</h4>
-                                    <p>{{ category.icon }}</p>
+                                    <p>
+                                        <Tag :name="category.icon" />
+                                    </p>
                                 </div>
                                 <div>
                                     <h4 class="font-medium text-muted-foreground">Created At</h4>
@@ -113,32 +116,19 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </CardHeader>
                         <CardContent>
                             <!-- Vista Bento Grid (<= 20 personajes) -->
-                            <div v-if="!hasManyCharacters && props.characters.length > 0"
+                            <div v-if="hasManyCharacters && props.characters.length > 0"
                                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                <div v-for="character in props.characters" :key="character.id"
-                                    class="aspect-square overflow-hidden rounded-lg border flex flex-col items-center justify-center p-2 bg-card text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
-                                    <div class="relative aspect-square w-full overflow-hidden rounded-full border">
-                                        <img v-if="character.picture_url" :src="character.picture_url"
-                                            :alt="character.fullname" class="h-full w-full object-cover" />
-                                        <div v-else class="flex h-full w-full items-center justify-center bg-muted">
-                                            <span class="text-muted-foreground text-xs">No image</span>
-                                        </div>
-                                    </div>
-                                    <div class="mt-2 text-center">
-                                        <p class="text-sm font-medium truncate w-full">{{ character.fullname }}</p>
-                                        <p v-if="character.nickname"
-                                            class="text-xs text-muted-foreground truncate w-full">{{ character.nickname
-                                            }}</p>
-                                    </div>
+                                <div v-for="character in props.characters" :key="character.id">
+                                    <TCharacterDialog :character="character" />
                                 </div>
                             </div>
 
                             <!-- Vista Compacta (> 20 personajes) -->
-                            <div v-else-if="hasManyCharacters && props.characters.length > 0"
+                            <!-- <div v-else-if="hasManyCharacters && props.characters.length > 0"
                                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                                 <Badge v-for="character in props.characters" :key="character.id" variant="outline"
                                     class="flex flex-col items-center p-2 cursor-pointer hover:bg-accent" asChild>
-                                    <Link :href="route('public.characters.show', character.slug)" class="w-full">
+                                    <Link :href="route('public.characters.show', character.id)" class="w-full">
                                         <div
                                             class="relative aspect-square w-10 overflow-hidden rounded-full border mx-auto">
                                             <img v-if="character.picture_url" :src="character.picture_url"
@@ -156,7 +146,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             class="h-3 w-3 mt-1 text-muted-foreground" />
                                     </Link>
                                 </Badge>
-                            </div>
+                            </div> -->
 
                             <!-- Mensaje si no hay personajes -->
                             <div v-else class="text-center py-8">

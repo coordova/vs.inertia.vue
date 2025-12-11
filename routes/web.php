@@ -89,6 +89,9 @@ Route::middleware(['auth'])->group(function () {
     // Vista de detalle de una categoría (requiere autenticación)
     Route::get('/categories/{category}', [PublicCategoryController::class, 'show'])->name('public.categories.show');
 
+    // Vista de detalle de un personaje (requiere autenticación)
+    Route::get('/characters/{character}', [PublicCharacterController::class, 'show'])->name('public.characters.show');
+
     // Vista de ranking por categoría (requiere autenticación)
     Route::get('/statistics/categories/{category}/rankings', [PublicStatisticsController::class, 'categoryRankings'])->name('public.statistics.category.rankings');
 

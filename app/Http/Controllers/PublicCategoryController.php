@@ -34,8 +34,8 @@ class PublicCategoryController extends Controller
                              ->orderBy('name', 'asc')       // Luego por nombre
                              ->paginate($request->get('per_page', 15))
                              ->withQueryString(); // Mantener parámetros de consulta (search, per_page, etc.)
-        dump($categories);
-        dd(CategoryIndexResource::collection($categories));
+        // dump($categories);
+        // dd(CategoryIndexResource::collection($categories));
         // Renderizar la vista Inertia con el recurso específico para la lista
         return Inertia::render('Public/Categories/Index', [
             // 'categories' => CategoryIndexResource::collection($categories)->resolve(), // Usar el recurso para la lista
@@ -83,14 +83,14 @@ class PublicCategoryController extends Controller
             'characters:id,fullname,nickname,slug,picture,status,created_at,updated_at' // Cargar solo campos necesarios de los personajes
             // ->wherePivot('status', true) // <-- Opcional: Filtrar aquí también en el controlador
         ]); */
-dd($category);
+
 
         // Contar el número total de personajes activos en la categoría (para UI)
         $activeCharacterCount = $category->characters()->wherePivot('status', true)->count();
 
         // Renderizar la vista Inertia con el recurso específico para el detalle
         return Inertia::render('Public/Categories/Show', [
-            'category' => CategoryResource::make($category)->resolve(), // Usar el recurso para el detalle de la categoría
+            'category' => CategoryResource::make($category->load('characters'))->resolve(), // Usar el recurso para el detalle de la categoría
             'characters' => CharacterResource::collection($category->characters)->resolve(), // <-- Pasar la colección de personajes como prop separada
             'activeCharacterCount' => $activeCharacterCount, // <-- Pasar el conteo a la UI
         ]);

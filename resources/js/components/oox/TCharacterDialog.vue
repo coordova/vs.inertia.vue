@@ -12,12 +12,23 @@ import {
 } from '@/components/ui/dialog'
 import { Link } from '@inertiajs/vue3'
 import type { CharacterResource } from '@/types/global'
+import { Mars, Venus, NonBinary, CircleSmall } from 'lucide-vue-next'; // Iconos para género
 
 interface Props {
     character: CharacterResource
 }
 
 const props = defineProps<Props>()
+
+// --- Funciones ---
+const getGenderIcon = (gender: number) => {
+    switch (gender) {
+        case 1: return Mars; // Male
+        case 2: return Venus; // Female
+        case 3: return NonBinary; // Non-binary
+        default: return CircleSmall; // Other/Unknown
+    }
+};
 </script>
 
 <template>
@@ -87,9 +98,11 @@ const props = defineProps<Props>()
                                                 : character.gender === 2
                                                     ? 'Female'
                                                     : character.gender === 3
-                                    ? 'Non-binary'
-                                    : 'Unknown'
+                                                        ? 'Non-binary'
+                                                        : 'Unknown'
                                     }}
+                                    <component :is="getGenderIcon(character.gender)"
+                                        class="h-3 w-3 mt-1 text-muted-foreground" />
                                 </div>
                             </dd>
                         </div>
@@ -124,9 +137,9 @@ const props = defineProps<Props>()
 
             <DialogFooter>
                 <Link :href="route('public.characters.show', character.id)">
-                <Button type="button" variant="outline">
-                    View Character
-                </Button>
+                    <Button type="button" variant="outline">
+                        View Character
+                    </Button>
                 </Link>
 
                 <DialogClose as-child>
