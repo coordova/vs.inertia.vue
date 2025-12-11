@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import TPagination from '@/components/oox/TPagination.vue'; // Asumiendo que existe
 import { type BreadcrumbItem } from '@/types';
-import { CategoriesData, CategoryIndexResource } from '@/types/global'; // Tipos actualizados
+import { CategoriesData } from '@/types/global'; // Tipos actualizados
 import { Search, Tag } from 'lucide-vue-next'; // Iconos
 import { debounce } from 'lodash';
 import { ref, watch } from 'vue';

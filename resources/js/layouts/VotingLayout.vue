@@ -19,20 +19,20 @@ const props = defineProps<{
         <header class="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
             <div class="container mx-auto flex h-16 items-center justify-between px-4">
                 <div class="flex items-center gap-3">
-                    <Link :href="route('public.home')" class="text-xl font-bold text-primary">
+                    <Link :href="route('home')" class="text-xl font-bold text-primary">
                         VS
                     </Link>
                     <Separator orientation="vertical" class="h-6" />
                     <div class="flex items-center gap-2">
-                        <span v-if="surveyTitle" class="text-sm font-medium text-muted-foreground">
-                            {{ surveyTitle }}
+                        <span v-if="props.surveyTitle" class="text-sm font-medium text-muted-foreground">
+                            {{ props.surveyTitle }}
                         </span>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <Button variant="ghost" size="sm" as-child>
-                        <Link :href="route('public.surveys.show', surveyId)" v-if="surveyId">
+                        <Link :href="route('public.surveys.show', props.surveyId)" v-if="props.surveyId">
                             Survey Home
                         </Link>
                     </Button>

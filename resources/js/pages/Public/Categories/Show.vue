@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
 import { CategoryResource, CharacterResource } from '@/types/global'; // Tipos actualizados
-import { Mars, Venus, NonBinary, CircleSmall, User, Tag } from 'lucide-vue-next'; // Iconos para género
+// import { Mars, Venus, NonBinary, CircleSmall, Tag } from 'lucide-vue-next'; // Iconos para género
 import { computed } from 'vue';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import TCharacterDialog from '@/components/oox/TCharacterDialog.vue';
@@ -23,14 +23,14 @@ console.log(props);
 const hasManyCharacters = computed(() => props.activeCharacterCount > 0);
 
 // --- Funciones ---
-const getGenderIcon = (gender: number) => {
+/* const getGenderIcon = (gender: number) => {
     switch (gender) {
         case 1: return Mars; // Male
         case 2: return Venus; // Female
         case 3: return NonBinary; // Non-binary
         default: return CircleSmall; // Other/Unknown
     }
-};
+}; */
 
 // --- Breadcrumbs ---
 const breadcrumbs: BreadcrumbItem[] = [

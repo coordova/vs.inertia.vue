@@ -174,7 +174,7 @@ const loadCombination = async () => {
         } else {
             // No hay más combinaciones disponibles o la encuesta está completada para el usuario
             nextCombination.value = null;
-            userProgress.value = null; // O mantener el último estado de progreso
+            userProgress.value = (data.progress ?? null); // O mantener el último estado de progreso
             noMoreCombinations.value = true;
             // Opcional: Actualizar isCompleted local si el backend lo indica explícitamente
             // surveyData.value.is_completed = true;
@@ -321,9 +321,9 @@ onUnmounted(() => {
                             </div>
                             <Link as="button" :href="route('public.surveys.show', surveyData.id)
                                 ">
-                            <Button variant="outline" class="cursor-pointer">
-                                Back to Survey
-                            </Button>
+                                <Button variant="outline" class="cursor-pointer">
+                                    Back to Survey
+                                </Button>
                             </Link>
                         </div>
                     </div>
@@ -374,11 +374,11 @@ onUnmounted(() => {
                                         surveyData.id,
                                     )
                                         ">
-                                    {{
-                                        isCompleted
-                                            ? 'View Results'
-                                            : 'View Survey'
-                                    }}
+                                        {{
+                                            isCompleted
+                                                ? 'View Results'
+                                                : 'View Survey'
+                                        }}
                                     </Link>
                                 </Button>
                             </CardFooter>

@@ -201,7 +201,7 @@ class PublicSurveyController extends Controller
         if (! $nextCombination) {
             // Si getNextCombination devuelve null, significa que no hay más combinaciones posibles
             // para este usuario en esta encuesta en este momento.
-            return response()->json(['combination' => null, 'message' => 'No more combinations available.'], 200);
+            return response()->json(['combination' => null, 'progress' => $progressStatus, 'message' => 'No more combinations available.'], 200);
         }
         // dd(CombinatoricResource::make($nextCombination)->resolve());
 
@@ -210,7 +210,7 @@ class PublicSurveyController extends Controller
         return response()->json([
             'combination' => CombinatoricResource::make($nextCombination)->resolve(), // <-- Resolver el recurso a un array
             'progress' => $progressStatus,
-            'message' => 'Combination retrieved successfully.', // Mensaje opcional
+            // 'message' => 'Combination retrieved successfully.', // Mensaje opcional
         ], 200);
 
         // NOTA: NO usar ->header('X-Inertia', 'true') ni ->response() aquí para una llamada axios.
