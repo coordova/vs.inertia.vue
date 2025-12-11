@@ -26,14 +26,17 @@ class PublicCategoryController extends Controller
     {
         // Cargar categorías activas con conteo de personajes asociados
         // Usamos withCount para obtener el número de personajes eficientemente en una sola consulta
-        $categories = Category::where('status', true) // Solo categorías activas
-                             ->withCount(['characters' => function ($query) { // Contar personajes en la categoría
-                                 $query->wherePivot('status', true); // Opcional: Contar solo personajes activos en la categoría
-                             }])
-                             ->orderBy('sort_order', 'asc') // Ordenar por orden de clasificación
-                             ->orderBy('name', 'asc')       // Luego por nombre
-                             ->paginate($request->get('per_page', 15))
-                             ->withQueryString(); // Mantener parámetros de consulta (search, per_page, etc.)
+        $categories = Category::query()
+                            ->where('status', true) // Solo categorías activas
+                            ->withCount(['characters' => function ($query) { // Contar personajes en la categoría
+                                // $query->wherePivot('status', true); // Opcional: Contar solo personajes activos en la categoría
+                            }])
+                            ->withCount('surveys')
+                            // ->orderBy('sort_order', 'asc') // Ordenar por orden de clasificación
+                            // ->orderBy('name', 'asc')       // Luego por nombre
+                            ->paginate($request->get('per_page', 15))
+                            ->withQueryString(); // Mantener parámetros de consulta (search, per_page, etc.)
+                             
         // dump($categories);
         // dd(CategoryIndexResource::collection($categories));
         // Renderizar la vista Inertia con el recurso específico para la lista

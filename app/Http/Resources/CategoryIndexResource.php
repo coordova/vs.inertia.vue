@@ -41,7 +41,7 @@ class CategoryIndexResource extends JsonResource
             'character_count' => $this->characters_count ?? 0, // Nombre del campo generado por withCount
 
             // Opcional: Conteo de encuestas activas en la categoría
-            // 'survey_count' => $this->surveys_count ?? 0, // Requiere cargar con 'withCount(['surveys' => function($q) { $q->where(...); }])'
+            'survey_count' => $this->surveys_count ?? 0, // Requiere cargar con 'withCount(['surveys' => function($q) { $q->where(...); }])'
         ];
     }
 }

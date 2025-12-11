@@ -100,7 +100,7 @@ export interface CategoryIndexResource {
 
     // Campo específico para la vista de listado
     character_count: number; // Conteo de personajes en la categoría
-    // survey_count?: number; // Conteo de encuestas en la categoría (si se implementa)
+    survey_count: number; // Conteo de encuestas en la categoría
 }
 
 export interface CategoriesData { // Para la colección paginada

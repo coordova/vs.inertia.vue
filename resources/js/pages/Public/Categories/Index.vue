@@ -105,6 +105,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <div class="text-sm text-muted-foreground">
                                     {{ category.character_count }} characters
                                 </div>
+                                <div class="text-sm text-muted-foreground">
+                                    {{ category.survey_count }} surveys
+                                </div>
                                 <Button asChild>
                                     <Link :href="route('public.categories.show', category.id)">
                                         View Category
