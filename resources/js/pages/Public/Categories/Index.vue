@@ -137,10 +137,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 <style scoped>
 /* line-clamp para truncar texto */
-.line-clamp-2 {
+/* .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-}
+} */
 </style>
