@@ -30,11 +30,11 @@ class PublicController extends Controller
         $recentSurveys = Survey::where('status', true)
                               ->where('date_start', '<=', now())
                               ->where('date_end', '>=', now())
-                              ->with(['category:id,name,slug,color']) // Cargar la categoría para mostrarla
+                              ->with(['category:id,name,slug,color', 'characters']) // Cargar la categoría para mostrarla
                               ->orderBy('created_at', 'desc') // Por ejemplo, las más recientes
                               ->limit(6) // O el número que desees mostrar
                               ->get();
-
+// dd(SurveyIndexResource::collection($recentSurveys)->resolve());
         // Opcional: Cargar encuestas populares o más votadas (requiere joins/stats)
         // $popularSurveys = DB::table('surveys')
         //                     ->join('survey_user', 'surveys.id', '=', 'survey_user.survey_id')
