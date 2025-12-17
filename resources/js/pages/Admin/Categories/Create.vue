@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea/';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CategoryResource } from '@/types/global'; // Interfaz CategoryResource o similar
+// import { CategoryResource } from '@/types/global'; // Interfaz CategoryResource o similar
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
@@ -28,7 +28,7 @@ const { success, error } = useToast();
 // const { success: toastSuccess, error: toastError } = useToast();
 
 // --- Inicializar el formulario de Inertia ---
-const form = useForm<CategoryResource>({
+const form = useForm({
     name: '',
     description: '',
     status: true, // Valor por defecto
@@ -58,7 +58,7 @@ const submitForm = () => {
             // console.error('Errors creating category:', errors);
             // El helper `useForm` maneja automáticamente la visualización de errores
             // en el componente si se usa `form.errors.fieldName`
-            error('Failed to create category. Please check the errors below.');
+            error('Failed to create category. Please check the errors below. ' + JSON.stringify(errors));
         },
     });
 };
