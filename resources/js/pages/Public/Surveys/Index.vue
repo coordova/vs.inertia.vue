@@ -16,6 +16,7 @@ import { Head } from '@inertiajs/vue3';
 import { Calendar, Tag } from 'lucide-vue-next'; // Iconos
 // import { format } from 'date-fns'; // O usar day.js o el formateo nativo de JS
 import { Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 // --- Tipos ---
 interface Props {
@@ -36,6 +37,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// --- Estados reactivos ---
+const search = ref(props.filters?.search);
 
 // --- Breadcrumbs ---
 const breadcrumbs = [
@@ -58,6 +62,16 @@ const breadcrumbs = [
                     <div class="container flex h-16 items-center justify-between px-4">
                         <h1 class="text-xl font-semibold">Available Surveys</h1>
                         <span class="text-sm text-muted-foreground">Discover and participate in various surveys.</span>
+                        <div class="flex items-center gap-4">
+                            <!-- Search -->
+                            <div class="relative w-full max-w-sm items-center">
+                                <Input v-model="search" id="search" type="text" placeholder="Search categories..."
+                                    class="pl-10" />
+                                <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
+                                    <Search class="size-6 text-muted-foreground" />
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </header>
 

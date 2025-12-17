@@ -29,6 +29,9 @@ class PublicSurveyController extends Controller
     public function index(Request $request): Response
     {
         // TODO: Implementar paginación, búsqueda, filtros si es necesario
+        $perPage = request('per_page', 15);
+
+
         // Obtener encuestas públicas activas
         $surveys = Survey::where('status', true)
             // ->where('date_start', '<=', now())
@@ -38,8 +41,12 @@ class PublicSurveyController extends Controller
             /* ->withCount(['characters' => function ($q) {
                 $q->wherePivot('is_active', true);
             }]) // Contar personajes activos */
-            ->orderBy('created_at', 'desc') // O el orden que prefieras
-            ->paginate($request->get('per_page', 15))
+            ->when(request('search'), function ($query, $search) {
+                $query->where('title', 'like', '%'.$search.'%');
+            })
+            ->latest()
+            // ->orderBy('created_at', 'desc') // O el orden que prefieras
+            ->paginate($perPage)
             ->withQueryString();
 
         // dd($surveys);

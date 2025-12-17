@@ -35,7 +35,7 @@ class SurveyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response | RedirectResponse
     {
         $perPage = request('per_page', 15);
 
