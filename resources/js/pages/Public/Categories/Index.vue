@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TPagination from '@/components/oox/TPagination.vue'; // Asumiendo que existe
+import TPagination from '@/components/oox/TPagination.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CategoriesData } from '@/types/global'; // Tipos actualizados
 import { Search, Tag, RotateCw } from 'lucide-vue-next'; // Iconos

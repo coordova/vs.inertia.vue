@@ -19,6 +19,7 @@ import { Calendar, Tag, Search, RotateCw } from 'lucide-vue-next'; // Iconos
 import { ref, watch } from 'vue';
 import { debounce } from 'lodash';
 import { Input } from '@/components/ui/input';
+import TPagination from '@/components/oox/TPagination.vue';
 
 // --- Tipos ---
 interface Props {
@@ -270,14 +271,12 @@ function goToPage(page: number) {
                     </div>
 
                     <!-- Paginación (usando TPagination o componente propio) -->
-                    <!-- <TPagination
-                        :current-page="props.surveys.meta.current_page"
-                        :total-items="props.surveys.meta.total"
-                        :items-per-page="props.surveys.meta.per_page"
-                        @page-change="goToPage" // Asumiendo una función goToPage que use router.get
-                    /> -->
+                    <!-- Pagination -->
+                    <TPagination v-if="props.surveys.meta.total > props.surveys.meta.per_page"
+                        :current-page="props.surveys.meta.current_page" :total-items="props.surveys.meta.total"
+                        :items-per-page="props.surveys.meta.per_page" @page-change="goToPage" />
                     <!-- O implementar paginación simple con Inertia Link -->
-                    <div v-if="props.surveys.links.length > 2" class="mt-8 flex justify-center">
+                    <!-- <div v-if="props.surveys.links.length > 2" class="mt-8 flex justify-center">
                         <nav class="flex items-center space-x-1">
                             <Link v-for="(link, index) in props.surveys.links" :key="index" :href="link.url ?? '#'"
                                 :class="[
@@ -292,7 +291,7 @@ function goToPage(page: number) {
                                 {{ link.label }}
                             </Link>
                         </nav>
-                    </div>
+                    </div> -->
                 </main>
             </div>
         </div>
