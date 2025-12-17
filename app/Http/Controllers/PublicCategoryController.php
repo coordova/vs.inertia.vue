@@ -29,8 +29,8 @@ class PublicCategoryController extends Controller
         $categories = Category::where('status', true) // Solo categorías activas
                             ->has('surveys')
                             ->withCount(['characters' => function ($query) { // Contar personajes en la categoría
-                                // $query->wherePivot('status', true); // Opcional: Contar solo personajes activos en la categoría (category_character)
-                                $query->where('category_character.status', true);
+                                // $query->wherePivot('status', true); // Opcional: Contar solo personajes activos en la categoría (category_character) // NO FUNCIONA CON ESTA CONFIGURACIÓN
+                                $query->where('category_character.status', true); // FUNCIONA CON ESTA CONFIGURACIÓN
                             }])
                             ->withCount('surveys')
                             ->when(request('search'), function ($query, $search) {

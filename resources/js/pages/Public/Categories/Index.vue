@@ -192,12 +192,17 @@ function goToPage(page: number) {
                         </p>
                     </div>
 
+                    <!-- Pagination -->
+                    <TPagination v-if="props.categories.meta.total > props.categories.meta.per_page"
+                        :current-page="props.categories.meta.current_page" :total-items="props.categories.meta.total"
+                        :items-per-page="props.categories.meta.per_page" @page-change="goToPage" />
+
                     <!-- Paginación -->
-                    <div v-if="props.categories.links.length > 2" class="mt-8">
+                    <!-- <div v-if="props.categories.meta.links.length > 2" class="mt-8">
                         <TPagination :current-page="props.categories.meta.current_page"
                             :total-items="props.categories.meta.total" :items-per-page="props.categories.meta.per_page"
                             @page-change="(page) => router.get(route('public.categories.index', { page, search: search, per_page: props.filters?.per_page }), {}, { preserveState: true, preserveScroll: true })" />
-                    </div>
+                    </div> -->
                 </main>
             </div>
         </div>
