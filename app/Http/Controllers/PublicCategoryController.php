@@ -33,6 +33,10 @@ class PublicCategoryController extends Controller
                                 $query->where('category_character.status', true);
                             }])
                             ->withCount('surveys')
+                            ->when(request('search'), function ($query, $search) {
+                                $query->where('name', 'like', '%'.$search.'%');
+                            })
+                            ->latest()
                             // ->orderBy('sort_order', 'asc') // Ordenar por orden de clasificación
                             // ->orderBy('name', 'asc')       // Luego por nombre
                             ->paginate($request->get('per_page', 15))

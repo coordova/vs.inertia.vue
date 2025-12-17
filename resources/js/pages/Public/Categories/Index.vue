@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import TPagination from '@/components/oox/TPagination.vue'; // Asumiendo que existe
 import { type BreadcrumbItem } from '@/types';
 import { CategoriesData } from '@/types/global'; // Tipos actualizados
-import { Search, Tag } from 'lucide-vue-next'; // Iconos
+import { Search, Tag, RotateCw } from 'lucide-vue-next'; // Iconos
 import { debounce } from 'lodash';
 import { ref, watch } from 'vue';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
@@ -20,8 +21,41 @@ const props = defineProps<Props>();
 
 console.log(props.categories);
 
-// --- Estados reactivos ---
+/*-------------- Watch --------------*/
 const search = ref(props.filters?.search);
+const page = ref(props.filters?.page);
+const perPage = ref(props.filters?.per_page || '15');
+// const categoryId = ref(props.filters?.category_id); // Opcional: Filtro por categoría
+
+watch(
+    search,
+    debounce(function (value: string) {
+        router.get(
+            route('public.surveys.index'),
+            {
+                search: value,
+                /* category_id: categoryId.value, */ per_page: perPage.value,
+            },
+            { preserveState: true, replace: true },
+        );
+    }, 300),
+);
+
+// watch para actualizar la variable page
+watch(
+    () => props.filters?.page,
+    (value) => {
+        page.value = value;
+    },
+);
+
+// watch para actualizar la variable per_page
+watch(
+    () => props.filters?.per_page,
+    (value) => {
+        perPage.value = value;
+    },
+);
 
 // --- Computed Properties ---
 // const filteredCategories = computed(() => { ... }); // Si se filtra en el frontend
@@ -47,6 +81,23 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('public.categories.index'),
     },
 ];
+
+/**
+ * Navegar a una página específica
+ * @param page número de la página
+ */
+function goToPage(page: number) {
+    router.get(
+        route('public.categories.index'),
+        {
+            page,
+            search: search.value,
+            // category_id: categoryId.value, // Si se implementa filtro por categoría
+            per_page: perPage.value,
+        },
+        { preserveState: true, preserveScroll: true },
+    );
+}
 </script>
 
 <template>
@@ -62,10 +113,28 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <span class="text-sm text-gray-500">Browse all available categories</span>
 
                         <div class="flex items-center gap-4">
+                            <!-- Reload -->
+                            <Button type="button" variant="outline"
+                                @click="router.visit(route('public.categories.index'))">
+                                <RotateCw />
+                            </Button>
+                            <!-- Per page -->
+                            <div class="flex items-center justify-end">
+                                <Select v-model="perPage" @update:modelValue="goToPage(1)">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a page size" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="15" :selected="perPage === '15'">15</SelectItem>
+                                        <SelectItem value="25" :selected="perPage === '25'">25</SelectItem>
+                                        <SelectItem value="50" :selected="perPage === '50'">50</SelectItem>
+                                        <SelectItem value="100" :selected="perPage === '100'">100</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <!-- Search -->
                             <div class="relative w-full max-w-sm items-center">
-                                <Input v-model="search" id="search" type="text" placeholder="Search categories..."
-                                    class="pl-10" />
+                                <Input v-model="search" id="search" type="text" placeholder="Search..." class="pl-10" />
                                 <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
                                     <Search class="size-6 text-muted-foreground" />
                                 </span>
