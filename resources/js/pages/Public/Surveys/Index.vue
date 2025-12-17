@@ -185,10 +185,10 @@ function goToPage(page: number) {
                                 <div class="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
                                     <div>
                                         <div class="font-semibold">
-                                            {{ survey.duration ?? 'N/A' }} Days
+                                            {{ survey.duration_left ?? 'N/A' }} Days
                                         </div>
                                         <div class="text-muted-foreground">
-                                            Duration
+                                            Duration Left
                                         </div>
                                     </div>
                                     <div>
@@ -213,10 +213,11 @@ function goToPage(page: number) {
                                 <div class="flex w-full items-center justify-between text-sm text-muted-foreground">
                                     <div class="flex items-center gap-1">
                                         <Calendar class="h-4 w-4" />
-                                        <span>
+                                        <span class="text-xs">
                                             {{ survey.date_start_formatted }}
                                             -
                                             {{ survey.date_end_formatted }}
+                                            <span class="italic">({{ survey.duration }} days)</span>
                                         </span>
                                     </div>
                                     <Badge variant="outline" :class="{

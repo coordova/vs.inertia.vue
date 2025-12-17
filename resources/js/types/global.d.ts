@@ -198,6 +198,7 @@ export interface SurveyResource { // Interfaz para el recurso individual resuelt
     date_start_formatted: string;
     date_end_formatted: string;
     duration: number;
+    duration_left: number;
     /* selection_strategy_info: {
         name: string;
         description: string;
