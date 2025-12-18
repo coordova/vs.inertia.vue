@@ -32,7 +32,8 @@ class CharacterResource extends JsonResource
             'nationality' => $this->nationality,
             'occupation' => $this->occupation,
             // 'picture' => $this->picture, // Ruta relativa
-            'picture_url' => $this->picture ? Storage::url($this->picture) : null, // URL pública generada
+            'picture_url' => $this->picture ? Storage::url('characters/'.$this->picture) : null, // URL pública generada
+            'thumbnail_url' => $this->picture ? Storage::url('characters/thumbs/'.$this->picture) : null, // URL pública generada
             'status' => $this->status,
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,

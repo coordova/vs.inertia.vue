@@ -102,12 +102,14 @@ class ImageService
 
         // Thumbnail
         $thumbCanvas = $original->contain($thumbWidth, $thumbHeight, $bgColor);
-        $thumbPath = $thumbDir.$filenameBase.'_thumb.'.$extension;
+        // $thumbPath = $thumbDir.$filenameBase.'_thumb.'.$extension;
+        $thumbPath = $thumbDir.$filenameBase.'.'.$extension;
         $thumbCanvas->toJpeg($quality)->save(Storage::disk('public')->path($thumbPath));
 
         return [
-            'main' => $mainPath,
-            'thumb' => $thumbPath,
+            'main' => $filenameBase.'.'.$extension,
+            // 'main' => $mainPath,
+            // 'thumb' => $thumbPath,
         ];
     }
 

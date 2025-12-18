@@ -80,7 +80,7 @@ class CategoryController extends Controller
         // $category->load(['characters', 'surveys']); // Ejemplo
 
 
-        dd($category->load('characters'));
+        // dd($category->load('characters'));
         return Inertia::render('Admin/Categories/Show', [
             // 'category' => new CategoryResource($category), // Pasamos el modelo transformado
             'category' => CategoryResource::make($category->load('characters'))->resolve(),

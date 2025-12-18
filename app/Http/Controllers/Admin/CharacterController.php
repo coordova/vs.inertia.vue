@@ -72,7 +72,7 @@ class CharacterController extends Controller
             $filenameBase = Str::slug($request->fullname).'-'.now()->timestamp;
             try {
                 // Crea y guarda la imagen principal y el thumbnail
-                $result = $imageService->makeCanvasWithThumbBlurredBackground(
+                $result = $imageService->makeCanvasWithThumb(
                     $request->file('picture'),  // UploadedFile
                     $filenameBase,              // nombre base (sin extensión)
                     600,                        // canvas width
@@ -223,7 +223,7 @@ class CharacterController extends Controller
             $filenameBase = Str::slug($validated['fullname']).'-'.now()->timestamp;
 
             try {
-                $result = $imageService->makeCanvasWithThumbBlurredBackground(
+                $result = $imageService->makeCanvasWithThumb(
                     $request->file('picture'),
                     $filenameBase,
                     600, 600, // canvas dims
@@ -239,7 +239,7 @@ class CharacterController extends Controller
                 }
 
                 $validated['picture'] = $result['main'];
-                $validated['picture_thumb'] = $result['thumb'];
+                // $validated['picture_thumb'] = $result['thumb'];
             } catch (\Exception $e) {
                 Log::error('Error al procesar la imagen: '.$e->getMessage());
 

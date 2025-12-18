@@ -51,7 +51,7 @@ class CharacterSurveyRankingResource extends JsonResource
                 'fullname' => $this->resource->fullname, // Tomado del stdClass
                 'nickname' => $this->resource->nickname, // Tomado del stdClass
                 'picture' => $this->resource->picture,   // Tomado del stdClass (ruta relativa)
-                'picture_url' => $this->resource->picture ? Storage::url($this->resource->picture) : null, // Generar URL si existe
+                'picture_url' => $this->resource->picture ? Storage::url('characters/thumbs/'.$this->resource->picture) : null, // Generar URL si existe
                 'slug' => $this->resource->slug,       // Tomado del stdClass
                 // Añadir otros campos necesarios del personaje si se usan en la UI
             ],

@@ -43,8 +43,8 @@ const getGenderIcon = (gender: number) => {
                 <!-- Trigger por defecto -->
                 <div class="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent cursor-pointer">
                     <div class="relative aspect-square w-12 overflow-hidden rounded-full border">
-                        <img v-if="character.picture_url" :src="character.picture_url" :alt="character.fullname"
-                            class="h-full w-full object-cover" />
+                        <img v-if="props.character.picture_url" :src="props.character.thumbnail_url"
+                            :alt="props.character.fullname" class="h-full w-full object-cover" />
                         <div v-else class="flex h-full w-full items-center justify-center bg-muted">
                             <span class="text-xs text-muted-foreground">No img</span>
                         </div>
@@ -52,10 +52,10 @@ const getGenderIcon = (gender: number) => {
 
                     <div class="flex-1 truncate">
                         <p class="truncate text-sm font-medium">
-                            {{ character.fullname }}
+                            {{ props.character.fullname }}
                         </p>
-                        <p v-if="character.nickname" class="truncate text-xs text-muted-foreground">
-                            {{ character.nickname }}
+                        <p v-if="props.character.nickname" class="truncate text-xs text-muted-foreground">
+                            {{ props.character.nickname }}
                         </p>
                     </div>
                 </div>
@@ -65,20 +65,20 @@ const getGenderIcon = (gender: number) => {
         <!-- Dialog Content -->
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{{ character.fullname }}</DialogTitle>
+                <DialogTitle>{{ props.character.fullname }}</DialogTitle>
                 <DialogDescription>
-                    {{ character.nickname }}
+                    {{ props.character.nickname }}
                 </DialogDescription>
             </DialogHeader>
 
             <!-- Body -->
             <div class="flex flex-col text-sm gap-4 items-center">
-                <img :src="character.picture_url" :alt="character.fullname"
+                <img :src="props.character.picture_url" :alt="props.character.fullname"
                     class="h-64 w-64 rounded-full object-cover" />
 
                 <div>
                     <p class="text-sm text-muted-foreground line-clamp-3 mb-4">
-                        {{ character.bio }}
+                        {{ props.character.bio }}
                     </p>
 
                     <!-- Character Information -->
@@ -91,17 +91,17 @@ const getGenderIcon = (gender: number) => {
                             <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
                                 <div class="flex items-center gap-2">
                                     {{
-                                        character.gender === 0
+                                        props.character.gender === 0
                                             ? 'Other'
-                                            : character.gender === 1
+                                            : props.character.gender === 1
                                                 ? 'Male'
-                                                : character.gender === 2
+                                                : props.character.gender === 2
                                                     ? 'Female'
-                                                    : character.gender === 3
+                                                    : props.character.gender === 3
                                                         ? 'Non-binary'
                                                         : 'Unknown'
                                     }}
-                                    <component :is="getGenderIcon(character.gender)"
+                                    <component :is="getGenderIcon(props.character.gender)"
                                         class="h-3 w-3 mt-1 text-muted-foreground" />
                                 </div>
                             </dd>
@@ -114,9 +114,9 @@ const getGenderIcon = (gender: number) => {
                             </dt>
                             <dd class="mt-1 text-sm/6 sm:col-span-2 sm:mt-0">
                                 <div class="flex items-center gap-2 text-muted-foreground">
-                                    {{ character.dob_formatted || 'N/A' }}
+                                    {{ props.character.dob_formatted || 'N/A' }}
                                     <span class="text-xs text-muted-foreground/70">
-                                        ({{ character.dob_for_humans || 'N/A' }})
+                                        ({{ props.character.dob_for_humans || 'N/A' }})
                                     </span>
                                 </div>
                             </dd>
@@ -128,7 +128,7 @@ const getGenderIcon = (gender: number) => {
                                 Status
                             </dt>
                             <dd class="mt-1 text-sm/6 sm:col-span-2 sm:mt-0 text-muted-foreground">
-                                {{ character.status === true ? 'Active' : 'Inactive' }}
+                                {{ props.character.status === true ? 'Active' : 'Inactive' }}
                             </dd>
                         </div>
                     </dl>
@@ -136,7 +136,7 @@ const getGenderIcon = (gender: number) => {
             </div>
 
             <DialogFooter>
-                <Link :href="route('public.characters.show', character.id)">
+                <Link :href="route('public.characters.show', props.character.id)">
                     <Button type="button" variant="outline">
                         View Character
                     </Button>
