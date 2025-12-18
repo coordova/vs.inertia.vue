@@ -22,16 +22,16 @@ class PublicSurveyShowResource extends SurveyBaseResource
         // $progressPercentage = $this->getProgressPercentage();
 
         // ✅ Solo cargar votos recientes si se necesitan
-        $recentVotes = collect();
-        if ($this->relationLoaded('userVotes')) {
-            $recentVotes = $this->userVotes->take(5)->map(fn ($vote) => [
-                'id' => $vote->id,
-                'winner' => $vote->winner->fullname ?? 'Unknown',
-                'loser' => $vote->loser->fullname ?? 'Unknown',
-                'created_at' => $vote->created_at->diffForHumans(),
-                'created_at_raw' => $vote->created_at->toISOString(),
-            ]);
-        }
+        // $recentVotes = collect();
+        // if ($this->relationLoaded('userVotes')) {
+        //     $recentVotes = $this->userVotes->take(5)->map(fn ($vote) => [
+        //         'id' => $vote->id,
+        //         'winner' => $vote->winner->fullname ?? 'Unknown',
+        //         'loser' => $vote->loser->fullname ?? 'Unknown',
+        //         'created_at' => $vote->created_at->diffForHumans(),
+        //         'created_at_raw' => $vote->created_at->toISOString(),
+        //     ]);
+        // }
 
         return array_merge($this->baseData($request), [
             'description' => $this->description,
@@ -39,12 +39,15 @@ class PublicSurveyShowResource extends SurveyBaseResource
                 'id' => $this->category->id,
                 'name' => $this->category->name,
             ] : null,
-            'characters' => $this->characters ?? null,
+            // 'characters' => $this->characters ?? null,
             'reverse' => (bool) $this->reverse,
             'max_votes_per_user' => $this->max_votes_per_user, // 0=ilimitado
             'allow_ties' => $this->allow_ties,
             'counter' => $this->counter,
+            'selection_strategy' => $this->selection_strategy,
             'duration' => $this->date_start?->diffInDays($this->date_end),   // Duración en días a partir de la date_start hasta la date_end
+            // 'duration_left' => $this->date_end?->diffForHumans(null, true, false, 1),   // Duración en días  que falta para terminar
+            'duration_left' => $this->date_end?->diffForHumans(['parts' => 2, 'short' => false, 'join' => ' ']),   // Duración en días a partir de la date_start hasta la date_end
             'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y'),
             'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y'),
             'date_start_formatted' => $this->date_start?->utc()->format('d-m-Y'),
@@ -53,6 +56,8 @@ class PublicSurveyShowResource extends SurveyBaseResource
             // 'created_at_utc' => $this->created_at->utc()->toIso8601String(),
             // 'date_start_utc' => $this->date_start?->utc()->toIso8601String(),
             // 'date_end_utc' => $this->date_end?->utc()->toIso8601String(),
+
+            // 'recentVotes' => $recentVotes,
 
         ]);
     }

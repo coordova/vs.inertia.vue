@@ -9,6 +9,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import { CharacterResource, SurveyResource } from '@/types/global'; // Tipos actualizados
 import { Head, Link } from '@inertiajs/vue3';
@@ -17,9 +18,19 @@ import TCharacterDialog from '@/components/oox/TCharacterDialog.vue'
 import { BreadcrumbItem } from '@/types';
 // import { format } from 'date-fns'; // O dayjs, o formateo nativo
 
+interface ProgressData {
+    exists: boolean;
+    is_completed: boolean; // Puede ser boolean o integer (0/1)
+    progress: number; // Porcentaje
+    total_votes: number;
+    total_expected: number | null; // Puede ser null si no se pudo calcular
+    // Añadir otros campos si el backend los envía
+}
+
 interface Props {
     survey: SurveyResource; // Datos de la encuesta, incluyendo categoría y personajes
     characters: CharacterResource[]; // Personajes activos en la encuesta
+    userProgress: ProgressData; // Progreso del usuario en la encuesta
     // Opcional: También puedes pasar estadísticas generales de la encuesta desde el backend
     // generalStats: { totalVotes: number, totalParticipants: number, ... }
 }
@@ -152,6 +163,25 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <h3 class="text-sm font-medium text-muted-foreground">
+                                            Duration
+                                        </h3>
+                                        <p class="mt-1 text-sm">
+                                            {{ survey.duration }} days
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-medium text-muted-foreground">
+                                            Duration Left
+                                        </h3>
+                                        <p class="mt-1 text-sm">
+                                            {{ survey.duration_left }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h3 class="text-sm font-medium text-muted-foreground">
                                             Max Votes per User
                                         </h3>
                                         <p class="mt-1 text-sm">
@@ -174,24 +204,26 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     </div>
                                 </div>
 
-                                <!-- Estadísticas Generales (si se pasan desde el backend) -->
-                                <!--
+                                <!-- Estadísticas Progreso del usuario (si se pasan desde el backend) -->
                                 <Separator class="my-4" />
-                                <div class="grid grid-cols-3 gap-4 text-center">
+                                <h3 class="text-sm font-medium text-muted-foreground">
+                                    Progress
+                                </h3>
+                                <div v-if="userProgress" class="grid grid-cols-3 gap-4 text-center">
                                     <div>
-                                        <div class="text-2xl font-bold">{{ generalStats?.totalVotes || 0 }}</div>
+                                        <div class="text-2xl font-bold">{{ userProgress?.total_votes || 0 }}</div>
                                         <div class="text-xs text-muted-foreground">Total Votes</div>
                                     </div>
                                     <div>
-                                        <div class="text-2xl font-bold">{{ generalStats?.totalParticipants || 0 }}</div>
-                                        <div class="text-xs text-muted-foreground">Participants</div>
+                                        <div class="text-2xl font-bold">{{ userProgress?.total_expected || 0 }}</div>
+                                        <div class="text-xs text-muted-foreground">Expected Votes</div>
                                     </div>
                                     <div>
-                                        <div class="text-2xl font-bold">{{ props.characters.length }}</div>
-                                        <div class="text-xs text-muted-foreground">Characters</div>
+                                        <div class="text-2xl font-bold">{{ userProgress?.progress.toFixed(2) || 0 }}%
+                                        </div>
+                                        <div class="text-xs text-muted-foreground">Progress</div>
                                     </div>
                                 </div>
-                                -->
                             </CardContent>
                         </Card>
 
