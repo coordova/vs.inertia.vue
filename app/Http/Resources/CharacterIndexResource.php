@@ -16,11 +16,11 @@ class CharacterIndexResource extends JsonResource
     public function toArray(Request $request): array
     {
         // return parent::toArray($request);
-        $picture = $this->picture; // Ej: 'characters/juan-12345678.jpg'
-        $thumbUrl = null;
-        
 
-        /* if ($picture) {
+        /* $picture = $this->picture; // Ej: 'characters/juan-12345678.jpg'
+        $thumbUrl = null;
+
+        if ($picture) {
             // Extraer path relativo y extension
             $info = pathinfo($picture);
             // $info['dirname'] = 'characters', $info['filename'] = 'juan-12345678', $info['extension'] = 'jpg'
@@ -35,7 +35,7 @@ class CharacterIndexResource extends JsonResource
             'fullname' => $this->fullname,
             'nickname' => $this->nickname,
             'gender' => $this->gender,
-            // 'thumbnail_url' => $thumbUrl,
+            // 'thumbnail_url' => $thumbUrl, // hemos cambiado esto, ya que hemos modificado la forma de guardar en la BD (solo el nombre del archivo)
             'thumbnail_url' => $this->picture ? Storage::url('characters/thumbs/'.$this->picture) : null,
             'status' => $this->status,
             'created_at_formatted' => $this->created_at->translatedFormat('Y-m-d H:i:s'),

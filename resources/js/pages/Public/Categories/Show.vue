@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
 import { CategoryResource, CharacterResource } from '@/types/global'; // Tipos actualizados
 // import { Mars, Venus, NonBinary, CircleSmall, Tag } from 'lucide-vue-next'; // Iconos para género
+import { Tag } from 'lucide-vue-next';
 import { computed } from 'vue';
 import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 import TCharacterDialog from '@/components/oox/TCharacterDialog.vue';
