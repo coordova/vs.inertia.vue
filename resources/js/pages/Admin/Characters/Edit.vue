@@ -28,7 +28,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
+// console.log(props);
 // --- Inicializar el composable de toast ---
 const { success, error } = useToast();
 
@@ -51,7 +51,7 @@ const form = useForm<CharacterResourceForm>({
     id: props.character.id,
     category_ids: props.characterCategories.map((category) => category.id),
 });
-
+console.log(form);
 // --- Manejo de envío del formulario ---
 const submitForm = () => {
     form.transform((data) => ({
@@ -65,7 +65,7 @@ const submitForm = () => {
             success('Character updated successfully.');
         },
         onError: (errors) => {
-            error('Failed to update character. Please check the errors below.');
+            error('Failed to update character. Please check the errors below.' + errors);
         },
     });
 };
@@ -144,8 +144,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <Select v-model="form.category_ids" multiple>
                             <SelectTrigger>
                                 <SelectValue :placeholder="form.category_ids.length
-                                        ? `${form.category_ids.length} selected`
-                                        : 'Select categories'
+                                    ? `${form.category_ids.length} selected`
+                                    : 'Select categories'
                                     " />
                             </SelectTrigger>
                             <SelectContent>

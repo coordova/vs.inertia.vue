@@ -20,6 +20,7 @@ import {
     Folder,
     Layers,
     LayoutGrid,
+    Presentation,
     Users,
     UsersRound,
 } from 'lucide-vue-next';
@@ -30,6 +31,12 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Landing',
+        href: route('home'),
+        icon: Presentation,
+        isActive: route().current('home'),
     },
     {
         title: 'Users',
