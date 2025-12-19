@@ -43,7 +43,7 @@ const form = useForm<CharacterResourceForm>({
     nickname: '',
     slug: '', // O se genera automáticamente si se deja vacío en el backend
     bio: '',
-    dob: '', // Date string
+    dob_formatted: '', // Date string
     gender: null, // Valor por defecto
     nationality: '',
     occupation: '',
@@ -151,8 +151,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="dob">Date of Birth</Label>
-                        <MaskDateEdit id="dob" v-model="form.dob" />
-                        <InputError :message="form.errors.dob" />
+                        <MaskDateEdit id="dob" v-model="form.dob_formatted" />
+                        <InputError :message="form.errors.dob_formatted" />
                     </div>
 
                     <div class="space-y-2">

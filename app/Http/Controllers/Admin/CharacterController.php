@@ -202,7 +202,7 @@ class CharacterController extends Controller
         $categories = Category::select('id', 'name', 'status')->get();
 
         // dd($categories, $characterCategories);
-
+// dd(CharacterResource::make($character)->resolve());
         return Inertia::render('Admin/Characters/Edit', [
             // 'character' => new CharacterResource($character),
             'character' => CharacterResource::make($character)->resolve(),

@@ -12,7 +12,7 @@ const props = defineProps<{
     modelValue: string | null; // Aceptamos explícitamente string o null
     id: string; // <-- Añade esta prop
 }>();
-
+// console.log(props);
 // ✅ El emit se mantiene igual, ya que el valor del input será un string.
 const emit = defineEmits(['update:modelValue']);
 
