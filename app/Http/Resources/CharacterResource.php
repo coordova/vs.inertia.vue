@@ -39,8 +39,8 @@ class CharacterResource extends JsonResource
             'meta_description' => $this->meta_description,
             // 'created_at' => $this->created_at,
             // 'updated_at' => $this->updated_at,
-            // 'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i'),
-            // 'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i'),
+            'created_at_formatted' => $this->created_at->translatedFormat('d-m-Y H:i'),
+            'updated_at_formatted' => $this->updated_at->translatedFormat('d-m-Y H:i'),
             // No incluimos estadísticas ELO aquí, a menos que se necesiten para mostrar en la interfaz de votación
             // 'elo_rating' => $this->elo_rating, // <-- Solo si se muestra en la UI de votación
         ];

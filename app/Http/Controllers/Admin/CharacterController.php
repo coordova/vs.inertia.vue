@@ -234,24 +234,25 @@ class CharacterController extends Controller
                     $request->file('picture'),
                     $filenameBase,
                     600, 600, // Tamaño canvas principal
-                    'png',   // Formato
-                    0,       // Calidad
+                    'webp',   // Formato
+                    60,       // Calidad
                     'transparent', // Color de fondo para JPEG
                     'characters', // Directorio personalizado
                     180, 180,  // thumb dims
-                    'jpeg',   // Formato
-                    90,       // Calidad
+                    'webp',   // Formato
+                    60,       // Calidad
                     '#ffffff', // Color de fondo para JPEG
                     'characters/thumbs', // Directorio personalizado
                 );
 
                 // Eliminar antiguo archivo principal y thumb si existen
                 if ($character->picture) {
-                    Storage::disk('public')->delete($character->picture);
+                    Storage::disk('public')->delete('characters/'.$character->picture);
+                    Storage::disk('public')->delete('characters/thumbs/'.$character->picture);
                 }
-                if ($character->picture_thumb ?? false) {
-                    Storage::disk('public')->delete($character->picture_thumb);
-                }
+                /* if ($character->picture_thumb ?? false) {
+                    Storage::disk('public')->delete('characters/thumbs/'.$character->picture_thumb);
+                } */
 
                 $validated['picture'] = $result['main'];
                 // $validated['picture_thumb'] = $result['thumb'];

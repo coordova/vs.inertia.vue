@@ -334,6 +334,7 @@ class ImageService
                 break;
             case 'png':
                 $image->toPng()->save($fullPath);
+                // $image->encode(new \Intervention\Image\Encoders\PngEncoder(compression: $quality))->save($fullPath);
                 break;
             case 'webp':
                 $image->toWebp($quality)->save($fullPath);
