@@ -39,7 +39,7 @@ const form = useForm<CharacterResourceForm>({
     nickname: props.character.nickname ?? '', // Manejar null
     slug: props.character.slug,
     bio: props.character.bio ?? '', // Manejar null
-    dob_formatted: props.character.dob_formatted,
+    dob: props.character.dob,
     gender: props.character.gender,
     nationality: props.character.nationality ?? '', // Manejar null
     occupation: props.character.occupation ?? '', // Manejar null
@@ -51,7 +51,7 @@ const form = useForm<CharacterResourceForm>({
     id: props.character.id,
     category_ids: props.characterCategories.map((category) => category.id),
 });
-console.log(form);
+// console.log(form);
 // --- Manejo de envío del formulario ---
 const submitForm = () => {
     form.transform((data) => ({
@@ -183,8 +183,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="dob">Date of Birth</Label>
-                        <MaskDateEdit id="dob" v-model="form.dob_formatted" />
-                        <InputError :message="form.errors.dob_formatted" />
+                        <MaskDateEdit id="dob" v-model="form.dob" />
+                        <InputError :message="form.errors.dob" />
                     </div>
 
                     <div class="space-y-2">

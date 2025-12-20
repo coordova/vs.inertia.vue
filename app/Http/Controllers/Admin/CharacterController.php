@@ -202,7 +202,8 @@ class CharacterController extends Controller
         $categories = Category::select('id', 'name', 'status')->get();
 
         // dd($categories, $characterCategories);
-// dd(CharacterResource::make($character)->resolve());
+        // dd(CharacterResource::make($character)->resolve());
+
         return Inertia::render('Admin/Characters/Edit', [
             // 'character' => new CharacterResource($character),
             'character' => CharacterResource::make($character)->resolve(),
@@ -216,8 +217,9 @@ class CharacterController extends Controller
      */
     public function update(UpdateCharacterRequest $request, Character $character, ImageService $imageService): RedirectResponse
     {
+        // dump($request->all());
         $validated = $request->validated();
-
+        // dd($validated);
         // Procesar y reemplazar imagen si se sube una nueva
         if ($request->hasFile('picture')) {
             $filenameBase = Str::slug($validated['fullname']).'-'.now()->timestamp;

@@ -25,8 +25,8 @@ class CharacterResource extends JsonResource
             'nickname' => $this->nickname,
             'slug' => $this->slug,
             'bio' => $this->bio,
-            'dob' => $this->dob, // Fecha de nacimiento (puede formatearse aquí o en el frontend)
-            'dob_formatted' => $this->dob?->format('Y-m-d'),
+            'dob' => $this->dob?->format('Y-m-d'), // Fecha de nacimiento (puede formatearse aquí o en el frontend)
+            'dob_formatted' => $this->dob?->format('d-m-Y'),
             'dob_for_humans' => $this->dob?->diffForHumans(['parts' => 2, 'join' => ', '], true),    // 2 = 2 palabras
             'gender' => $this->gender, // 0=otro, 1=masculino, 2=femenino, 3=no-binario
             'nationality' => $this->nationality,

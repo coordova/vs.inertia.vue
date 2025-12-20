@@ -144,8 +144,8 @@ export interface CharacterResourceForm { // Interfaz para el recurso individual 
     nickname: string;
     slug: string;
     bio: string;
-    // dob: string | null; // Puede ser null si no tiene fecha de nacimiento
-    dob_formatted: string | null; // (formato Y-m-d) para el componente TMaskDateEdit que solo acepta este formato
+    dob: string | null; // Puede ser null si no tiene fecha de nacimiento
+    // dob_formatted: string | null; // (formato Y-m-d) para el componente TMaskDateEdit que solo acepta este formato
     gender: number | null; // 0=otro, 1=masculino, 2=femenino, 3=no-binario
     nationality: string;
     occupation: string;
