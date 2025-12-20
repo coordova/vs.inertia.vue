@@ -191,7 +191,65 @@ class ImageService
      * @param string $directory Directorio donde guardar la imagen (dentro de 'public').
      * @return string Nombre del archivo (sin directorio) guardado (ej: 'image.jpg').
      */
+    /**
+     * Crea una imagen escalada para ajustarse dentro de un canvas específico,
+     * manteniendo la proporción original (tipo "contain").
+     * El espacio sobrante se rellena con un color de fondo o es transparente
+     * si el formato lo permite.
+     *
+     * NO recorta la imagen: siempre se ve completa.
+     */
     private function makeImageWithContain(
+        ImageInterface $image,
+        string $filenameBase,
+        int $canvasWidth,
+        int $canvasHeight,
+        string $format = 'jpeg',
+        int $quality = 90,
+        string $bgColor = '#ffffff',
+        string $directory
+    ): string {
+        // Normalizar directorio
+        $directory = rtrim($directory, '/') . '/';
+
+        // Detectar si el formato soporta transparencia
+        $supportsTransparency = in_array(strtolower($format), ['png', 'webp', 'gif'], true);
+
+        // Determinar color de fondo real:
+        // - Si el formato soporta transparencia y se pidió 'transparent', usamos literal 'transparent'.
+        // - En otros casos, usamos el color pasado (ej: '#ffffff').
+        $finalBgColor = $bgColor;
+        if ($supportsTransparency && strtolower($bgColor) === 'transparent') {
+            $finalBgColor = 'transparent';
+        }
+
+        // Aquí es donde se corrige el comportamiento:
+        // En lugar de cover (que recorta), usamos pad,
+        // que escala la imagen para que quepa (contain) y rellena con fondo.
+        //
+        // Firma v3:
+        // public Image::pad(int $width, int $height, $background = 'ffffff', string $position = 'center'): ImageInterface
+        // [web:73]
+        $imageToProcess = $image->pad(
+            $canvasWidth,
+            $canvasHeight,
+            $finalBgColor, // color o 'transparent'
+            'center'       // centramos la imagen en el canvas
+        );
+
+        // Construir nombre de archivo con extensión correcta según formato
+        $filenameWithExt = $filenameBase . '.' . $this->getExtensionFromFormat($format);
+        $fullPathWithinPublic = $directory . $filenameWithExt;
+
+        // Guardar usando el helper centralizado
+        $this->saveImageByExtension($imageToProcess, $fullPathWithinPublic, $format, $quality);
+
+        // Devolvemos solo el nombre de archivo (sin directorio)
+        return $filenameWithExt;
+    }
+
+
+    private function makeImageWithContain___(
         ImageInterface $image,
         string $filenameBase,
         int $canvasWidth,
@@ -220,7 +278,7 @@ class ImageService
 
         // Aplicar el método contain directamente a la imagen
         $image->cover($canvasWidth, $canvasHeight, $finalBgColor); // <-- CORREGIDO: Usar cover con color de fondo
-
+        
         // Opción alternativa (y quizás más fiel a 'contain'): Escalar y luego crear canvas
         // $image->resize($canvasWidth, $canvasHeight, function ($constraint) {
         //     $constraint->aspectRatio();
@@ -253,82 +311,7 @@ class ImageService
         // --- FIN DEVOLVER ---
     }
 
-    /**
-     * Crea una imagen escalada para ajustarse dentro de un canvas específico,
-     * manteniendo la proporción original (contain).
-     * El espacio sobrante se rellena con un color de fondo o es transparente si el formato lo permite.
-     * Guarda la imagen resultante en el disco 'public'.
-     *
-     * @param ImageInterface $image Imagen original (Intervention Image object) a procesar.
-     * @param string $filenameBase Nombre base para el archivo generado (sin extensión ni directorio).
-     * @param int $canvasWidth Ancho del canvas final.
-     * @param int $canvasHeight Alto del canvas final.
-     * @param string $format Formato de salida ('jpeg', 'png', 'webp', etc.). (default: 'jpeg')
-     * @param int $quality Calidad de compresión (0-100 para jpeg/webp, 0-9 para png). (default: 90)
-     * @param string $bgColor Color de fondo si el formato no admite transparencia (ej: '#ffffff'). (default: '#ffffff')
-     * @param string $directory Directorio donde guardar la imagen (dentro de 'public').
-     * @return string Nombre del archivo relativo guardado (ej: 'path/to/image.jpg').
-     */
-    private function makeImageWithContain___(
-        ImageInterface $image,
-        string $filenameBase,
-        int $canvasWidth,
-        int $canvasHeight,
-        string $format = 'jpeg',
-        int $quality = 90,
-        string $bgColor = '#ffffff',
-        string $directory
-    ): string {
-        // Asegurar que el directorio termine con una barra
-        $directory = rtrim($directory, '/') . '/';
 
-        // Escalar la imagen original para *ajustarse* dentro del canvas deseado, manteniendo la proporción
-        // Creamos una copia para no modificar la original pasada
-        $imageToPlace = clone $image;
-        // Usamos resize con constraints para mantener la proporción y no agrandar si es más pequeña
-        $imageToPlace->resize($canvasWidth, $canvasHeight, function ($constraint) {
-            $constraint->aspectRatio(); // Mantiene la proporción
-            $constraint->upsize();     // No agranda la imagen si es más pequeña que el canvas objetivo
-        });
-
-        // Crear un canvas del tamaño final
-        $finalCanvas = $this->imageManager->create($canvasWidth, $canvasHeight);
-
-        // Determinar si el formato admite transparencia
-        $supportsTransparency = in_array(strtolower($format), ['png', 'webp', 'gif']);
-
-        if ($supportsTransparency) {
-            // Si el formato lo admite, rellenamos con transparencia
-            // Usamos un color hexadecimal con canal alpha (RGBA) para PNG/GIF transparentes
-            // #00000000 es negro con 0% de opacidad (totalmente transparente)
-            // Para GIF, Intervention maneja la transparencia si se usa fill('transparent')
-            // Para PNG, usar un color RGBA o fill('transparent') funciona.
-            $finalCanvas->fill('transparent'); // Usamos 'transparent' que es más claro
-        } else {
-            // Si el formato no admite transparencia (como JPEG), usamos el color de fondo proporcionado
-            $finalCanvas->fill($bgColor);
-        }
-
-        // Colocar la imagen escalada centrada dentro del canvas final
-        // Calcular offsets para centrar la imagen escalada dentro del canvas
-        $imageWidth = $imageToPlace->width();
-        $imageHeight = $imageToPlace->height();
-        $offsetX = (int) (($canvasWidth - $imageWidth) / 2);
-        $offsetY = (int) (($canvasHeight - $imageHeight) / 2);
-
-        // Colocar la imagen escalada centrada dentro del canvas final
-        $finalCanvas->place($imageToPlace, $offsetX, $offsetY);
-
-        // Construir el nombre de archivo final con extensión
-        $filenameWithExt = $filenameBase . '.' . $this->getExtensionFromFormat($format);
-        $fullPathWithinPublic = $directory . $filenameWithExt; // <-- Ruta completa para guardar
-
-        // Guardar la imagen final en el disco 'public' usando el helper privado
-        $this->saveImageByExtension($finalCanvas, $fullPathWithinPublic, $format, $quality);
-
-        // Devolver solo el nombre de archivo relativo (ruta dentro de 'public')
-        return $filenameWithExt;
-    }
 
     /**
      * Helper para guardar una imagen en el disco 'public' según su extensión y calidad.
@@ -350,7 +333,7 @@ class ImageService
                 $image->toJpeg($quality)->save($fullPath);
                 break;
             case 'png':
-                $image->toPng($quality)->save($fullPath);
+                $image->toPng()->save($fullPath);
                 break;
             case 'webp':
                 $image->toWebp($quality)->save($fullPath);

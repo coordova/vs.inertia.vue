@@ -234,9 +234,9 @@ class CharacterController extends Controller
                     $request->file('picture'),
                     $filenameBase,
                     600, 600, // Tamaño canvas principal
-                    'jpeg',   // Formato
-                    90,       // Calidad
-                    '#ffffff', // Color de fondo para JPEG
+                    'png',   // Formato
+                    0,       // Calidad
+                    'transparent', // Color de fondo para JPEG
                     'characters', // Directorio personalizado
                     180, 180,  // thumb dims
                     'jpeg',   // Formato
