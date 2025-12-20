@@ -190,10 +190,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <div class="space-y-2">
                         <Label for="image">Image</Label>
                         <Input id="image" type="file" accept="image/*" @input="onFileChange" />
-                        <img v-if="imagePreview" :src="imagePreview" alt="Preview"
-                            class="mt-2 max-h-40 w-auto rounded" />
-                        <img v-else-if="existingImage" :src="existingImage" alt="Current"
-                            class="mt-2 max-h-40 w-auto rounded" />
+                        <div class="flex items-center space-x-2">
+                            <img v-if="existingImage" :src="existingImage" alt="Current"
+                                :class="[imagePreview ? 'opacity-30 transition-opacity duration-300' : 'opacity-100', 'mt-2 max-h-40 w-auto rounded object-cover']" />
+                            <img v-if="imagePreview" :src="imagePreview" alt="Preview"
+                                class="mt-2 max-h-40 w-auto rounded object-cover" />
+                        </div>
                         <InputError :message="form.errors.picture" />
                     </div>
                 </div>

@@ -109,7 +109,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         props.character.id,
                                     )
                                         ">
-                                    <Pencil /> Edit</Link>
+                                        <Pencil /> Edit
+                                    </Link>
                                 </Button>
                                 <!-- delete -->
                                 <AlertDialog>
@@ -233,7 +234,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                                     {{ category.name }} :
                                                     {{
                                                         category.pivot.elo_rating.toFixed(
-                                                            2,
+                                                            0,
                                                         )
                                                     }}
                                                 </Badge>
