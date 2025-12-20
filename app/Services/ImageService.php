@@ -6,378 +6,386 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Intervention\Image\Interfaces\ImageInterface; // Importar la interfaz de imagen para claridad
 
+/**
+ * Servicio para el procesamiento de imágenes.
+ * Proporciona métodos para escalar, recortar, aplicar efectos y guardar imágenes.
+ * Utiliza Intervention Image para las operaciones de procesamiento.
+ * 
+ * NOTA: Este servicio utiliza la técnica de 'contain' para escalar imágenes,
+ * ajustándolas dentro de un canvas del tamaño especificado, manteniendo la proporción.
+ * El espacio sobrante se rellena con un color de fondo o es transparente según el formato.
+ * 
+ * Ejemplos de uso:
+ * 
+ * // 1. Generar solo la imagen principal en JPEG
+ * $result = $imageService->makeMainAndThumbnailImages(
+ *     $uploadedFile,
+ *     'mi_imagen_base',
+ *     600, 600, // Tamaño canvas principal
+ *     'jpeg',   // Formato
+ *     90,       // Calidad
+ *     '#ffffff', // Color de fondo para JPEG
+ *     'custom_dir' // Directorio personalizado
+ * );
+ * // Resultado: ['main' => 'custom_dir/mi_imagen_base.jpg', 'thumb' => null]
+ * 
+ * // 2. Generar imagen principal y thumbnail en PNG con fondo transparente
+ * $result = $imageService->makeMainAndThumbnailImages(
+ *     $uploadedFile,
+ *     'otra_img',
+ *     800, 600, // Tamaño canvas principal
+ *     'png',    // Formato principal
+ *     8,        // Calidad PNG
+ *     'transparent', // Color de fondo (se ignora para PNG)
+ *     'imagenes',    // Directorio principal
+ *     200, 150,      // Tamaño canvas thumbnail
+ *     'png',         // Formato thumbnail
+ *     6,             // Calidad thumbnail
+ *     'transparent'  // Color de fondo thumbnail (se ignora para PNG)
+ *     'imagenes/thumbs' // Directorio thumbnail
+ * );
+ * // Resultado: ['main' => 'imagenes/otra_img.png', 'thumb' => 'imagenes/thumbs/otra_img.png']
+ * 
+ * // 3. Generar solo thumbnail en JPEG con rutas por defecto
+ * $result = $imageService->makeMainAndThumbnailImages(
+ *     $uploadedFile,
+ *     'solo_thumb',
+ *     600, 600, // Tamaño canvas principal (se ignora porque mainDirectory es null)
+ *     'jpeg',   // Formato principal (se ignora porque mainDirectory es null)
+ *     90,       // Calidad principal (se ignora porque mainDirectory es null)
+ *     '#ffffff', // Color de fondo principal (se ignora porque mainDirectory es null)
+ *     null,      // No guardar imagen principal
+ *     180, 180,  // Tamaño canvas thumbnail
+ *     'jpeg',    // Formato thumbnail
+ *     85,        // Calidad thumbnail
+ *     '#000000', // Color de fondo thumbnail
+ *     'characters/thumbs' // Directorio thumbnail (ruta por defecto)
+ * );
+ * // Resultado: ['main' => null, 'thumb' => 'characters/thumbs/solo_thumb.jpg']
+ * 
+ * // 4. Generar imagen principal en PNG con fondo transparente, sin thumbnail
+ * $result = $imageService->makeMainAndThumbnailImages(
+ *     $uploadedFile,
+ *     'img_sin_fondo',
+ *     400, 400, // Tamaño canvas principal
+ *     'png',    // Formato principal
+ *     9,        // Calidad PNG
+ *     'transparent' // Color de fondo (se ignora para PNG, pero se puede usar '#00000000')
+ *     'characters'   // Directorio principal (ruta por defecto)
+ *     // thumbWidth y thumbHeight son null, no se genera thumbnail
+ * );
+ * // Resultado: ['main' => 'characters/img_sin_fondo.png', 'thumb' => null]
+ */
 class ImageService
 {
     protected ImageManager $imageManager;
 
     public function __construct()
     {
-        // Puedes usar GD, Imagick o Libvips según tus necesidades
+        // Inicializa el ImageManager con el driver GD
         $this->imageManager = new ImageManager(new Driver);
     }
 
     /**
-     * Redimensiona y guarda una imagen en almacenamiento público.
+     * Crea una imagen principal y opcionalmente una miniatura (thumbnail).
+     * Ambas imágenes se escalan para ajustarse dentro de sus respectivos canvas,
+     * manteniendo la proporción original (contain).
+     * Se puede especificar el formato de salida (jpeg, png, webp) y la calidad.
+     * 
+     * IMPORTANTE: Los directorios por defecto son:
+     * - Imagen Principal: 'characters/'
+     * - Thumbnail: 'characters/thumbs/'
      *
-     * @return string Ruta relativa final de la imagen (dentro de /public)
+     * @param UploadedFile $file Imagen original subida.
+     * @param string $filenameBase Nombre base para los archivos generados (sin extensión ni directorio).
+     * @param int $mainWidth Ancho del canvas para la imagen principal.
+     * @param int $mainHeight Alto del canvas para la imagen principal.
+     * @param string $mainFormat Formato de salida para la imagen principal ('jpeg', 'png', 'webp', etc.). (default: 'jpeg')
+     * @param int $mainQuality Calidad de compresión para la imagen principal (0-100 para jpeg/webp, 0-9 para png). (default: 90)
+     * @param string $mainBgColor Color de fondo para la imagen principal si el formato no admite transparencia (ej: '#ffffff'). (default: '#ffffff')
+     * @param string|null $mainDirectory Directorio para guardar la imagen principal (dentro de 'public'). Si es null, no se guarda. (default: 'characters')
+     * @param int|null $thumbWidth Ancho del canvas para la miniatura. Si es null, no se genera thumbnail. (default: null)
+     * @param int|null $thumbHeight Alto del canvas para la miniatura. Si es null, no se genera thumbnail. (default: null)
+     * @param string|null $thumbFormat Formato de salida para la miniatura ('jpeg', 'png', 'webp', etc.). Si es null, usa el mismo formato que la imagen principal. (default: null)
+     * @param int|null $thumbQuality Calidad de compresión para la miniatura (0-100 para jpeg/webp, 0-9 para png). Si es null, usa la misma calidad que la imagen principal. (default: null)
+     * @param string|null $thumbBgColor Color de fondo para la miniatura si el formato no admite transparencia (ej: '#ffffff'). Si es null, usa el mismo color que la imagen principal. (default: null)
+     * @param string|null $thumbDirectory Directorio para guardar la miniatura (dentro de 'public'). Si es null, no se guarda. (default: 'characters/thumbs')
+     * @return array ['main' => string|null, 'thumb' => string|null] Nombres de archivo relativos guardados o null si no se generó/guardó.
      */
-    public function resizeAndSave(
-        UploadedFile $file,
-        ?int $width,
-        ?int $height,
-        string $savePath
-    ): string {
-        // Lee imagen desde el archivo tmp
-        $image = $this->imageManager->read($file->getRealPath());
-
-        // Redimensiona según los parámetros enviados
-        if ($width || $height) {
-            $image->scale(width: $width, height: $height);
-        }
-
-        // Guarda la imagen procesada en el disco 'public'
-        $image->toJpeg(90)->save(Storage::disk('public')->path($savePath));
-
-        return $savePath;
-    }
-
-    /**
-     * Inserta otra imagen (watermark/logo) en la imagen principal y guarda el resultado.
-     *
-     * @param  string  $insertPath  Ruta absoluta o relativa del watermark (puedes usar Storage::path)
-     * @param  string  $savePath  Ruta donde guardar la imagen final en 'public'
-     * @param  array  $placement  Opciones de posición: [x, y, position]. Ejemplo: ['bottom-right']
-     */
-    public function insertImageAndSave(
-        UploadedFile $file,
-        string $insertPath,
-        string $savePath,
-        array $placement = ['bottom-right']
-    ): string {
-        $image = $this->imageManager->read($file->getRealPath());
-
-        $image->place($insertPath, ...$placement);
-
-        $image->toJpeg(90)->save(Storage::disk('public')->path($savePath));
-
-        return $savePath;
-    }
-
-    /**
-     * Crea una imagen base (canvas) y una thumbnail, con aspect ratio, y guarda ambas.
-     *
-     * @param  UploadedFile  $file  Imagen original subida
-     * @param  string  $filenameBase  Nombre base sin extension ni directorio
-     * @param  int  $canvasWidth  Width del canvas final (default: 600)
-     * @param  int  $canvasHeight  Height del canvas final (default: 600)
-     * @param  int  $thumbWidth  Width thumbnail (default: 180)
-     * @param  int  $thumbHeight  Height thumbnail (default: 180)
-     * @param  string  $mainDir  Directorio destino canvas
-     * @param  string  $thumbDir  Directorio destino thumbnail
-     * @param  string  $bgColor  Color fondo canvas (hex o nombre, default: blanco)
-     * @return array ['main' => <ruta>, 'thumb' => <ruta>]
-     */
-    public function makeCanvasWithThumb(
+    public function makeMainAndThumbnailImages(
         UploadedFile $file,
         string $filenameBase,
-        int $canvasWidth = 600,
-        int $canvasHeight = 600,
-        int $thumbWidth = 180,
-        int $thumbHeight = 180,
-        string $mainDir = 'characters',
-        string $thumbDir = 'characters/thumbs',
-        string $bgColor = '#fff',
-        string $extension = 'jpg',
-        int $quality = 90
+        int $mainWidth,
+        int $mainHeight,
+        string $mainFormat = 'jpeg',
+        int $mainQuality = 90,
+        string $mainBgColor = '#ffffff',
+        ?string $mainDirectory = 'characters', // <-- Corregido: Valor por defecto explícito y cambiado a 'characters'
+        ?int $thumbWidth = null,
+        ?int $thumbHeight = null,
+        ?string $thumbFormat = null, // <-- Corregido: Ahora explícitamente ?string
+        ?int $thumbQuality = null,   // <-- Corregido: Ahora explícitamente ?int
+        ?string $thumbBgColor = null, // <-- Corregido: Ahora explícitamente ?string
+        ?string $thumbDirectory = 'characters/thumbs' // <-- Corregido: Valor por defecto explícito y cambiado a 'characters/thumbs'
     ): array {
-        $mainDir = rtrim($mainDir, '/').'/';
-        $thumbDir = rtrim($thumbDir, '/').'/';
-        $original = $this->imageManager->read($file->getRealPath());
+        // Asegurar que thumbFormat, thumbQuality y thumbBgColor tengan un valor si no fueron proporcionados
+        $thumbFormat = $thumbFormat ?? $mainFormat;
+        $thumbQuality = $thumbQuality ?? $mainQuality;
+        $thumbBgColor = $thumbBgColor ?? $mainBgColor;
 
-        // Main image (canvas)
-        $mainCanvas = $original->contain($canvasWidth, $canvasHeight, $bgColor);
-        $mainPath = $mainDir.$filenameBase.'.'.$extension;
-        $mainCanvas->toJpeg($quality)->save(Storage::disk('public')->path($mainPath));
+        // Leer la imagen original
+        $originalImage = $this->imageManager->read($file->getRealPath());
 
-        // Thumbnail
-        $thumbCanvas = $original->contain($thumbWidth, $thumbHeight, $bgColor);
-        // $thumbPath = $thumbDir.$filenameBase.'_thumb.'.$extension;
-        $thumbPath = $thumbDir.$filenameBase.'.'.$extension;
-        $thumbCanvas->toJpeg($quality)->save(Storage::disk('public')->path($thumbPath));
+        // --- Procesar Imagen Principal ---
+        $mainFilename = null;
+        if ($mainDirectory !== null) { // <-- Condición corregida
+            $mainFilename = $this->makeImageWithContain(
+                clone $originalImage, // Clonar para no afectar la original
+                $filenameBase,
+                $mainWidth,
+                $mainHeight,
+                $mainFormat,
+                $mainQuality,
+                $mainBgColor,
+                $mainDirectory
+            );
+        }
 
+        // --- Procesar Miniatura ---
+        $thumbFilename = null;
+        if ($thumbWidth !== null && $thumbHeight !== null && $thumbDirectory !== null) { // <-- Condición corregida
+            $thumbFilename = $this->makeImageWithContain(
+                clone $originalImage, // Clonar de nuevo
+                $filenameBase,
+                $thumbWidth,
+                $thumbHeight,
+                $thumbFormat,
+                $thumbQuality,
+                $thumbBgColor,
+                $thumbDirectory
+            );
+        }
+
+        // Devolver los nombres de archivo relativos generados o null
         return [
-            'main' => $filenameBase.'.'.$extension,
-            // 'main' => $mainPath,
-            // 'thumb' => $thumbPath,
+            'main' => $mainFilename,
+            'thumb' => $thumbFilename,
         ];
     }
 
     /**
-     * Crea una imagen base (canvas) y una thumbnail usando como fondo
-     * una versión ampliada y desenfocada de la misma imagen original.
+     * Crea una imagen escalada para ajustarse dentro de un canvas específico,
+     * manteniendo la proporción original (contain).
+     * El espacio sobrante se rellena con un color de fondo o es transparente si el formato lo permite.
+     * Guarda la imagen resultante en el disco 'public'.
      *
-     * Útil para evitar fondos sólidos (blanco/negro) cuando las proporciones
-     * de la imagen no coinciden con el canvas, imitando el efecto de muchas apps
-     * modernas (background blur del propio contenido).
-     *
-     * @param  UploadedFile  $file          Imagen original subida
-     * @param  string        $filenameBase  Nombre base sin extensión
-     * @param  int           $canvasWidth   Ancho del canvas final (ej: 600)
-     * @param  int           $canvasHeight  Alto del canvas final (ej: 600)
-     * @param  int           $thumbWidth    Ancho del thumbnail (ej: 180)
-     * @param  int           $thumbHeight   Alto del thumbnail (ej: 180)
-     * @param  string        $mainDir       Directorio destino canvas (sin / final)
-     * @param  string        $thumbDir      Directorio destino thumbnail (sin / final)
-     * @param  string        $extension     Extensión de salida (jpg, webp, etc.)
-     * @param  int           $quality       Calidad de salida (para JPEG/WebP)
-     * @param  int           $blurAmount    Intensidad del blur para el fondo (0–100)
-     * @return array{main: string, thumb: string}
+     * @param ImageInterface $image Imagen original (Intervention Image object) a procesar.
+     * @param string $filenameBase Nombre base para el archivo generado (sin extensión ni directorio).
+     * @param int $canvasWidth Ancho del canvas final.
+     * @param int $canvasHeight Alto del canvas final.
+     * @param string $format Formato de salida ('jpeg', 'png', 'webp', etc.). (default: 'jpeg')
+     * @param int $quality Calidad de compresión (0-100 para jpeg/webp, 0-9 para png). (default: 90)
+     * @param string $bgColor Color de fondo si el formato no admite transparencia (ej: '#ffffff'). (default: '#ffffff')
+     * @param string $directory Directorio donde guardar la imagen (dentro de 'public').
+     * @return string Nombre del archivo (sin directorio) guardado (ej: 'image.jpg').
      */
-    public function makeCanvasWithThumbBlurredBackgroundBoth(
-        UploadedFile $file,
+    private function makeImageWithContain(
+        ImageInterface $image,
         string $filenameBase,
-        int $canvasWidth = 600,
-        int $canvasHeight = 600,
-        int $thumbWidth = 180,
-        int $thumbHeight = 180,
-        string $mainDir = 'characters',
-        string $thumbDir = 'characters/thumbs',
-        string $extension = 'jpg',
+        int $canvasWidth,
+        int $canvasHeight,
+        string $format = 'jpeg',
         int $quality = 90,
-        int $blurAmount = 25
-    ): array {
-        // Normalizamos rutas para asegurar que terminan con '/'
-        $mainDir  = rtrim($mainDir, '/').'/';
-        $thumbDir = rtrim($thumbDir, '/').'/';
+        string $bgColor = '#ffffff',
+        string $directory
+    ): string {
+        // Asegurar que el directorio termine con una barra
+        $directory = rtrim($directory, '/') . '/';
 
-        // Leemos la imagen original desde el archivo temporal
-        $original = $this->imageManager->read($file->getRealPath());
+        // --- CORRECCIÓN: Usar el método contain() de Intervention Image ---
+        // Este método escala la imagen para que quepa completamente dentro del canvas,
+        // manteniendo la proporción original.
+        // Luego, rellena el espacio restante con el color de fondo especificado.
+        // Si el formato es PNG o WEBP, el color de fondo puede ser 'transparent'.
 
-        // ---------------------------------------------------------------------
-        // 1) IMAGEN PRINCIPAL (canvas con fondo desenfocado + original centrada)
-        // ---------------------------------------------------------------------
-
-        // Clonamos la imagen original para usarla como base del fondo
-        $background = clone $original;
-
-        // Calculamos un factor de escala para que el fondo "cubra" todo el canvas,
-        // similar a background-size: cover en CSS.
-        $origWidth  = $background->width();
-        $origHeight = $background->height();
-
-        // Evitamos división por cero
-        if ($origWidth === 0 || $origHeight === 0) {
-            throw new \RuntimeException('Invalid image dimensions.');
+        // Determinar el color de fondo final
+        $finalBgColor = $bgColor;
+        $supportsTransparency = in_array(strtolower($format), ['png', 'webp', 'gif']);
+        if ($supportsTransparency && strtolower($bgColor) === 'transparent') {
+            // Si el formato lo permite y se solicita transparencia, usamos 'transparent'
+            $finalBgColor = 'transparent';
         }
 
-        // Factor para cubrir el canvas completo
-        $scale = max(
-            $canvasWidth / $origWidth,
-            $canvasHeight / $origHeight
-        );
+        // Aplicar el método contain directamente a la imagen
+        $image->cover($canvasWidth, $canvasHeight, $finalBgColor); // <-- CORREGIDO: Usar cover con color de fondo
 
-        $bgWidth  = (int) ceil($origWidth * $scale);
-        $bgHeight = (int) ceil($origHeight * $scale);
+        // Opción alternativa (y quizás más fiel a 'contain'): Escalar y luego crear canvas
+        // $image->resize($canvasWidth, $canvasHeight, function ($constraint) {
+        //     $constraint->aspectRatio();
+        //     $constraint->upsize();
+        // });
+        // $finalCanvas = $this->imageManager->create($canvasWidth, $canvasHeight);
+        // if ($supportsTransparency && strtolower($bgColor) === 'transparent') {
+        //     $finalCanvas->fill('transparent');
+        // } else {
+        //     $finalCanvas->fill($finalBgColor);
+        // }
+        // $finalCanvas->place($image, 'center', 'center'); // <-- Usar place con posiciones relativas o calcular offset
+        // $imageToSave = $finalCanvas;
+        // ---
+        // La opción con $image->cover(...) es más directa y similar al código anterior.
+        $imageToProcess = $image; // La imagen ya procesada por 'cover'
+        // --- FIN CORRECCIÓN ---
 
-        // Redimensionamos el "background" para que sea más grande que el canvas
-        // y lo recortamos centrado a las dimensiones exactas del canvas.
-        $background
-            ->scale($bgWidth, $bgHeight)                // escalamos
-            ->cover($canvasWidth, $canvasHeight);       // recortamos centrado al canvas
+        // --- CONSTRUIR NOMBRE Y GUARDAR ---
+        // Construir el nombre de archivo final con extensión
+        $filenameWithExt = $filenameBase . '.' . $this->getExtensionFromFormat($format);
+        $fullPathWithinPublic = $directory . $filenameWithExt;
 
-        // Aplicamos un blur fuerte al fondo.
-        // Con GD, valores muy altos pueden ser costosos; 20–40 suele ser razonable.
-        $background->blur($blurAmount);
+        // Guardar la imagen final en el disco 'public' usando el helper privado
+        $this->saveImageByExtension($imageToProcess, $fullPathWithinPublic, $format, $quality);
 
-        // Ahora colocamos la imagen original "contenida" sobre el fondo desenfocado.
-        // Usamos contain para mantener el aspect ratio y que quepa dentro del canvas.
-        $foreground = clone $original;
-        $foreground->contain($canvasWidth, $canvasHeight);
-
-        // Calculamos coordenadas para centrar el foreground sobre el canvas
-        $fgWidth  = $foreground->width();
-        $fgHeight = $foreground->height();
-        $fgX      = (int) floor(($canvasWidth  - $fgWidth) / 2);
-        $fgY      = (int) floor(($canvasHeight - $fgHeight) / 2);
-
-        // Insertamos el foreground centrado en el fondo desenfocado
-        $background->place($foreground, 'top-left', $fgX, $fgY);
-
-        // Guardamos la imagen principal en el disco 'public'
-        $mainPath = $mainDir.$filenameBase.'.'.$extension;
-        $background->toJpeg($quality)->save(Storage::disk('public')->path($mainPath));
-
-        // ---------------------------------------------------------------------
-        // 2) THUMBNAIL (mismo concepto, pero en dimensiones de thumbnail)
-        // ---------------------------------------------------------------------
-
-        // Repetimos el proceso para el thumbnail, partiendo de la original
-        $thumbBackground = clone $original;
-
-        $scaleThumb = max(
-            $thumbWidth / $origWidth,
-            $thumbHeight / $origHeight
-        );
-
-        $bgThumbWidth  = (int) ceil($origWidth * $scaleThumb);
-        $bgThumbHeight = (int) ceil($origHeight * $scaleThumb);
-
-        $thumbBackground
-            ->scale($bgThumbWidth, $bgThumbHeight)
-            ->cover($thumbWidth, $thumbHeight)
-            ->blur($blurAmount);
-
-        $thumbForeground = clone $original;
-        $thumbForeground->contain($thumbWidth, $thumbHeight);
-
-        $fgThumbWidth  = $thumbForeground->width();
-        $fgThumbHeight = $thumbForeground->height();
-        $fgThumbX      = (int) floor(($thumbWidth  - $fgThumbWidth) / 2);
-        $fgThumbY      = (int) floor(($thumbHeight - $fgThumbHeight) / 2);
-
-        $thumbBackground->place($thumbForeground, 'top-left', $fgThumbX, $fgThumbY);
-
-        $thumbPath = $thumbDir.$filenameBase.'_thumb.'.$extension;
-        $thumbBackground->toJpeg($quality)->save(Storage::disk('public')->path($thumbPath));
-
-        // ---------------------------------------------------------------------
-        // 3) Devolvemos las rutas relativas dentro del disco 'public'
-        // ---------------------------------------------------------------------
-        return [
-            'main'  => $mainPath,
-            'thumb' => $thumbPath,
-        ];
+        // --- DEVOLVER SOLO EL NOMBRE DEL ARCHIVO ---
+        // Devolver SOLO el nombre del archivo (sin directorio)
+        return $filenameWithExt; // <-- CORREGIDO: Devuelve solo el nombre
+        // --- FIN DEVOLVER ---
     }
 
     /**
-     * Crea una imagen base (canvas) usando como fondo una versión
-     * ampliada y desenfocada de la misma imagen, y una thumbnail
-     * clásica con fondo sólido.
+     * Crea una imagen escalada para ajustarse dentro de un canvas específico,
+     * manteniendo la proporción original (contain).
+     * El espacio sobrante se rellena con un color de fondo o es transparente si el formato lo permite.
+     * Guarda la imagen resultante en el disco 'public'.
      *
-     * @return array{main: string, thumb: string}
+     * @param ImageInterface $image Imagen original (Intervention Image object) a procesar.
+     * @param string $filenameBase Nombre base para el archivo generado (sin extensión ni directorio).
+     * @param int $canvasWidth Ancho del canvas final.
+     * @param int $canvasHeight Alto del canvas final.
+     * @param string $format Formato de salida ('jpeg', 'png', 'webp', etc.). (default: 'jpeg')
+     * @param int $quality Calidad de compresión (0-100 para jpeg/webp, 0-9 para png). (default: 90)
+     * @param string $bgColor Color de fondo si el formato no admite transparencia (ej: '#ffffff'). (default: '#ffffff')
+     * @param string $directory Directorio donde guardar la imagen (dentro de 'public').
+     * @return string Nombre del archivo relativo guardado (ej: 'path/to/image.jpg').
      */
-    public function makeCanvasWithThumbBlurredBackground(
-        UploadedFile $file,
+    private function makeImageWithContain___(
+        ImageInterface $image,
         string $filenameBase,
-        int $canvasWidth = 600,
-        int $canvasHeight = 600,
-        int $thumbWidth = 180,
-        int $thumbHeight = 180,
-        string $mainDir = 'characters',
-        string $thumbDir = 'characters/thumbs',
-        string $bgColor = '#fff',
-        string $extension = 'jpg',
+        int $canvasWidth,
+        int $canvasHeight,
+        string $format = 'jpeg',
         int $quality = 90,
-        int $blurAmount = 25
-    ): array {
-        $mainDir  = rtrim($mainDir, '/').'/';
-        $thumbDir = rtrim($thumbDir, '/').'/';
+        string $bgColor = '#ffffff',
+        string $directory
+    ): string {
+        // Asegurar que el directorio termine con una barra
+        $directory = rtrim($directory, '/') . '/';
 
-        $original = $this->imageManager->read($file->getRealPath());
+        // Escalar la imagen original para *ajustarse* dentro del canvas deseado, manteniendo la proporción
+        // Creamos una copia para no modificar la original pasada
+        $imageToPlace = clone $image;
+        // Usamos resize con constraints para mantener la proporción y no agrandar si es más pequeña
+        $imageToPlace->resize($canvasWidth, $canvasHeight, function ($constraint) {
+            $constraint->aspectRatio(); // Mantiene la proporción
+            $constraint->upsize();     // No agranda la imagen si es más pequeña que el canvas objetivo
+        });
 
-        // ---------------------------------------------------------------------
-        // 1) IMAGEN PRINCIPAL: fondo blur + foreground centrado
-        // ---------------------------------------------------------------------
+        // Crear un canvas del tamaño final
+        $finalCanvas = $this->imageManager->create($canvasWidth, $canvasHeight);
 
-        $background = clone $original;
+        // Determinar si el formato admite transparencia
+        $supportsTransparency = in_array(strtolower($format), ['png', 'webp', 'gif']);
 
-        $origWidth  = $background->width();
-        $origHeight = $background->height();
-
-        if ($origWidth === 0 || $origHeight === 0) {
-            throw new \RuntimeException('Invalid image dimensions.');
+        if ($supportsTransparency) {
+            // Si el formato lo admite, rellenamos con transparencia
+            // Usamos un color hexadecimal con canal alpha (RGBA) para PNG/GIF transparentes
+            // #00000000 es negro con 0% de opacidad (totalmente transparente)
+            // Para GIF, Intervention maneja la transparencia si se usa fill('transparent')
+            // Para PNG, usar un color RGBA o fill('transparent') funciona.
+            $finalCanvas->fill('transparent'); // Usamos 'transparent' que es más claro
+        } else {
+            // Si el formato no admite transparencia (como JPEG), usamos el color de fondo proporcionado
+            $finalCanvas->fill($bgColor);
         }
 
-        // Factor para "cover"
-        $scale = max(
-            $canvasWidth / $origWidth,
-            $canvasHeight / $origHeight
-        );
+        // Colocar la imagen escalada centrada dentro del canvas final
+        // Calcular offsets para centrar la imagen escalada dentro del canvas
+        $imageWidth = $imageToPlace->width();
+        $imageHeight = $imageToPlace->height();
+        $offsetX = (int) (($canvasWidth - $imageWidth) / 2);
+        $offsetY = (int) (($canvasHeight - $imageHeight) / 2);
 
-        $bgWidth  = (int) ceil($origWidth * $scale);
-        $bgHeight = (int) ceil($origHeight * $scale);
+        // Colocar la imagen escalada centrada dentro del canvas final
+        $finalCanvas->place($imageToPlace, $offsetX, $offsetY);
 
-        $background
-            ->scale($bgWidth, $bgHeight)          // agrandamos
-            ->cover($canvasWidth, $canvasHeight)  // recortamos centrado al canvas
-            ->blur($blurAmount);                  // aplicamos blur al fondo
+        // Construir el nombre de archivo final con extensión
+        $filenameWithExt = $filenameBase . '.' . $this->getExtensionFromFormat($format);
+        $fullPathWithinPublic = $directory . $filenameWithExt; // <-- Ruta completa para guardar
 
-        // Foreground contenido dentro del canvas
-        $foreground = clone $original;
-        $foreground->contain($canvasWidth, $canvasHeight);
+        // Guardar la imagen final en el disco 'public' usando el helper privado
+        $this->saveImageByExtension($finalCanvas, $fullPathWithinPublic, $format, $quality);
 
-        $fgWidth  = $foreground->width();
-        $fgHeight = $foreground->height();
-        $fgX      = (int) floor(($canvasWidth  - $fgWidth) / 2);
-        $fgY      = (int) floor(($canvasHeight - $fgHeight) / 2);
-
-        $background->place($foreground, 'top-left', $fgX, $fgY);
-
-        $mainPath = $mainDir.$filenameBase.'.'.$extension;
-        $background->toJpeg($quality)->save(Storage::disk('public')->path($mainPath));
-
-        // ---------------------------------------------------------------------
-        // 2) THUMBNAIL: versión simple tipo makeCanvasWithThumb
-        // ---------------------------------------------------------------------
-
-        // Para el thumb, el blur apenas aporta valor y sí añade coste,
-        // así que usamos un canvas "normal" con fondo sólido.
-        $thumbCanvas = (clone $original)->contain($thumbWidth, $thumbHeight, $bgColor);
-        $thumbPath = $thumbDir.$filenameBase.'_thumb.'.$extension;
-        $thumbCanvas->toJpeg($quality)->save(Storage::disk('public')->path($thumbPath));
-
-        return [
-            'main' => $filenameBase.'.'.$extension,
-            // 'main'  => $mainPath,
-            // 'thumb' => $thumbPath,
-        ];
+        // Devolver solo el nombre de archivo relativo (ruta dentro de 'public')
+        return $filenameWithExt;
     }
 
+    /**
+     * Helper para guardar una imagen en el disco 'public' según su extensión y calidad.
+     * Maneja diferentes formatos de salida (JPEG, PNG, WEBP, GIF).
+     *
+     * @param ImageInterface $image La imagen a guardar.
+     * @param string $savePath Ruta relativa dentro del disco 'public'.
+     * @param string $format Formato del archivo ('jpeg', 'png', 'webp', 'gif', etc.).
+     * @param int $quality Calidad de compresión (0-100 para JPEG/WEBP, 0-9 para PNG).
+     * @return void
+     */
+    private function saveImageByExtension(ImageInterface $image, string $savePath, string $format, int $quality): void
+    {
+        $fullPath = Storage::disk('public')->path($savePath);
+
+        switch (strtolower($format)) {
+            case 'jpg':
+            case 'jpeg':
+                $image->toJpeg($quality)->save($fullPath);
+                break;
+            case 'png':
+                $image->toPng($quality)->save($fullPath);
+                break;
+            case 'webp':
+                $image->toWebp($quality)->save($fullPath);
+                break;
+            case 'gif':
+                $image->toGif()->save($fullPath);
+                break;
+            default:
+                // Opcional: Lanzar una excepción si la extensión no es soportada
+                // throw new \InvalidArgumentException("Unsupported image format: {$format}");
+                // Por ahora, asumimos jpg como fallback
+                $image->toJpeg($quality)->save($fullPath);
+                break;
+        }
+    }
 
     /**
-     * Crea un canvas transparente PNG y su thumbnail.
-     * Mantiene relación de aspecto y rellena el sobrante con transparencia.
+     * Helper para obtener la extensión de archivo estándar a partir del nombre del formato.
+     * Esto es útil para construir el nombre del archivo final.
      *
-     * @param  string  $filenameBase  nombre sin extensión
-     * @param  int  $canvasWidth  ancho del canvas final
-     * @param  int  $canvasHeight  alto del canvas final
-     * @param  int  $thumbWidth  ancho del thumbnail
-     * @param  int  $thumbHeight  alto del thumbnail
-     * @param  string  $mainDir  carpeta destino (sin / final)
-     * @param  string  $thumbDir  carpeta destino thumb (sin / final)
-     * @param  int  $quality  compresión PNG (0-9, 0 sin compresión)
-     * @return array ['main' => ruta, 'thumb' => ruta]
+     * @param string $format Nombre del formato (e.g., 'jpeg', 'png', 'webp').
+     * @return string Extensión de archivo (e.g., 'jpg', 'png', 'webp').
      */
-    public function makeCanvasWithThumbTransparent(
-        UploadedFile $file,
-        string $filenameBase,
-        int $canvasWidth = 600,
-        int $canvasHeight = 600,
-        int $thumbWidth = 180,
-        int $thumbHeight = 180,
-        string $mainDir = 'characters',
-        string $thumbDir = 'characters/thumbs',
-        int $quality = 9
-    ): array {
-        $mainDir = rtrim($mainDir, '/').'/';
-        $thumbDir = rtrim($thumbDir, '/').'/';
-
-        $original = $this->imageManager->read($file->getRealPath());
-
-        // Canvas principal transparente
-        $mainCanvas = $original->contain($canvasWidth, $canvasHeight, background: 'transparent');
-        $mainPath = $mainDir.$filenameBase.'.png';
-        $mainCanvas->toPng($quality)->save(Storage::disk('public')->path($mainPath));
-
-        // Thumbnail transparente
-        $thumbCanvas = $original->contain($thumbWidth, $thumbHeight, background: 'transparent');
-        $thumbPath = $thumbDir.$filenameBase.'_thumb.png';
-        $thumbCanvas->toPng($quality)->save(Storage::disk('public')->path($thumbPath));
-
-        return [
-            'main' => $mainPath,
-            'thumb' => $thumbPath,
+    private function getExtensionFromFormat(string $format): string
+    {
+        // Mapear formatos comunes al nombre de extensión real
+        $formatMap = [
+            'jpeg' => 'jpg',
+            'jpg' => 'jpg',
+            'png' => 'png',
+            'webp' => 'webp',
+            'gif' => 'gif',
+            // Añadir más si es necesario
         ];
+
+        return $formatMap[strtolower($format)] ?? 'jpg'; // Fallback a 'jpg' si el formato no está mapeado
     }
 }

@@ -223,11 +223,26 @@ class CharacterController extends Controller
             $filenameBase = Str::slug($validated['fullname']).'-'.now()->timestamp;
 
             try {
-                $result = $imageService->makeCanvasWithThumb(
+                /* $result = $imageService->makeCanvasWithThumb(
                     $request->file('picture'),
                     $filenameBase,
                     600, 600, // canvas dims
                     180, 180  // thumb dims
+                ); */
+
+                $result = $imageService->makeMainAndThumbnailImages(
+                    $request->file('picture'),
+                    $filenameBase,
+                    600, 600, // Tamaño canvas principal
+                    'jpeg',   // Formato
+                    90,       // Calidad
+                    '#ffffff', // Color de fondo para JPEG
+                    'characters', // Directorio personalizado
+                    180, 180,  // thumb dims
+                    'jpeg',   // Formato
+                    90,       // Calidad
+                    '#ffffff', // Color de fondo para JPEG
+                    'characters/thumbs', // Directorio personalizado
                 );
 
                 // Eliminar antiguo archivo principal y thumb si existen
