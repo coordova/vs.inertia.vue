@@ -94,7 +94,7 @@ class CharacterController extends Controller
                     180, 180,  // thumb dims
                     'webp',   // Formato
                     60,       // Calidad
-                    'transparent', // Color de fondo para formato webp
+                    '#ffffff', // Color de fondo para formato webp
                     'characters/thumbs', // Directorio personalizado
                 );
 
@@ -260,7 +260,7 @@ class CharacterController extends Controller
                     180, 180,  // thumb dims
                     'webp',   // Formato
                     60,       // Calidad
-                    'transparent', // Color de fondo para formato webp
+                    '#ffffff', // Color de fondo para formato webp
                     'characters/thumbs', // Directorio personalizado
                 );
 
