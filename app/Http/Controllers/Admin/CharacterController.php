@@ -72,7 +72,7 @@ class CharacterController extends Controller
             $filenameBase = Str::slug($request->fullname).'-'.now()->timestamp;
             try {
                 // Crea y guarda la imagen principal y el thumbnail
-                $result = $imageService->makeCanvasWithThumb(
+                /* $result = $imageService->makeCanvasWithThumb(
                     $request->file('picture'),  // UploadedFile
                     $filenameBase,              // nombre base (sin extensión)
                     600,                        // canvas width
@@ -81,6 +81,21 @@ class CharacterController extends Controller
                     180,                        // thumb height
                     'characters/',              // directorio principal
                     'characters/thumbs/'        // directorio thumbnails
+                ); */
+
+                $result = $imageService->makeMainAndThumbnailImages(
+                    $request->file('picture'),
+                    $filenameBase,
+                    600, 600, // Tamaño canvas principal
+                    'webp',   // Formato
+                    60,       // Calidad
+                    'transparent', // Color de fondo para formato webp
+                    'characters', // Directorio personalizado
+                    180, 180,  // thumb dims
+                    'webp',   // Formato
+                    60,       // Calidad
+                    'transparent', // Color de fondo para formato webp
+                    'characters/thumbs', // Directorio personalizado
                 );
 
                 $validated['picture'] = $result['main']; // ruta guardada de imagen principal
@@ -240,12 +255,12 @@ class CharacterController extends Controller
                     600, 600, // Tamaño canvas principal
                     'webp',   // Formato
                     60,       // Calidad
-                    'transparent', // Color de fondo para JPEG
+                    'transparent', // Color de fondo para formato webp
                     'characters', // Directorio personalizado
                     180, 180,  // thumb dims
                     'webp',   // Formato
                     60,       // Calidad
-                    '#ffffff', // Color de fondo para JPEG
+                    'transparent', // Color de fondo para formato webp
                     'characters/thumbs', // Directorio personalizado
                 );
 
