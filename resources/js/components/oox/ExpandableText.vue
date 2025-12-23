@@ -59,26 +59,28 @@ const toggle = () => {
 <template>
     <div class="max-w-lg">
         <!-- Versión donde todo el párrafo es clicable -->
-        <p v-if="clickableText" class="text-sm text-gray-700 leading-relaxed transition-all duration-200 ease-in-out"
+        <p v-if="clickableText"
+            class="text-sm text-muted-foreground leading-relaxed transition-all duration-200 ease-in-out"
             :class="[clampClass, canToggle ? 'cursor-pointer select-none' : '']" @click="toggle">
             {{ text }}
-            <span v-if="!isExpanded && canToggle" class="text-blue-600 font-semibold">
+            <span v-if="!isExpanded && canToggle" class="text-primary font-semibold">
                 {{ expandLabel }}
             </span>
-            <span v-else-if="isExpanded && showCollapseLabel && canToggle" class="ml-1 text-blue-600 font-semibold">
+            <span v-else-if="isExpanded && showCollapseLabel && canToggle" class="ml-1 text-primary font-semibold">
                 ({{ collapseLabel }})
             </span>
         </p>
 
         <!-- Versión con enlace separado "ver más / ver menos" -->
         <div v-else>
-            <p class="text-sm text-gray-700 leading-relaxed transition-all duration-200 ease-in-out"
+            <p class="text-sm text-muted-foreground leading-relaxed transition-all duration-200 ease-in-out"
                 :class="clampClass">
                 {{ text }}
             </p>
 
             <button v-if="canToggle" type="button"
-                class="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-700 focus:outline-none" @click="toggle">
+                class="mt-1 text-xs font-semibold text-muted-foreground hover:text-primary focus:outline-none"
+                @click="toggle">
                 <span v-if="!isExpanded">{{ expandLabel }}</span>
                 <span v-else-if="showCollapseLabel">{{ collapseLabel }}</span>
             </button>

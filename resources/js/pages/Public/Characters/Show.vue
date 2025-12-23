@@ -5,6 +5,7 @@ import PublicAppLayout from '@/layouts/PublicAppLayout.vue';
 // import { type BreadcrumbItem } from '@/types';
 import { CharacterResource } from '@/types/global'; // Asumiendo que tienes una interfaz CharacterResource o similar
 import { User } from 'lucide-vue-next'; // Iconos
+import ExpandableText from '@/components/oox/ExpandableText.vue';
 
 interface Props {
     character: CharacterResource; // Usamos el tipo del recurso resuelto
@@ -91,7 +92,7 @@ const props = defineProps<Props>();
                                 {{ props.character.fullname }}
                             </h3>
                             <p class="mt-1 max-w-2xl text-sm/6 whitespace-pre-line text-muted-foreground">
-                                {{ props.character.bio }}
+                                <ExpandableText :text="props.character.bio" :maxLines="4" />
                             </p>
                         </div>
                         <div class="mt-6 border-t border-sidebar-accent">
