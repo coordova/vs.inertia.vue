@@ -200,7 +200,7 @@ class CharacterController extends Controller
             // 'character' => new CharacterResource($character),
             'character' => CharacterResource::make($character)->resolve(),
             'categories' => $character->categories()->get(['id', 'name', 'slug'/* , 'category_character.elo_rating', 'category_character.status' */]), // get only name, id, and pivot elo_rating
-            'surveys' => $character->surveys()->get(['id', 'title', 'slug', 'is_active', 'survey_matches', 'survey_wins', 'survey_losses', 'survey_ties']), // get only name, id, and pivot elo_rating
+            'surveys' => $character->surveys()->get(['id', 'title', 'slug', 'is_active', 'survey_matches', 'survey_wins', 'survey_losses', 'survey_ties']),
             // 'categories' => $character->categories()->withPivot('elo_rating', 'status')->get(['id', 'name']),
         ]);
     }

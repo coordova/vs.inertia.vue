@@ -21,6 +21,14 @@ interface Props {
             status: number;
         };
     }>;
+    surveys: Array<{
+        id: number;
+        title: string;
+        slug: string;
+        pivot: {
+            is_active: number;
+        }
+    }>;
 }
 
 const props = defineProps<Props>();
@@ -170,6 +178,36 @@ const props = defineProps<Props>();
                                         </ul>
                                     </dd>
                                 </div>
+
+                                <!-- Character Surveys -->
+                                <div v-if="props.surveys.length > 0"
+                                    class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                    <dt class="text-sm/6 font-medium">
+                                        Surveys
+                                    </dt>
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
+                                        <ul class="flex flex-wrap gap-2">
+                                            <li v-for="survey in props.surveys" :key="survey.id">
+                                                <Badge :variant="survey.pivot
+                                                    .is_active === 1
+                                                    ? 'default'
+                                                    : 'secondary'
+                                                    ">
+                                                    {{ survey.title }}
+                                                </Badge>
+                                            </li>
+                                        </ul>
+                                    </dd>
+                                </div>
+                                <div v-else class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                    <dt class="text-sm/6 font-medium">
+                                        Surveys
+                                    </dt>
+                                    <dd class="mt-1 text-sm/6 text-muted-foreground sm:col-span-2 sm:mt-0">
+                                        No surveys
+                                    </dd>
+                                </div>
+
                                 <!-- Character Created at -->
                                 <div class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                     <dt class="text-sm/6 font-medium">
