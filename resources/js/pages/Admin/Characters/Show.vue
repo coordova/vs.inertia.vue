@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ExpandableText from '@/components/oox/ExpandableText.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -161,7 +162,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 {{ props.character.fullname }}
                             </h3>
                             <p class="mt-1 max-w-2xl text-sm/6 whitespace-pre-line text-muted-foreground">
-                                {{ props.character.bio }}
+                                <ExpandableText :text="props.character.bio" :maxLines="3" :clickable-text="true" />
                             </p>
                         </div>
                         <div class="mt-6 border-t border-sidebar-accent">

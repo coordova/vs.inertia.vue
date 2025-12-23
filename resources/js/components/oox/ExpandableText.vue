@@ -1,3 +1,29 @@
+<!-- ExpandableText.vue -->
+<!-- GUIA DE USO 
+<template>
+  <div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
+    <ExpandableText
+      :text="textoLargo"
+      :max-lines="4"
+      :clickable-text="true"
+      expand-label="... leer más"
+      collapse-label="leer menos"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import ExpandableText from '@/components/ExpandableText.vue'
+
+const textoLargo = ref(
+  'Este es un párrafo de texto muy largo que queremos truncar a solo unas pocas líneas para que el diseño sea más limpio. ' +
+  'Cuando el usuario haga clic en el texto, queremos mostrar todo el contenido. ' +
+  'Usaremos Tailwind y un componente reutilizable de Vue para manejar esto de forma limpia y mantenible.'
+)
+</script>
+
+ -->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 

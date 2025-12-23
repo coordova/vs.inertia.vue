@@ -92,7 +92,7 @@ const props = defineProps<Props>();
                                 {{ props.character.fullname }}
                             </h3>
                             <p class="mt-1 max-w-2xl text-sm/6 whitespace-pre-line text-muted-foreground">
-                                <ExpandableText :text="props.character.bio" :maxLines="4" />
+                                <ExpandableText :text="props.character.bio" :maxLines="3" />
                             </p>
                         </div>
                         <div class="mt-6 border-t border-sidebar-accent">
